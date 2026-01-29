@@ -591,31 +591,50 @@ function isMobile() {
   return window.innerWidth <= 768;
 }
 
-// ---- Fetch Google Sheet Data ----
-async function loadData() {
-  try {
-    const res = await fetch("https://script.google.com/macros/s/AKfycbyQG9-FrBkQidkbUzWgVUUHxK7mFVYyru5RO7EKyfOzomliEn8KBCF_bkagjNw_CK8r/exec"); 
-    const data = await res.json();
+// ---- Fetch Google Sheet Data (Directly from Backend) ----
+function loadData() {
+  // We don't need 'fetch' or the URL anymore!
+  google.script.run
+    .withSuccessHandler(function(data) {
+      // This runs when the backend successfully sends the data
+      
+      // 1. Fill General Description
+      woNo.value = data.generalData.woNo || "";
+      partDesc.value = data.generalData.partDesc || "";
+      pn.value = data.generalData.pn || "";
+      sn.value = data.generalData.sn || "";
+      acReg.value = data.generalData.acReg || "";
+      customer.value = data.generalData.customer || "";
 
-    woNo.value = data.generalData.woNo;
-    partDesc.value = data.generalData.partDesc;
-    pn.value = data.generalData.pn;
-    sn.value = data.generalData.sn;
-    acReg.value = data.generalData.acReg;
-    customer.value = data.generalData.customer;
+      // 2. Fill Findings Dropdown
+      findingData = data.findings;
+      materialsByFinding = data.materialsByFinding || {};
+      
+      // Clear dropdown and add options
+      findingSelect.innerHTML = '<option value="">-- Select Finding --</option>';
+      findingData.forEach((f, i) => {
+        const opt = document.createElement("option");
+        opt.value = i;
+        opt.textContent = f.finding;
+        findingSelect.appendChild(opt);
+      });
 
-    findingData = data.findings;
-    materialsByFinding = data.materialsByFinding || {};
-    findingData.forEach((f, i) => {
-      const opt = document.createElement("option");
-      opt.value = i;
-      opt.textContent = f.finding;
-      findingSelect.appendChild(opt);
-    });
-    setButtonsEnabled(true); // enable buttons
-  } catch(err) {
-    console.error("Failed to load data:", err);
-  }
+      // 3. Enable buttons and fix layout
+      setButtonsEnabled(true);
+      updateTableNumbers();
+      updateMaterialCards();
+      
+      // This fixes the column widths after data loads
+      requestAnimationFrame(() => autoFitColumns("materialTable"));
+      
+      console.log("Data loaded successfully!");
+    })
+    .withFailureHandler(function(err) {
+      // This runs if there is an error in Code.gs
+      console.error("Failed to load data:", err);
+      alert("Error loading data: " + err.message);
+    })
+    .getInitialData(); // <--- This triggers the function in your Code.gs
 }
 
 // ---- Update preview when selection changes ----
