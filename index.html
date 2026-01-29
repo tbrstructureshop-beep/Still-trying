@@ -547,6 +547,9 @@ th:nth-child(11), td:nth-child(11) { width: 80px; } /* Column for Delete */
 </head>
 <body>
 
+<!-- Put this anywhere inside the <body> -->
+<datalist id="availabilityList"></datalist>
+  
 <div id="initial-loader">
   <div class="spinner"></div>
   <p style="margin-top: 15px; color: var(--primary-dark); font-weight: 600;">Loading Material Requirement...</p>
@@ -699,6 +702,17 @@ async function loadData() {
     const loader = document.getElementById('initial-loader');
     loader.style.opacity = '0';
     setTimeout(() => loader.style.display = 'none', 500);
+
+    // NEW: Populate Availability Datalist
+    const datalist = document.getElementById("availabilityList");
+    datalist.innerHTML = ""; // clear old options
+    if (data.availabilityOptions) {
+      data.availabilityOptions.forEach(opt => {
+        const option = document.createElement("option");
+        option.value = opt;
+        datalist.appendChild(option);
+      });
+    }    
     
   } catch(err) {
     console.error("Failed to load data:", err);
@@ -772,7 +786,7 @@ function createRow() {
     <td><input></td>
     <td><input type="number"></td>
     <td><input></td>
-    <td><input></td>
+    <td><input list="availabilityList"></td> <!-- Added list attribute here (Index 4) -->
     <td><input></td>
     <td><input></td>
     <td><input></td>
@@ -819,6 +833,7 @@ function createOrUpdateCard(rowIndex) {
     card.className = "material-card";
 
     card.innerHTML = `
+      <div><strong>Availability</strong>: <input data-col="4" data-row="${rowIndex}" list="availabilityList"></div>
       <div class="card-title"><strong>Material ${rowIndex + 1}</strong></div>
       <div class="main">
         <div><strong>Part No</strong>: <input data-col="0" data-row="${rowIndex}"></div>
