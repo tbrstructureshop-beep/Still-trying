@@ -564,7 +564,11 @@ th:nth-child(11), td:nth-child(11) { width: 80px; } /* Column for Delete */
     <div class="finding-preview">
       <div class="image-wrapper">
         <div class="spinner img-spinner" id="imageSpinner"></div> 
-        <img id="findingImage" src="https://via.placeholder.com/300x200" alt="Finding Image" onload="hideImageSpinner()">
+        <!-- Default image set to No Image Available -->
+        <img id="findingImage" 
+           src="https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg" 
+           alt="Finding Image" 
+           onload="hideImageSpinner()">
       </div>
       <div>
         <label>Description</label>
