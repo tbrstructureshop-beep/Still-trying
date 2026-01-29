@@ -313,10 +313,35 @@ button:hover {
   opacity: 0.9;
 }
 
+/* Add to your CSS */
+th:nth-child(11), td:nth-child(11) { width: 80px; } /* Column for Delete */
+
+.btn-row-delete {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: #ff4d4d;
+  padding: 5px;
+  transition: transform 0.2s;
+}
+
+.btn-row-delete:hover {
+  transform: scale(1.2);
+}
+
 /* MATERIAL CARDS (MOBILE) */
 @media (max-width: 768px) {
   table#materialTable {
     display: none;
+  }
+
+  /* For Mobile Card Delete Button */
+  .card-delete-container {
+    text-align: right;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+    margin-top: 10px;
   }
 
   .material-cards {
@@ -466,6 +491,7 @@ button:hover {
           <th>PO</th>
           <th>Note (Reference)</th>
           <th>Entry Date</th>
+          <th>REMOVE MATERIAL</th> <!-- New Header -->
         </tr>
       </thead>
       <tbody></tbody>
@@ -654,6 +680,9 @@ function createOrUpdateCard(rowIndex) {
         <div><strong>PO</strong>: <input data-col="6" data-row="${rowIndex}"></div>
         <div><strong>Note</strong>: <input data-col="7" data-row="${rowIndex}"></div>
         <div><strong>Entry Date</strong>: <input type="date" data-col="8" data-row="${rowIndex}"></div>
+      </div>
+      <div class="card-delete-container">
+        <button class="btn-row-delete" onclick="deleteSpecificRow(null, ${rowIndex})" style="font-size: 14px;">🗑️ Remove Material</button>
       </div>
     `;
 
@@ -888,6 +917,10 @@ function setMaterialEditable(editable) {
     input.readOnly = !editable;
     input.disabled = !editable;
   });
+  // MATERIAL DELETION
+  document.querySelectorAll(".btn-row-delete").forEach(btn => {
+    btn.style.display = editable ? "inline-block" : "none";
+  });
 }
 
 // Trigger save (you can implement backend logic here)
@@ -912,8 +945,30 @@ function setButtonsEnabled(enabled) {
   document.getElementById("editControls").style.display = enabled ? "flex" : "none";
 }
 
+async function deleteSpecificRow(btn, cardIdx = null) {
+  if (!isEditMode) return;
+
+  const rowIndex = btn ? btn.closest("tr").rowIndex - 1 : cardIdx;
+  const row = tableBody.rows[rowIndex];
+  
+  // Get data to identify which row to delete in the spreadsheet (e.g., Part No)
+  const partNo = row.cells[1].querySelector("input").value;
+  const currentFinding = findingSelect.options[findingSelect.selectedIndex].text;
+
+  if (!confirm(`Are you sure you want to delete Material: "${partNo || 'this row'}"?`)) return;
+
+  // 1. Remove from UI
+  tableBody.deleteRow(rowIndex);
+  
+  // 2. Refresh UI numbers
+  updateTableNumbers();
+  if (isMobile()) {
+    updateMaterialCards(); 
+  }
 
 
+/* TABLE SIZING LINE */
+  
 function autoFitColumns(tableId) {
   const table = document.getElementById(tableId);
   if (!table) return;
@@ -955,7 +1010,8 @@ function autoFitColumns(tableId) {
       {min:80, max:120},      // PR
       {min:80, max:120},      // PO
       {min:150, max:300},     // Note
-      {min:120, max:140}      // Entry Date
+      {min:120, max:140},      // Entry Date
+      {min:80, max:100} // 11th Column (Delete)
     ];
 
     const finalWidth = Math.min(Math.max(medianWidth, colCaps[c].min), colCaps[c].max);
@@ -971,7 +1027,6 @@ function autoFitColumns(tableId) {
     }
   }
 }
-
 
 // ---- RESIZE HANDLER ----
 window.addEventListener("resize", () => {
