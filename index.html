@@ -125,6 +125,16 @@ textarea[readonly] {
   border: none;
 }
 
+/* NEW: Make the textareas larger */
+#findingDesc, 
+#findingAction {
+  min-height: 120px; /* Adjust this number to make it taller or shorter */
+  line-height: 1.5;
+  resize: vertical;  /* Allows you to manually stretch it if needed */
+  padding: 12px;
+  background-color: #f0f6f7; /* Slight tint to show it's readonly */
+}
+
 /* TABLE */
 .table-wrapper {
   overflow-x: auto;
@@ -572,9 +582,9 @@ th:nth-child(11), td:nth-child(11) { width: 80px; } /* Column for Delete */
       </div>
       <div>
         <label>Description</label>
-        <textarea id="findingDesc" readonly></textarea>
+        <textarea id="findingDesc" rows="5" readonly></textarea>
         <label style="margin-top:8px;">Action Given</label>
-        <textarea id="findingAction" readonly></textarea>
+        <textarea id="findingAction" rows="5" readonly></textarea>
       </div>
     </div>
   </div> <!--  *** ADD THIS TAG HERE to close the Finding Card *** -->
