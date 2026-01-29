@@ -346,17 +346,17 @@ th:nth-child(11), td:nth-child(11) { width: 80px; } /* Column for Delete */
 #materialTable th:nth-child(11),
 #materialTable td:nth-child(11),
 .card-delete-container {
-  display: none;
+  display: none !important; /* Added !important */
 }
 
 /* Show them only when the card is in edit mode */
 .card.edit-active #materialTable th:nth-child(11),
 .card.edit-active #materialTable td:nth-child(11) {
-  display: table-cell;
+  display: table-cell !important; /* Added !important */
 }
 
 .card.edit-active .card-delete-container {
-  display: block;
+  display: block !important; /* Added !important */
 }
 
 /* Style for the Trash Button */
@@ -728,8 +728,11 @@ findingSelect.addEventListener("change", () => {
 
   // 1. RESET Edit Mode state
   isEditMode = false; 
+
+  // 2. IMPORTANT: Remove the CSS class so the Delete column hides
+  const materialCard = document.getElementById("materialTable").closest(".card");
+  materialCard.classList.remove("edit-active");
   
-  // 2. Reset the Edit Button text
   const editBtn = document.getElementById("editBtn");
   if (editBtn) editBtn.textContent = "✏️ Edit";
 
@@ -1175,15 +1178,18 @@ function setButtonsEnabled(enabled) {
 function deleteSpecificRow(btn, cardIdx = null) {
   if (!isEditMode) return;
 
-  // Find row index (if coming from table button or mobile card)
   let rowIndex;
   if (btn) {
-    rowIndex = btn.closest("tr").rowIndex - 1; // -1 for header
+    // From Table Button
+    rowIndex = btn.closest("tr").rowIndex - 1; 
   } else {
+    // From Mobile Card
     rowIndex = cardIdx;
   }
 
   const row = tableBody.rows[rowIndex];
+  if (!row) return;
+
   const partNo = row.cells[1].querySelector("input").value || "this item";
 
   if (!confirm(`Are you sure you want to remove ${partNo}?`)) return;
@@ -1191,15 +1197,16 @@ function deleteSpecificRow(btn, cardIdx = null) {
   // Remove from Table
   tableBody.deleteRow(rowIndex);
 
-  // Re-sync everything
+  // Update table numbering
   updateTableNumbers();
   
-  if (isMobile()) {
-    // Clear and rebuild cards to ensure IDs and indices match the new table state
-    materialCardsContainer.innerHTML = "";
-    materialCardsMap.clear();
-    updateMaterialCards();
-  }
+  // ALWAYS rebuild cards for mobile to keep indices in sync
+  materialCardsContainer.innerHTML = "";
+  materialCardsMap.clear();
+  updateMaterialCards();
+
+  // Refresh table layout widths
+  requestAnimationFrame(() => autoFitColumns("materialTable"));
 }
 
 /* TABLE SIZING LINE */
