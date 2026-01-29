@@ -1221,12 +1221,13 @@ function setButtonsEnabled(enabled) {
 }
 
   
-function deleteSpecificRow(btn, cardIdx = null) {
+async function deleteSpecificRow(btn, cardIdx = null) {
   if (!isEditMode) return;
 
+  // 1. Identify which row index to delete
   let rowIndex;
   if (btn) {
-    // From Table Button
+    // From Desktop Table Button
     rowIndex = btn.closest("tr").rowIndex - 1; 
   } else {
     // From Mobile Card
@@ -1236,23 +1237,56 @@ function deleteSpecificRow(btn, cardIdx = null) {
   const row = tableBody.rows[rowIndex];
   if (!row) return;
 
+  // Get info for confirmation
   const partNo = row.cells[1].querySelector("input").value || "this item";
+  const findingName = findingSelect.options[findingSelect.selectedIndex].text;
 
-  if (!confirm(`Are you sure you want to remove ${partNo}?`)) return;
+  if (!confirm(`Are you sure you want to PERMANENTLY remove ${partNo} from the spreadsheet?`)) return;
 
-  // Remove from Table
-  tableBody.deleteRow(rowIndex);
+  // 2. Show Loader
+  const loader = document.getElementById('initial-loader');
+  const loaderText = loader.querySelector('p');
+  loaderText.textContent = `Removing ${partNo}...`;
+  loader.style.display = 'flex';
+  loader.style.opacity = '1';
 
-  // Update table numbering
-  updateTableNumbers();
-  
-  // ALWAYS rebuild cards for mobile to keep indices in sync
-  materialCardsContainer.innerHTML = "";
-  materialCardsMap.clear();
-  updateMaterialCards();
+  try {
+    // 3. Call Backend to delete from Spreadsheet
+    const response = await fetch("https://script.google.com/macros/s/AKfycbyQG9-FrBkQidkbUzWgVUUHxK7mFVYyru5RO7EKyfOzomliEn8KBCF_bkagjNw_CK8r/exec", {
+      method: "POST",
+      body: JSON.stringify({
+        action: "delete_row",
+        findingName: findingName,
+        rowIndex: rowIndex
+      })
+    });
 
-  // Refresh table layout widths
-  requestAnimationFrame(() => autoFitColumns("materialTable"));
+    const result = await response.json();
+
+    if (result.status === "success") {
+      // 4. Refresh data from the sheet so the UI matches perfectly
+      loaderText.textContent = "Refreshing data...";
+      await loadData(); // This re-fetches everything
+      
+      // Update UI state
+      const currentFinding = findingSelect.options[findingSelect.selectedIndex].text;
+      loadMaterialForFinding(currentFinding); 
+      
+      // Ensure we stay in edit mode visual state if needed
+      const materialCard = document.getElementById("materialTable").closest(".card");
+      if (isEditMode) materialCard.classList.add("edit-active");
+
+    } else {
+      alert("Error: " + result.message);
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Failed to connect to spreadsheet.");
+  } finally {
+    // 5. Hide Loader
+    loader.style.opacity = '0';
+    setTimeout(() => { loader.style.display = 'none'; }, 500);
+  }
 }
 
 /* TABLE SIZING LINE */
