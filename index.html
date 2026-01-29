@@ -169,7 +169,7 @@ th:nth-child(6), td:nth-child(6) { min-width: 100px; max-width: 140px; } /* Avai
 th:nth-child(7), td:nth-child(7) { min-width: 80px; max-width: 120px; }  /* PR */
 th:nth-child(8), td:nth-child(8) { min-width: 80px; max-width: 120px; }  /* PO */
 th:nth-child(9), td:nth-child(9) { min-width: 150px; max-width: 250px; } /* Note */
-th:nth-child(10), td:nth-child(10) { width: 120px; } /* Entry Date */
+th:nth-child(10), td:nth-child(10) {min-width: 140px; width: 120px; } /* Entry Date */
 
 /* Center everything inside table cells and headers */
 table th,
@@ -730,7 +730,7 @@ findingSelect.addEventListener("change", () => {
   isEditMode = false; 
 
   // 2. IMPORTANT: Remove the CSS class so the Delete column hides
-  const materialCard = document.getElementById("materialTable").closest(".card");
+  {min:140, max:160},     // 10:.getElementById("materialTable").closest(".card");
   materialCard.classList.remove("edit-active");
   
   const editBtn = document.getElementById("editBtn");
@@ -976,10 +976,27 @@ function formatDateForInput(value) {
   return "";
 }
 
-function formatDateForSheet(isoDate) {
-  if (!isoDate) return ""; // Handle empty
-  const [yyyy, mm, dd] = isoDate.split("-");
-  return `${dd}/${mm}/${yyyy}`;
+// Replace your existing formatDateForInput with this robust version
+function formatDateForInput(value) {
+  if (!value) return "";
+
+  // 1. Try to create a date object
+  let d = new Date(value);
+
+  // 2. If it's an invalid date (like dd/mm/yyyy strings), try manual parsing
+  if (isNaN(d.getTime())) {
+    if (typeof value === "string" && value.includes("/")) {
+      const parts = value.split("/");
+      if (parts.length === 3) {
+        // Assume dd/mm/yyyy -> yyyy-mm-dd
+        return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+      }
+    }
+    return ""; // Still invalid
+  }
+
+  // 3. Return strictly YYYY-MM-DD for the input[type=date]
+  return d.toISOString().split("T")[0];
 }
 
 // ---- BUTTON FUNCTIONS ----
@@ -1252,7 +1269,7 @@ function autoFitColumns(tableId) {
       {min:80, max:120},      // PR
       {min:80, max:120},      // PO
       {min:150, max:300},     // Note
-      {min:120, max:140},      // Entry Date
+      {min:140, max:160},      // Entry Date
       {min:80, max:100} // 11th Column (Delete)
     ];
 
