@@ -330,10 +330,32 @@ th:nth-child(11), td:nth-child(11) { width: 80px; } /* Column for Delete */
   transform: scale(1.2);
 }
 
+/* 1. Hide the 11th column (Delete) by default */
+#materialTable th:nth-child(11),
+#materialTable td:nth-child(11) {
+  display: none;
+}
+
+/* 2. Show the 11th column only when the card is in edit-mode */
+.card.edit-active #materialTable th:nth-child(11),
+.card.edit-active #materialTable td:nth-child(11) {
+  display: table-cell;
+}
+
+
 /* MATERIAL CARDS (MOBILE) */
 @media (max-width: 768px) {
   table#materialTable {
     display: none;
+  }
+
+   /* 3. Do the same for the Mobile Card delete buttons */
+  .card-delete-container {
+    display: none; /* Hide by default */
+  }
+
+  .card.edit-active .card-delete-container {
+    display: block; /* Show in edit mode */
   }
 
   /* For Mobile Card Delete Button */
@@ -900,10 +922,20 @@ function toggleEdit() {
   const editBtn = document.getElementById("editBtn");
   editBtn.textContent = isEditMode ? "❌ Cancel Edit" : "✏️ Edit";  // Toggle button text
 
+  // --- ADD THIS PART ---
+  if (isEditMode) {
+    cardContainer.classList.add("edit-active"); // This triggers the CSS to show the column
+  } else {
+    cardContainer.classList.remove("edit-active"); // This triggers the CSS to hide the column
+  }
+
   // Show or hide the edit controls based on edit mode
   document.getElementById("editControls").style.display = isEditMode ? "flex" : "none";
   setMaterialEditable(isEditMode);  // Toggle read-only/disabled for table and cards
   updateMaterialCards();  // Update the material cards in mobile view
+  
+  // Re-run autofit because the table width changes when a column appears/disappears
+  requestAnimationFrame(() => autoFitColumns("materialTable"));
 }
 
 
@@ -919,10 +951,6 @@ function setMaterialEditable(editable) {
   materialCardsContainer.querySelectorAll("input").forEach(input => {
     input.readOnly = !editable;
     input.disabled = !editable;
-  });
-  // MATERIAL DELETION
-  document.querySelectorAll(".btn-row-delete").forEach(btn => {
-    btn.style.display = editable ? "inline-block" : "none";
   });
 }
 
