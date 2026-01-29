@@ -1037,21 +1037,60 @@ function removeLastRow() {
 
 
 
-// Reset table to a single row and sync cards, with confirmation
-function resetTable() {
+// Reset table to a single row and sync cards, with confirmation and backend deletion
+async function resetTable() {
   const idx = findingSelect.selectedIndex;
-  const findingNo = findingSelect.options[idx]?.text || "";
+  const findingName = findingSelect.options[idx]?.text || "";
   
-  if (!confirm(`Are you sure deleting all material input for Finding No: "${findingNo}"?`)) {
-    return; // user cancelled
+  if (!findingName || findingName.includes("--")) {
+    alert("Please select a finding first.");
+    return;
   }
 
-  // Clear table and cards
-  tableBody.innerHTML = "";
-  materialCardsContainer.innerHTML = "";
-  materialCardsMap.clear();
+  const confirmReset = confirm(`Are you sure you want to PERMANENTLY DELETE all material records for: "${findingName}"?`);
+  
+  if (confirmReset) {
+    try {
+      // Show loading state if you want
+      const resetBtn = document.querySelector(".btn-reset");
+      const originalText = resetBtn.textContent;
+      resetBtn.textContent = "Deleting...";
+      resetBtn.disabled = true;
 
-  addRow(); // addRow handles card creation for mobile
+      const response = await fetch("https://script.google.com/macros/s/AKfycbyQG9-FrBkQidkbUzWgVUUHxK7mFVYyru5RO7EKyfOzomliEn8KBCF_bkagjNw_CK8r/exec", {
+        method: "POST",
+        body: JSON.stringify({
+          action: "delete",
+          findingName: findingName
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.status === "success") {
+        alert("Materials deleted successfully.");
+        
+        // UI Clean up
+        clearMaterialTable();
+        addRow(); // Add one blank row
+        
+        // Refresh local data cache
+        await loadData();
+        
+        // If in edit mode, exit it
+        if (isEditMode) toggleEdit();
+      } else {
+        alert("Error deleting data: " + (result.message || "Unknown error"));
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      alert("Failed to delete. Check console for details.");
+    } finally {
+      const resetBtn = document.querySelector(".btn-reset");
+      resetBtn.textContent = "🔄 Reset Material";
+      resetBtn.disabled = false;
+    }
+  }
 }
 
 // Toggle button to edit data material
