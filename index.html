@@ -677,6 +677,7 @@ function isMobile() {
 
 // ---- Fetch Google Sheet Data ----
 async function loadData() {
+  const loader = document.getElementById('initial-loader');
   try {
     const res = await fetch("https://script.google.com/macros/s/AKfycbyQG9-FrBkQidkbUzWgVUUHxK7mFVYyru5RO7EKyfOzomliEn8KBCF_bkagjNw_CK8r/exec"); 
     const data = await res.json();
@@ -699,7 +700,6 @@ async function loadData() {
     setButtonsEnabled(true); // enable buttons
     
     // HIDE THE INITIAL LOADER HERE
-    const loader = document.getElementById('initial-loader');
     loader.style.opacity = '0';
     setTimeout(() => loader.style.display = 'none', 500);
 
@@ -716,7 +716,11 @@ async function loadData() {
     
   } catch(err) {
     console.error("Failed to load data:", err);
-    document.getElementById('initial-loader').innerHTML = "<p>Error loading data. Please refresh.</p>";
+    loader.innerHTML = "<p style='color:red;'>Error loading data. Please check your internet or Script URL.</p>";
+  } finally {
+    // This runs whether the fetch SUCCEEDS or FAILS
+    loader.style.opacity = '0';
+    setTimeout(() => loader.style.display = 'none', 500);
   }
 }
 
@@ -730,7 +734,7 @@ findingSelect.addEventListener("change", () => {
   isEditMode = false; 
 
   // 2. IMPORTANT: Remove the CSS class so the Delete column hides
-  {min:140, max:160},     // 10:.getElementById("materialTable").closest(".card");
+  const materialCard = document.getElementById("materialTable").closest(".card");
   materialCard.classList.remove("edit-active");
   
   const editBtn = document.getElementById("editBtn");
@@ -948,32 +952,6 @@ function loadMaterialForFinding(findingNo) {
 
   // <-- Call auto-fit
   autoFitColumns("materialTable");
-}
-
-
-// Converts either a Date object or "dd/mm/yyyy" string to "YYYY-MM-DD" for <input type="date">
-function formatDateForInput(value) {
-  if (!value) return "";
-
-  // If value is already yyyy-MM-dd (Backend now sends this)
-  if (typeof value === "string" && value.includes("-")) {
-    return value; 
-  }
-
-  // If value is dd/mm/yyyy (Fallback for old data)
-  if (typeof value === "string" && value.includes("/")) {
-    const parts = value.split("/");
-    if (parts.length === 3) {
-      return `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
-    }
-  }
-
-  // If it's a JS Date object
-  if (value instanceof Date && !isNaN(value)) {
-    return value.toISOString().split("T")[0];
-  }
-
-  return "";
 }
 
 // Replace your existing formatDateForInput with this robust version
