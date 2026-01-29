@@ -829,7 +829,7 @@ function loadMaterialForFinding(findingNo) {
 function formatDateForInput(value) {
   if (!value) return "";
 
-  // Case 1: value is a Date object
+  // If it's already a Date object (sometimes happens with Google Apps Script)
   if (value instanceof Date && !isNaN(value)) {
     const yyyy = value.getFullYear();
     const mm = String(value.getMonth() + 1).padStart(2, "0");
@@ -837,19 +837,24 @@ function formatDateForInput(value) {
     return `${yyyy}-${mm}-${dd}`;
   }
 
-  // Case 2: value is a string "dd/mm/yyyy"
+  // If it's a string "DD/MM/YYYY"
   if (typeof value === "string") {
     const parts = value.split("/");
     if (parts.length === 3) {
       const [dd, mm, yyyy] = parts;
-      return `${yyyy}-${mm.padStart(2,"0")}-${dd.padStart(2,"0")}`;
+      // Returns YYYY-MM-DD which the <input type="date"> requires
+      return `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
     }
   }
 
   return "";
 }
 
-
+function formatDateForSheet(isoDate) {
+  if (!isoDate) return ""; // Handle empty
+  const [yyyy, mm, dd] = isoDate.split("-");
+  return `${dd}/${mm}/${yyyy}`;
+}
 
 // ---- BUTTON FUNCTIONS ----
 
@@ -976,11 +981,24 @@ function setMaterialEditable(editable) {
 
 // Trigger save (you can implement backend logic here)
 function saveData() {
-  const allData = Array.from(tableBody.rows).map(row =>
-    Array.from(row.cells).map(cell => cell.querySelector("input")?.value || "")
-  );
-  console.log("Data to save:", allData);
-  alert("Save triggered (check console for data)");
+  const allData = Array.from(tableBody.rows).map(row => {
+    const inputs = row.querySelectorAll("input");
+    return {
+      partNo: inputs[0].value,
+      description: inputs[1].value,
+      qty: inputs[2].value,
+      uom: inputs[3].value,
+      availability: inputs[4].value,
+      pr: inputs[5].value,
+      po: inputs[6].value,
+      note: inputs[7].value,
+      // CONVERT BACK TO DD/MM/YYYY HERE:
+      dateChange: formatDateForSheet(inputs[8].value) 
+    };
+  });
+
+  console.log("Data formatted for Sheet:", allData);
+  // Now send 'allData' to your Google Script
 }
 
 function setButtonsEnabled(enabled) {
