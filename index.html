@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PIR Dashboard</title>
+<style>
+:root {
+  --primary: #3fa2a9;        /* main teal for buttons */
+  --primary-dark: #2e7d85;   /* hover variant */
+  --bg: #e6f7f8;             /* slightly tinted background for liveliness */
+  --card: #ffffff;            /* keep cards white */
+  --border: #b0d7db;         /* softer tealish border */
+  --text: #2c2f33;           /* main text */
+  --text-light: #6c6f73;     /* muted text */
+  --hover: #d0f2f3;           /* hover highlight with light teal tint */
+  --accent: #f4b400;         /* optional highlight */
+}
+
+/* GLOBAL STYLING */
+* {
+  box-sizing: border-box;
+  font-family: "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: linear-gradient(120deg, #e6f7f8 0%, #f4f8fb 100%);
+  color: var(--text);
+}
+
+.container {
+  max-width: 1200px;
+  margin: auto;
+  padding: 16px;
+}
+
+/* CARDS */
+.card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #c0e0e0; /* subtle teal border */
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 0.3s, transform 0.2s;
+  position: relative; 
+  padding-bottom: 50px;
+}
+
+.card:hover {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
+  background: #e0f7f8; /* hover highlight */
+}
+
+/* CARD ZEBRA STRIPES */
+.card:nth-child(odd) {
+  background: #ffffff; /* keep white for odd cards */
+}
+
+.card:nth-child(even) {
+  background: #f0f9f9; /* subtle light teal for even cards */
+}
+ 
+/* FORM */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  font-size: 13px;
+  margin-bottom: 4px;
+  color: var(--primary-dark);
+  font-weight: 500;
+}
+
+input,
+select,
+textarea {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font-size: 14px;
+  width: 100%;
+  transition: border-color 0.2s, background 0.2s;
+  background: #f9fcfc;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: #e0f7f8;
+}
+
+/* Readonly fields */
+input[readonly],
+textarea[readonly] {
+  background-color: #f0f6f7;
+  cursor: not-allowed;
+  color: var(--text-light);
+}
+
+/* FINDING PREVIEW */
+.finding-preview {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.finding-preview img {
+  width: 100%;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+}
+
+/* TABLE */
+.table-wrapper {
+  overflow-x: auto;
+  margin-top: 12px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto; /* let JS control widths based on input content */
+}
+
+th, td {
+  border: 1px solid var(--border);
+  padding: 8px;
+  font-size: 13px;
+  vertical-align: middle;
+  white-space: normal;
+  word-break: break-word;
+  text-align: center;
+}
+
+/* Column-specific width caps (prevent stretching) */
+th:nth-child(1), td:nth-child(1) { width: 40px; }      /* No */
+th:nth-child(2), td:nth-child(2) { min-width: 120px; max-width: 180px; } /* Part No */
+th:nth-child(3), td:nth-child(3) { min-width: 180px; max-width: 320px; } /* Description */
+th:nth-child(4), td:nth-child(4) { width: 60px; }     /* Qty */
+th:nth-child(5), td:nth-child(5) { width: 60px; }     /* UoM */
+th:nth-child(6), td:nth-child(6) { min-width: 100px; max-width: 140px; } /* Availability */
+th:nth-child(7), td:nth-child(7) { min-width: 80px; max-width: 120px; }  /* PR */
+th:nth-child(8), td:nth-child(8) { min-width: 80px; max-width: 120px; }  /* PO */
+th:nth-child(9), td:nth-child(9) { min-width: 150px; max-width: 250px; } /* Note */
+th:nth-child(10), td:nth-child(10) { width: 120px; } /* Entry Date */
+
+/* Center everything inside table cells and headers */
+table th,
+table td {
+  text-align: center;
+}
+
+/* Table headers styling */
+th {
+  background: var(--primary);
+  color: white;
+  font-weight: 600;
+}
+
+/* Zebra stripes & hover */
+tr:nth-child(even) {
+  background: #f0f9f9;
+}
+
+tr:hover {
+  background: var(--hover);
+}
+
+/* Base input style inside table cells */
+td input {
+  padding: 6px;
+  font-size: 13px;
+  width: 100%;
+  display: block;
+  margin: 0 auto;          /* center horizontally */
+  transition: background 0.2s, border-color 0.2s;
+
+  white-space: nowrap;     /* input stays single-line */
+  overflow-x: auto;        /* scroll instead of hiding */
+  overflow-y: hidden;
+  text-overflow: clip;     /* no ellipsis */
+  text-align: center;      /* ✅ center input text */
+}
+
+/* Input focus styling */
+td input:focus {
+  background: #e0f7f8;
+  border-color: var(--primary);
+}
+
+/* Hover preview (desktop only) */
+td input:hover {
+  position: relative;
+  z-index: 10;
+}
+
+td input:hover::after {
+  content: attr(value);
+  position: absolute;
+  left: 0;
+  top: 100%;
+  background: #fff;
+  border: 1px solid var(--border);
+  padding: 6px;
+  white-space: normal;
+  width: max-content;
+  max-width: 400px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  pointer-events: none;    /* prevent flicker */
+}
+
+/* BUTTONS */
+.button-bar {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.left-buttons,
+.right-button {
+  display: flex;
+  gap: 10px;
+}
+
+button {
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+}
+
+button:hover {
+  transform: scale(1.03);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* BUTTON COLORS (unchanged) */
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+.btn-primary:hover {
+  background: var(--primary-dark);
+}
+
+.btn-outline {
+  background: white;
+  border: 1px solid var(--border);
+}
+.btn-outline:hover {
+  background: var(--hover);
+}
+
+.btn-danger {
+  background: #c0392b;
+  color: white;
+}
+.btn-danger:hover {
+  background: #a83225;
+}
+
+.btn-add {
+  background: #787f80;
+  color: white;
+}
+.btn-add:hover {
+  background: #6e7374;
+}
+
+.btn-delete {
+  background: #4f5454;
+  color: white;
+}
+.btn-delete:hover {
+  background: #3f4344;
+}
+
+.btn-reset {
+  background: #23292b;
+  color: white;
+}
+.btn-reset:hover {
+  background: #1b1f21;
+}
+
+.btn-edit {
+  background: #678f4f;
+  color: white;
+}
+.btn-edit.cancel {
+  background: #b04851;
+}
+.btn-edit:hover {
+  opacity: 0.9;
+}
+
+/* MATERIAL CARDS (MOBILE) */
+@media (max-width: 768px) {
+  table#materialTable {
+    display: none;
+  }
+
+  .material-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .material-card {
+    background: #ffffff;
+    border: 1px solid #c0e0e0;
+    border-radius: 12px;
+    padding: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: box-shadow 0.3s, transform 0.2s, background 0.2s;
+  }
+
+  /* Zebra stripes for material cards (mobile) */
+  .material-cards .material-card:nth-child(odd) {
+    background: #ffffff; /* odd cards white */
+  }
+
+  .material-cards .material-card:nth-child(even) {
+    background: #f0f9f9; /* even cards light teal */
+  }
+
+  /* Hover highlight */
+  .material-cards .material-card:hover {
+    background: #e0f7f8; /* subtle teal hover */
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+  }
+
+  .material-card .card-title {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 6px;
+    color: var(--primary-dark);
+  }
+
+  .material-card .main {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .material-card .main div {
+    flex: 1 1 45%;
+    font-size: 13px;
+  }
+
+  .material-card .detail {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    font-size: 12px;
+  }
+
+  .material-card .detail div {
+    overflow-wrap: break-word;
+  }
+
+  .material-card input {
+    text-align: left;
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .material-card input:focus {
+    background: #e0f7f8;
+    border-color: var(--primary);
+  }
+
+  .button-bar {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .left-buttons {
+    display: flex;
+    gap: 10px;
+  }
+
+  .right-button {
+    display: flex;
+    margin-left: auto;
+  }
+}
+</style>
+
+</head>
+<body>
+<div class="container">
+
+  <!-- GENERAL DESCRIPTION -->
+  <div class="card">
+    <h3>General Description</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>WO No</label><input id="woNo" readonly></div>
+      <div class="form-group"><label>Part Description</label><input id="partDesc" readonly></div>
+      <div class="form-group"><label>PN</label><input id="pn" readonly></div>
+      <div class="form-group"><label>SN</label><input id="sn" readonly></div>
+      <div class="form-group"><label>A/C Reg</label><input id="acReg" readonly></div>
+      <div class="form-group"><label>Customer</label><input id="customer" readonly></div>
+    </div>
+  </div>
+
+  <!-- FINDING -->
+  <div class="card">
+    <h3>Selected Finding</h3>
+    <div class="form-group">
+      <label>Finding</label>
+      <select id="findingSelect">
+        <option value="">-- Select Finding --</option>
+      </select>
+    </div>
+    <div class="finding-preview">
+      <img id="findingImage" src="https://via.placeholder.com/300x200" alt="Finding Image">
+      <div>
+        <label>Description</label>
+        <textarea id="findingDesc" readonly></textarea>
+        <label style="margin-top:8px;">Action Given</label>
+        <textarea id="findingAction" readonly></textarea>
+      </div>
+    </div>
+  </div>
+
+<!-- MATERIAL ROW -->
+<div class="card">
+  <h3>Material Row</h3>
+
+  <div class="table-wrapper">
+    <table id="materialTable">
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>Part No.</th>
+          <th>Material Description</th>
+          <th>Qty</th>
+          <th>UoM</th>
+          <th>Availability</th>
+          <th>PR</th>
+          <th>PO</th>
+          <th>Note (Reference)</th>
+          <th>Entry Date</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div class="material-cards" id="materialCards"></div>
+
+  <div class="button-bar">
+    <div class="left-buttons" id="editControls" style="display: none;">
+      <button class="btn-add" onclick="addRow()">➕ Add Row</button>
+      <button class="btn-delete" onclick="removeLastRow()">🗑️ Cancel Row</button>
+      <button class="btn-reset" onclick="resetTable()">🔄 Reset Material</button>
+      <button class="btn-primary" onclick="saveData()">💾 Save</button>
+    </div>
+
+    <div class="right-button">
+      <button class="btn-edit" id="editBtn" onclick="toggleEdit()">✏️ Edit</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let isEditMode = false;
+let materialsByFinding = {};
+  
+const tableBody = document.querySelector("#materialTable tbody");
+const materialCardsContainer = document.getElementById("materialCards");
+
+const findingSelect = document.getElementById("findingSelect");
+const findingImage = document.getElementById("findingImage");
+const findingDesc = document.getElementById("findingDesc");
+const findingAction = document.getElementById("findingAction");
+
+const woNo = document.getElementById("woNo");
+const partDesc = document.getElementById("partDesc");
+const pn = document.getElementById("pn");
+const sn = document.getElementById("sn");
+const acReg = document.getElementById("acReg");
+const customer = document.getElementById("customer");
+
+let findingData = [];
+
+function toISODate(value) {
+  if (!value) return "";
+
+  const d = new Date(value);
+  if (isNaN(d)) return "";
+
+  return d.toISOString().split("T")[0]; // YYYY-MM-DD
+}
+
+
+// ----- HELPER -----
+function isMobile() {
+  return window.innerWidth <= 768;
+}
+
+// ---- Fetch Google Sheet Data ----
+async function loadData() {
+  try {
+    const res = await fetch("https://script.google.com/macros/s/AKfycbyQG9-FrBkQidkbUzWgVUUHxK7mFVYyru5RO7EKyfOzomliEn8KBCF_bkagjNw_CK8r/exec"); 
+    const data = await res.json();
+
+    woNo.value = data.generalData.woNo;
+    partDesc.value = data.generalData.partDesc;
+    pn.value = data.generalData.pn;
+    sn.value = data.generalData.sn;
+    acReg.value = data.generalData.acReg;
+    customer.value = data.generalData.customer;
+
+    findingData = data.findings;
+    materialsByFinding = data.materialsByFinding || {};
+    findingData.forEach((f, i) => {
+      const opt = document.createElement("option");
+      opt.value = i;
+      opt.textContent = f.finding;
+      findingSelect.appendChild(opt);
+    });
+    setButtonsEnabled(true); // enable buttons
+  } catch(err) {
+    console.error("Failed to load data:", err);
+  }
+}
+
+// ---- Update preview when selection changes ----
+findingSelect.addEventListener("change", () => {
+  const idx = findingSelect.value;
+
+  if (idx === "") {
+    // No finding selected
+    findingImage.src = "https://via.placeholder.com/300x200";
+    findingDesc.value = "";
+    findingAction.value = "";
+    clearMaterialTable();
+    addRow(); // Add an empty row for the user to fill
+    setButtonsEnabled(false); // Disable buttons (in view-only mode)
+    document.getElementById("editControls").style.display = "none"; // Hide edit controls
+    return;
+  }
+
+  const f = findingData[idx];
+  findingImage.src = f.image || "https://via.placeholder.com/300x200";
+  findingDesc.value = f.description;
+  findingAction.value = f.action;
+
+  // Show the material list for the selected finding
+  loadMaterialForFinding(f.finding);
+
+  setButtonsEnabled(true); // Enable buttons now
+  document.getElementById("editControls").style.display = "none"; // Edit controls should not show automatically
+});
+
+
+
+// ---- MATERIAL TABLE / CARD FUNCTIONS ----
+function createRow() {
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td class="row-number"></td>
+    <td><input></td>
+    <td><input></td>
+    <td><input type="number"></td>
+    <td><input></td>
+    <td><input></td>
+    <td><input></td>
+    <td><input></td>
+    <td><input></td>
+    <td><input type="date"></td>
+  `;
+  // Apply edit mode state immediately
+  setRowEditable(tr, isEditMode);
+  return tr;
+}
+
+// Apply readOnly/disabled to a row
+function setRowEditable(row, editable) {
+  row.querySelectorAll("input").forEach(input => {
+    input.readOnly = !editable;
+    input.disabled = !editable;
+  });
+}
+
+
+function updateTableNumbers() {
+  Array.from(tableBody.rows).forEach((row, idx) => {
+    row.querySelector(".row-number").textContent = idx + 1;
+  });
+}
+
+const materialCardsMap = new Map(); // rowIndex -> card element
+
+function createOrUpdateCard(rowIndex) {
+  const row = tableBody.rows[rowIndex];
+  if (!row) return;
+
+  // Map all inputs in the table row (skip the first column "No")
+  const tableInputs = Array.from(row.cells)
+    .slice(1) // skip row-number
+    .map(cell => cell.querySelector("input")?.value || "");
+
+  let card = materialCardsMap.get(rowIndex);
+
+  if (!card) {
+    card = document.createElement("div");
+    card.className = "material-card";
+
+    card.innerHTML = `
+      <div class="card-title"><strong>Material ${rowIndex + 1}</strong></div>
+      <div class="main">
+        <div><strong>Part No</strong>: <input data-col="0" data-row="${rowIndex}"></div>
+        <div><strong>Material Description</strong>: <input data-col="1" data-row="${rowIndex}"></div>
+        <div><strong>Qty</strong>: <input type="number" data-col="2" data-row="${rowIndex}"></div>
+        <div><strong>UoM</strong>: <input data-col="3" data-row="${rowIndex}"></div>
+      </div>
+      <div class="detail">
+        <div><strong>Availability</strong>: <input data-col="4" data-row="${rowIndex}"></div>
+        <div><strong>PR</strong>: <input data-col="5" data-row="${rowIndex}"></div>
+        <div><strong>PO</strong>: <input data-col="6" data-row="${rowIndex}"></div>
+        <div><strong>Note</strong>: <input data-col="7" data-row="${rowIndex}"></div>
+        <div><strong>Entry Date</strong>: <input type="date" data-col="8" data-row="${rowIndex}"></div>
+      </div>
+    `;
+
+    // 🔒 Respect edit mode & sync card → table
+    card.querySelectorAll("input").forEach(input => {
+      const col = Number(input.dataset.col);
+      const rowIdx = Number(input.dataset.row);
+
+      input.readOnly = !isEditMode;
+      input.disabled = false;
+
+      // When card input changes → update table
+      input.addEventListener("input", e => {
+        const tInput = row.cells[col + 1]?.querySelector("input"); // +1 skips "No" column
+        if (tInput && tInput.value !== e.target.value) {
+          tInput.value = e.target.value;
+        }
+      });
+    });
+
+    materialCardsContainer.appendChild(card);
+    materialCardsMap.set(rowIndex, card);
+  }
+
+  // ✅ Update card inputs with table values safely
+  const cardInputs = card.querySelectorAll("input");
+  cardInputs.forEach((input, col) => {
+    // +1 because table row includes "No" column
+    const tableValue = row.cells[col + 1]?.querySelector("input")?.value || "";
+    if (input.value !== tableValue) input.value = tableValue;
+  });
+}
+
+
+function updateCardNumbers() {
+  materialCardsMap.forEach((card, idx) => {
+    const title = card.querySelector(".card-title");
+    if (title) title.textContent = `Material ${idx + 1}`;
+  });
+}
+  
+function updateMaterialCards() {
+  if (!isMobile()) {
+    materialCardsContainer.innerHTML = "";
+    materialCardsMap.clear();
+    return;
+  }
+
+  for (let i = 0; i < tableBody.rows.length; i++) {
+    createOrUpdateCard(i);
+  }
+}
+
+function clearMaterialTable() {
+  tableBody.innerHTML = "";
+  materialCardsContainer.innerHTML = "";
+  materialCardsMap.clear();
+}
+
+function loadMaterialForFinding(findingNo) {
+  clearMaterialTable();
+
+  const materials = materialsByFinding[findingNo] || [];
+
+  if (materials.length === 0) {
+    addRow();
+    return;
+  }
+
+  materials.forEach(mat => {
+    const row = createRow();
+    tableBody.appendChild(row);
+
+    const inputs = row.querySelectorAll("input");
+    inputs[0].value = mat.partNo || "";
+    inputs[1].value = mat.description || "";
+    inputs[2].value = mat.qty || "";
+    inputs[3].value = mat.uom || "";
+    inputs[4].value = mat.availability || "";
+    inputs[5].value = mat.pr || "";
+    inputs[6].value = mat.po || "";
+    inputs[7].value = mat.note || "";
+
+    // ✅ Convert Date object or string to YYYY-MM-DD
+    inputs[8].value = formatDateForInput(mat.dateChange);
+  });
+
+  // ✅ Update numbers for the table
+  updateTableNumbers();
+
+  // Update mobile cards
+  updateMaterialCards();
+
+  // <-- Call auto-fit
+  autoFitColumns("materialTable");
+}
+
+
+// Converts either a Date object or "dd/mm/yyyy" string to "YYYY-MM-DD" for <input type="date">
+function formatDateForInput(value) {
+  if (!value) return "";
+
+  // Case 1: value is a Date object
+  if (value instanceof Date && !isNaN(value)) {
+    const yyyy = value.getFullYear();
+    const mm = String(value.getMonth() + 1).padStart(2, "0");
+    const dd = String(value.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  // Case 2: value is a string "dd/mm/yyyy"
+  if (typeof value === "string") {
+    const parts = value.split("/");
+    if (parts.length === 3) {
+      const [dd, mm, yyyy] = parts;
+      return `${yyyy}-${mm.padStart(2,"0")}-${dd.padStart(2,"0")}`;
+    }
+  }
+
+  return "";
+}
+
+
+
+// ---- BUTTON FUNCTIONS ----
+
+// Add a new row and create a corresponding material card (mobile)
+function addRow() {
+  const newRow = createRow();
+  tableBody.appendChild(newRow);
+  updateTableNumbers(); // ✅ update numbering
+
+  // Only create card if on mobile
+  if (isMobile()) {
+    const rowIndex = tableBody.rows.length - 1;
+    createOrUpdateCard(rowIndex);
+  }
+  // <-- Call auto-fit
+  autoFitColumns("materialTable");
+}
+
+// Remove last row and remove its corresponding material card (mobile)
+function removeLastRow() {
+  const lastIndex = tableBody.rows.length - 1;
+  if (lastIndex < 0) return;
+
+  const lastRow = tableBody.rows[lastIndex];
+
+  // 🔒 Check if row is empty before removing
+  const inputs = Array.from(lastRow.querySelectorAll("input"));
+  const isEmpty = inputs.every(input => !input.value.trim());
+
+  if (!isEmpty) {
+    alert("Cannot remove a row that has data filled in.");
+    return;
+  }
+
+  // Remove row from table
+  tableBody.deleteRow(lastIndex);
+
+  // Remove corresponding card (mobile)
+  if (isMobile()) {
+    const card = materialCardsMap.get(lastIndex);
+    if (card) {
+      materialCardsContainer.removeChild(card);
+      materialCardsMap.delete(lastIndex);
+    }
+
+    // Rebuild cards map
+    const newMap = new Map();
+    Array.from(materialCardsContainer.children).forEach((card, idx) => {
+      card.querySelectorAll("input").forEach(input => input.dataset.row = idx);
+      card.querySelector(".card-title").textContent = `Material ${idx + 1}`;
+      newMap.set(idx, card);
+    });
+    materialCardsMap.clear();
+    newMap.forEach((v, k) => materialCardsMap.set(k, v));
+  }
+
+  updateTableNumbers();
+}
+
+
+
+// Reset table to a single row and sync cards, with confirmation
+function resetTable() {
+  const idx = findingSelect.selectedIndex;
+  const findingNo = findingSelect.options[idx]?.text || "";
+  
+  if (!confirm(`Are you sure deleting all material input for Finding No: "${findingNo}"?`)) {
+    return; // user cancelled
+  }
+
+  // Clear table and cards
+  tableBody.innerHTML = "";
+  materialCardsContainer.innerHTML = "";
+  materialCardsMap.clear();
+
+  addRow(); // addRow handles card creation for mobile
+}
+
+
+// Toggle button to edit data material
+function toggleEdit() {
+  if (findingSelect.value === "" || findingSelect.value === "-- Select Finding --") {
+    alert("Please select a finding first!");
+    return; // Prevent further execution if no finding is selected
+  }
+
+  isEditMode = !isEditMode;  // Toggle edit mode
+
+  const editBtn = document.getElementById("editBtn");
+  editBtn.textContent = isEditMode ? "❌ Cancel Edit" : "✏️ Edit";  // Toggle button text
+
+  // Show or hide the edit controls based on edit mode
+  document.getElementById("editControls").style.display = isEditMode ? "flex" : "none";
+  setMaterialEditable(isEditMode);  // Toggle read-only/disabled for table and cards
+  updateMaterialCards();  // Update the material cards in mobile view
+}
+
+
+// Editable Controller
+function setMaterialEditable(editable) {
+  // TABLE inputs
+  tableBody.querySelectorAll("input").forEach(input => {
+    input.readOnly = !editable;
+    input.disabled = !editable;
+  });
+
+  // CARD inputs (mobile)
+  materialCardsContainer.querySelectorAll("input").forEach(input => {
+    input.readOnly = !editable;
+    input.disabled = !editable;
+  });
+}
+
+// Trigger save (you can implement backend logic here)
+function saveData() {
+  const allData = Array.from(tableBody.rows).map(row =>
+    Array.from(row.cells).map(cell => cell.querySelector("input")?.value || "")
+  );
+  console.log("Data to save:", allData);
+  alert("Save triggered (check console for data)");
+}
+
+function setButtonsEnabled(enabled) {
+  const editBtn = document.getElementById("editBtn");
+  document.querySelectorAll("#editControls button").forEach(btn => {
+    btn.disabled = !enabled;
+    btn.style.opacity = enabled ? "1" : "0.6"; // optional visual cue
+    btn.style.cursor = enabled ? "pointer" : "not-allowed";
+  });
+
+  // Pastikan edit button hanya aktif setelah finding dipilih
+  editBtn.disabled = !enabled;
+  document.getElementById("editControls").style.display = enabled ? "flex" : "none";
+}
+
+
+
+function autoFitColumns(tableId) {
+  const table = document.getElementById(tableId);
+  if (!table) return;
+
+  const colCount = table.rows[0]?.cells.length;
+  if (!colCount) return;
+
+  for (let c = 0; c < colCount; c++) {
+    const widths = [];
+
+    for (let r = 0; r < table.rows.length; r++) {
+      const cell = table.rows[r].cells[c];
+      if (!cell) continue;
+
+      const input = cell.querySelector("input");
+      if (input) {
+        // Include padding in measurement
+        const computedStyle = window.getComputedStyle(input);
+        const padding = parseFloat(computedStyle.paddingLeft) + parseFloat(computedStyle.paddingRight);
+        widths.push(input.scrollWidth + padding);
+      }
+    }
+
+    if (!widths.length) continue;
+
+    // Take median to avoid extreme values affecting column
+    widths.sort((a, b) => a - b);
+    const mid = Math.floor(widths.length / 2);
+    const medianWidth = widths.length % 2 ? widths[mid] : (widths[mid - 1] + widths[mid]) / 2;
+
+    // Apply sensible caps per column
+    const colCaps = [
+      {min:40, max:40},       // No
+      {min:120, max:200},     // Part No
+      {min:180, max:350},     // Description
+      {min:60, max:80},       // Qty
+      {min:60, max:80},       // UoM
+      {min:100, max:150},     // Availability
+      {min:80, max:120},      // PR
+      {min:80, max:120},      // PO
+      {min:150, max:300},     // Note
+      {min:120, max:140}      // Entry Date
+    ];
+
+    const finalWidth = Math.min(Math.max(medianWidth, colCaps[c].min), colCaps[c].max);
+
+    // Apply width to all cells in the column
+    for (let r = 0; r < table.rows.length; r++) {
+      const cell = table.rows[r].cells[c];
+      if (cell) {
+        cell.style.width = finalWidth + "px";
+        const input = cell.querySelector("input");
+        if (input) input.style.width = "100%"; // let input fill cell
+      }
+    }
+  }
+}
+
+
+
+  
+// ---- RESIZE HANDLER ----
+window.addEventListener("resize", () => {
+  updateMaterialCards();
+  requestAnimationFrame(() => autoFitColumns("materialTable"));
+});
+
+// ---- INIT ----
+document.addEventListener("DOMContentLoaded", async () => {
+  addRow(); // optional: keep an empty row for initial table
+  await loadData(); // ensure data is loaded before sizing
+
+  setButtonsEnabled(false); // disable buttons initially
+
+  updateTableNumbers();
+  updateMaterialCards();
+
+  // ✅ Wait a tick to ensure DOM updates, then auto-fit columns
+  requestAnimationFrame(() => {
+    autoFitColumns("materialTable");
+  });
+});
+
+
+
+</script>
+
+
+
+</body>
+</html>
