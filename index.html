@@ -829,22 +829,22 @@ function loadMaterialForFinding(findingNo) {
 function formatDateForInput(value) {
   if (!value) return "";
 
-  // If it's already a Date object (sometimes happens with Google Apps Script)
-  if (value instanceof Date && !isNaN(value)) {
-    const yyyy = value.getFullYear();
-    const mm = String(value.getMonth() + 1).padStart(2, "0");
-    const dd = String(value.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
+  // If value is already yyyy-MM-dd (Backend now sends this)
+  if (typeof value === "string" && value.includes("-")) {
+    return value; 
   }
 
-  // If it's a string "DD/MM/YYYY"
-  if (typeof value === "string") {
+  // If value is dd/mm/yyyy (Fallback for old data)
+  if (typeof value === "string" && value.includes("/")) {
     const parts = value.split("/");
     if (parts.length === 3) {
-      const [dd, mm, yyyy] = parts;
-      // Returns YYYY-MM-DD which the <input type="date"> requires
-      return `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
+      return `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
     }
+  }
+
+  // If it's a JS Date object
+  if (value instanceof Date && !isNaN(value)) {
+    return value.toISOString().split("T")[0];
   }
 
   return "";
@@ -980,8 +980,16 @@ function setMaterialEditable(editable) {
 }
 
 // Trigger save (you can implement backend logic here)
-function saveData() {
-  const allData = Array.from(tableBody.rows).map(row => {
+async function saveData() {
+  const findingName = findingSelect.options[findingSelect.selectedIndex].text;
+  
+  if (!findingName || findingName.includes("--")) {
+    alert("Please select a finding first.");
+    return;
+  }
+
+  // Map table rows to the JSON structure the backend expects
+  const materials = Array.from(tableBody.rows).map(row => {
     const inputs = row.querySelectorAll("input");
     return {
       partNo: inputs[0].value,
@@ -992,13 +1000,40 @@ function saveData() {
       pr: inputs[5].value,
       po: inputs[6].value,
       note: inputs[7].value,
-      // CONVERT BACK TO DD/MM/YYYY HERE:
-      dateChange: formatDateForSheet(inputs[8].value) 
+      dateChange: inputs[8].value // Already yyyy-MM-dd from the input
     };
   });
 
-  console.log("Data formatted for Sheet:", allData);
-  // Now send 'allData' to your Google Script
+  const payload = {
+    findingName: findingName,
+    materials: materials
+  };
+
+  try {
+    const saveBtn = document.querySelector(".btn-primary");
+    saveBtn.textContent = "Saving...";
+    saveBtn.disabled = true;
+
+    const response = await fetch("https://script.google.com/macros/s/AKfycbyQG9-FrBkQidkbUzWgVUUHxK7mFVYyru5RO7EKyfOzomliEn8KBCF_bkagjNw_CK8r/exec", {
+      method: "POST",
+      body: JSON.stringify(payload)
+    });
+
+    const result = await response.json();
+    if (result.status === "success") {
+      alert("Data saved successfully!");
+      // Refresh local data
+      await loadData();
+      toggleEdit(); // Exit edit mode
+    }
+  } catch (error) {
+    console.error("Save error:", error);
+    alert("Failed to save data. check console.");
+  } finally {
+    const saveBtn = document.querySelector(".btn-primary");
+    saveBtn.textContent = "💾 Save";
+    saveBtn.disabled = false;
+  }
 }
 
 function setButtonsEnabled(enabled) {
