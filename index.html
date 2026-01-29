@@ -690,6 +690,8 @@ async function loadData() {
   }
 }
 
+const NO_IMAGE_URL = "https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg"; 
+
 // ---- Update preview when selection changes ----
 findingSelect.addEventListener("change", () => {
   const idx = findingSelect.value;
@@ -702,7 +704,7 @@ findingSelect.addEventListener("change", () => {
   if (editBtn) editBtn.textContent = "✏️ Edit";
 
   if (idx === "") {
-    findingImage.src = "https://via.placeholder.com/300x200";
+    findingImage.src = NO_IMAGE_URL; // Use placeholder
     findingDesc.value = "";
     findingAction.value = "";
     clearMaterialTable();
@@ -719,6 +721,17 @@ findingSelect.addEventListener("change", () => {
 
   // SHOW IMAGE SPINNER BEFORE CHANGING SRC
   showImageSpinner();
+  
+  /** 
+   * LOGIC: Check if f.image exists and isn't just an empty string.
+   * If it's missing, use the NO_IMAGE_URL.
+   **/
+  if (f.image && f.image.trim() !== "" && f.image !== "null") {
+    findingImage.src = f.image;
+  } else {
+    findingImage.src = NO_IMAGE_URL;
+  }
+  
   findingImage.src = f.image || "https://via.placeholder.com/300x200";
   
   findingDesc.value = f.description;
