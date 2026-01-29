@@ -828,50 +828,46 @@ function createOrUpdateCard(rowIndex) {
   const row = tableBody.rows[rowIndex];
   if (!row) return;
 
-  // Map all inputs in the table row (skip the first column "No")
-  const tableInputs = Array.from(row.cells)
-    .slice(1) // skip row-number
-    .map(cell => cell.querySelector("input")?.value || "");
-
   let card = materialCardsMap.get(rowIndex);
 
   if (!card) {
     card = document.createElement("div");
     card.className = "material-card";
 
+    // Column Mapping:
+    // 0: Part No, 1: Desc, 2: Qty, 3: UoM, 4: Availability, 5: PR, 6: PO, 7: Note, 8: Entry Date
     card.innerHTML = `
-      <div><strong>Availability</strong>: <input data-col="4" data-row="${rowIndex}" list="availabilityList"></div>
       <div class="card-title"><strong>Material ${rowIndex + 1}</strong></div>
       <div class="main">
         <div><strong>Part No</strong>: <input data-col="0" data-row="${rowIndex}"></div>
         <div><strong>Material Description</strong>: <input data-col="1" data-row="${rowIndex}"></div>
-        <div><strong>Qty</strong>: <input type="number" data-col="2" data-row="${rowIndex}"></div>
-        <div><strong>UoM</strong>: <input data-col="3" data-row="${rowIndex}"></div>
       </div>
       <div class="detail">
-        <div><strong>Availability</strong>: <input data-col="4" data-row="${rowIndex}"></div>
+        <div><strong>Qty</strong>: <input type="number" data-col="2" data-row="${rowIndex}"></div>
+        <div><strong>UoM</strong>: <input data-col="3" data-row="${rowIndex}"></div>
+        <div><strong>Availability</strong>: <input data-col="4" data-row="${rowIndex}" list="availabilityList"></div>
         <div><strong>PR</strong>: <input data-col="5" data-row="${rowIndex}"></div>
         <div><strong>PO</strong>: <input data-col="6" data-row="${rowIndex}"></div>
-        <div><strong>Note</strong>: <input data-col="7" data-row="${rowIndex}"></div>
         <div><strong>Entry Date</strong>: <input type="date" data-col="8" data-row="${rowIndex}"></div>
       </div>
+      <div style="margin-top:8px;">
+        <strong>Note</strong>: <input data-col="7" data-row="${rowIndex}">
+      </div>
       <div class="card-delete-container">
-        <button class="btn-row-delete" onclick="deleteSpecificRow(null, ${rowIndex})" style="font-size: 14px;">🗑️ Remove Material</button>
+        <button class="btn-row-delete" onclick="deleteSpecificRow(null, ${rowIndex})" style="font-size: 14px; width: 100%; margin-top:10px;">🗑️ Remove Material</button>
       </div>
     `;
 
-    // 🔒 Respect edit mode & sync card → table
+    // Sync card → table
     card.querySelectorAll("input").forEach(input => {
       const col = Number(input.dataset.col);
-      const rowIdx = Number(input.dataset.row);
-
+      
       input.readOnly = !isEditMode;
-      input.disabled = false;
 
-      // When card input changes → update table
       input.addEventListener("input", e => {
-        const tInput = row.cells[col + 1]?.querySelector("input"); // +1 skips "No" column
-        if (tInput && tInput.value !== e.target.value) {
+        // row.cells[col + 1] because column 0 in table is "No"
+        const tInput = row.cells[col + 1]?.querySelector("input");
+        if (tInput) {
           tInput.value = e.target.value;
         }
       });
@@ -881,12 +877,16 @@ function createOrUpdateCard(rowIndex) {
     materialCardsMap.set(rowIndex, card);
   }
 
-  // ✅ Update card inputs with table values safely
+  // Sync table → card (Update values if they changed in the table)
   const cardInputs = card.querySelectorAll("input");
-  cardInputs.forEach((input, col) => {
-    // +1 because table row includes "No" column
+  cardInputs.forEach((input) => {
+    const col = Number(input.dataset.col);
     const tableValue = row.cells[col + 1]?.querySelector("input")?.value || "";
     if (input.value !== tableValue) input.value = tableValue;
+    
+    // Ensure read-only state is synced
+    input.readOnly = !isEditMode;
+    input.disabled = !isEditMode;
   });
 }
 
