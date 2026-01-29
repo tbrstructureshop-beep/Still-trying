@@ -113,7 +113,7 @@ textarea[readonly] {
 /* FINDING PREVIEW */
 .finding-preview {
   display: grid;
-  grid-template-columns: 150px 1fr;
+  grid-template-columns: 300px 1fr;
   gap: 12px;
   margin-top: 12px;
 }
@@ -412,6 +412,9 @@ th:nth-child(11), td:nth-child(11) { width: 80px; } /* Column for Delete */
 
 /* MATERIAL CARDS (MOBILE) */
 @media (max-width: 768px) {
+  .finding-preview {
+    grid-template-columns: 1fr;
+  }
   table#materialTable {
     display: none;
   }
