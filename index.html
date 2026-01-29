@@ -548,7 +548,7 @@ th:nth-child(11), td:nth-child(11) { width: 80px; } /* Column for Delete */
     </div>
   </div>
 
-  <!-- FINDING -->
+<!-- FINDING CARD -->
   <div class="card">
     <h3>Selected Finding</h3>
     <div class="form-group">
@@ -557,11 +557,11 @@ th:nth-child(11), td:nth-child(11) { width: 80px; } /* Column for Delete */
         <option value="">-- Select Finding --</option>
       </select>
     </div>
+    
     <div class="finding-preview">
       <div class="image-wrapper">
-        <div class="spinner img-spinner" id="imageSpinner"></div> <!-- Local Spinner -->
-        <img id="findingImage" src="https://via.placeholder.com/300x200" alt="Finding Image" 
-    onload="hideImageSpinner()">
+        <div class="spinner img-spinner" id="imageSpinner"></div> 
+        <img id="findingImage" src="https://via.placeholder.com/300x200" alt="Finding Image" onload="hideImageSpinner()">
       </div>
       <div>
         <label>Description</label>
@@ -570,47 +570,48 @@ th:nth-child(11), td:nth-child(11) { width: 80px; } /* Column for Delete */
         <textarea id="findingAction" readonly></textarea>
       </div>
     </div>
-  </div>
-<!-- MATERIAL ROW -->
-<div class="card">
-  <h3>Material Row</h3>
+  </div> <!--  *** ADD THIS TAG HERE to close the Finding Card *** -->
 
-  <div class="table-wrapper">
-    <table id="materialTable">
-      <thead>
-        <tr>
-          <th>No</th>
-          <th>Part No.</th>
-          <th>Material Description</th>
-          <th>Qty</th>
-          <th>UoM</th>
-          <th>Availability</th>
-          <th>PR</th>
-          <th>PO</th>
-          <th>Note (Reference)</th>
-          <th>Entry Date</th>
-          <th>REMOVE MATERIAL</th> <!-- New Header -->
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+  <!-- MATERIAL ROW CARD (Now it will be separate) -->
+  <div class="card">
+    <h3>Material Row</h3>
 
-  <div class="material-cards" id="materialCards"></div>
-
-  <div class="button-bar">
-    <div class="left-buttons" id="editControls" style="display: none;">
-      <button class="btn-add" onclick="addRow()">➕ Add Row</button>
-      <button class="btn-delete" onclick="removeLastRow()">🗑️ Cancel Row</button>
-      <button class="btn-reset" onclick="resetTable()">🔄 Reset Material</button>
-      <button class="btn-primary" onclick="saveData()">💾 Save</button>
+    <div class="table-wrapper">
+      <table id="materialTable">
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Part No.</th>
+            <th>Material Description</th>
+            <th>Qty</th>
+            <th>UoM</th>
+            <th>Availability</th>
+            <th>PR</th>
+            <th>PO</th>
+            <th>Note (Reference)</th>
+            <th>Entry Date</th>
+            <th>REMOVE MATERIAL</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
 
-    <div class="right-button">
-      <button class="btn-edit" id="editBtn" onclick="toggleEdit()">✏️ Edit</button>
+    <div class="material-cards" id="materialCards"></div>
+
+    <div class="button-bar">
+      <div class="left-buttons" id="editControls" style="display: none;">
+        <button class="btn-add" onclick="addRow()">➕ Add Row</button>
+        <button class="btn-delete" onclick="removeLastRow()">🗑️ Cancel Row</button>
+        <button class="btn-reset" onclick="resetTable()">🔄 Reset Material</button>
+        <button class="btn-primary" onclick="saveData()">💾 Save</button>
+      </div>
+
+      <div class="right-button">
+        <button class="btn-edit" id="editBtn" onclick="toggleEdit()">✏️ Edit</button>
+      </div>
     </div>
-  </div>
-</div>
+  </div> <!-- This closes the Material Card -->
 
 <script>
 let isEditMode = false;
