@@ -555,15 +555,21 @@ async function loadData() {
 findingSelect.addEventListener("change", () => {
   const idx = findingSelect.value;
 
+  // 1. RESET Edit Mode state
+  isEditMode = false; 
+  
+  // 2. Reset the Edit Button text
+  const editBtn = document.getElementById("editBtn");
+  if (editBtn) editBtn.textContent = "✏️ Edit";
+
   if (idx === "") {
-    // No finding selected
     findingImage.src = "https://via.placeholder.com/300x200";
     findingDesc.value = "";
     findingAction.value = "";
     clearMaterialTable();
-    addRow(); // Add an empty row for the user to fill
-    setButtonsEnabled(false); // Disable buttons (in view-only mode)
-    document.getElementById("editControls").style.display = "none"; // Hide edit controls
+    addRow();
+    setButtonsEnabled(false);
+    document.getElementById("editControls").style.display = "none";
     return;
   }
 
@@ -572,13 +578,14 @@ findingSelect.addEventListener("change", () => {
   findingDesc.value = f.description;
   findingAction.value = f.action;
 
-  // Show the material list for the selected finding
+  // 3. Load materials (they will now be Read-Only because isEditMode is false)
   loadMaterialForFinding(f.finding);
 
-  setButtonsEnabled(true); // Enable buttons now
-  document.getElementById("editControls").style.display = "none"; // Edit controls should not show automatically
+  setButtonsEnabled(true); 
+  
+  // 4. Ensure controls are hidden until "Edit" is clicked again
+  document.getElementById("editControls").style.display = "none"; 
 });
-
 
 
 // ---- MATERIAL TABLE / CARD FUNCTIONS ----
@@ -966,8 +973,6 @@ function autoFitColumns(tableId) {
 }
 
 
-
-  
 // ---- RESIZE HANDLER ----
 window.addEventListener("resize", () => {
   updateMaterialCards();
@@ -989,12 +994,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     autoFitColumns("materialTable");
   });
 });
-
-
-
 </script>
-
-
-
 </body>
 </html>
