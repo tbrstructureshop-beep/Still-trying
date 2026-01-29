@@ -330,18 +330,37 @@ th:nth-child(11), td:nth-child(11) { width: 80px; } /* Column for Delete */
   transform: scale(1.2);
 }
 
-/* 1. Hide the 11th column (Delete) by default */
+/* Hide the 11th column (Delete) and Mobile Delete by default */
 #materialTable th:nth-child(11),
-#materialTable td:nth-child(11) {
+#materialTable td:nth-child(11),
+.card-delete-container {
   display: none;
 }
 
-/* 2. Show the 11th column only when the card is in edit-mode */
+/* Show them only when the card is in edit mode */
 .card.edit-active #materialTable th:nth-child(11),
 .card.edit-active #materialTable td:nth-child(11) {
   display: table-cell;
 }
 
+.card.edit-active .card-delete-container {
+  display: block;
+}
+
+/* Style for the Trash Button */
+.btn-row-delete {
+  background: #ff4d4d;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-row-delete:hover {
+  background: #cc0000;
+}
 
 /* MATERIAL CARDS (MOBILE) */
 @media (max-width: 768px) {
@@ -651,7 +670,7 @@ function createRow() {
     <td><input></td>
     <td><input type="date"></td>
     <td>
-      <button class="btn-row-delete" onclick="deleteSpecificRow(this)" style="display: ${isEditMode ? 'inline-block' : 'none'}">🗑️</button>
+      <button class="btn-row-delete" onclick="deleteSpecificRow(this)">🗑️</button>
     </td>
   `;
   // Apply edit mode state immediately
@@ -914,27 +933,28 @@ function resetTable() {
 function toggleEdit() {
   if (findingSelect.value === "" || findingSelect.value === "-- Select Finding --") {
     alert("Please select a finding first!");
-    return; // Prevent further execution if no finding is selected
+    return;
   }
 
-  isEditMode = !isEditMode;  // Toggle edit mode
+  isEditMode = !isEditMode;
 
   const editBtn = document.getElementById("editBtn");
-  editBtn.textContent = isEditMode ? "❌ Cancel Edit" : "✏️ Edit";  // Toggle button text
+  // Target only the card that contains the material table
+  const materialCard = document.getElementById("materialTable").closest(".card");
 
-  // --- ADD THIS PART ---
+  editBtn.textContent = isEditMode ? "❌ Cancel Edit" : "✏️ Edit";
+
   if (isEditMode) {
-    cardContainer.classList.add("edit-active"); // This triggers the CSS to show the column
+    materialCard.classList.add("edit-active");
   } else {
-    cardContainer.classList.remove("edit-active"); // This triggers the CSS to hide the column
+    materialCard.classList.remove("edit-active");
   }
 
-  // Show or hide the edit controls based on edit mode
   document.getElementById("editControls").style.display = isEditMode ? "flex" : "none";
-  setMaterialEditable(isEditMode);  // Toggle read-only/disabled for table and cards
-  updateMaterialCards();  // Update the material cards in mobile view
+  setMaterialEditable(isEditMode);
+  updateMaterialCards();
   
-  // Re-run autofit because the table width changes when a column appears/disappears
+  // Refresh table layout
   requestAnimationFrame(() => autoFitColumns("materialTable"));
 }
 
@@ -976,25 +996,34 @@ function setButtonsEnabled(enabled) {
   document.getElementById("editControls").style.display = enabled ? "flex" : "none";
 }
 
-async function deleteSpecificRow(btn, cardIdx = null) {
+  
+function deleteSpecificRow(btn, cardIdx = null) {
   if (!isEditMode) return;
 
-  const rowIndex = btn ? btn.closest("tr").rowIndex - 1 : cardIdx;
+  // Find row index (if coming from table button or mobile card)
+  let rowIndex;
+  if (btn) {
+    rowIndex = btn.closest("tr").rowIndex - 1; // -1 for header
+  } else {
+    rowIndex = cardIdx;
+  }
+
   const row = tableBody.rows[rowIndex];
-  
-  // Get data to identify which row to delete in the spreadsheet (e.g., Part No)
-  const partNo = row.cells[1].querySelector("input").value;
-  const currentFinding = findingSelect.options[findingSelect.selectedIndex].text;
+  const partNo = row.cells[1].querySelector("input").value || "this item";
 
-  if (!confirm(`Are you sure you want to delete Material: "${partNo || 'this row'}"?`)) return;
+  if (!confirm(`Are you sure you want to remove ${partNo}?`)) return;
 
-  // 1. Remove from UI
+  // Remove from Table
   tableBody.deleteRow(rowIndex);
-  
-  // 2. Refresh UI numbers
+
+  // Re-sync everything
   updateTableNumbers();
+  
   if (isMobile()) {
-    updateMaterialCards(); 
+    // Clear and rebuild cards to ensure IDs and indices match the new table state
+    materialCardsContainer.innerHTML = "";
+    materialCardsMap.clear();
+    updateMaterialCards();
   }
 }
 
