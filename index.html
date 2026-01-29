@@ -628,6 +628,9 @@ function createRow() {
     <td><input></td>
     <td><input></td>
     <td><input type="date"></td>
+    <td>
+      <button class="btn-row-delete" onclick="deleteSpecificRow(this)" style="display: ${isEditMode ? 'inline-block' : 'none'}">🗑️</button>
+    </td>
   `;
   // Apply edit mode state immediately
   setRowEditable(tr, isEditMode);
@@ -965,7 +968,7 @@ async function deleteSpecificRow(btn, cardIdx = null) {
   if (isMobile()) {
     updateMaterialCards(); 
   }
-
+}
 
 /* TABLE SIZING LINE */
   
