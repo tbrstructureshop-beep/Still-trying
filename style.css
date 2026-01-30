@@ -129,7 +129,33 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 .ctrl-buttons { display: flex; gap: 5px; justify-content: space-between; }
 .ctrl-buttons button { flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; }
 
-.log-summary { font-size: 0.75rem; color: #666; margin-top: 10px; text-align: right; border-top: 1px dashed #ccc; padding-top: 5px; }
+/* --- PERFORMING LOG DROPDOWN STYLE --- */
+.log-summary-container {
+    margin-top: 15px; border-top: 1px dashed #ccc; padding-top: 10px;
+}
+.log-toggle-btn {
+    background: none; border: none; color: var(--primary); 
+    font-size: 0.8rem; font-weight: bold; cursor: pointer; text-decoration: underline;
+    display: flex; align-items: center; gap: 5px; width: 100%; justify-content: flex-end;
+}
+.log-toggle-btn:hover { color: var(--primary-hover); }
+
+.log-dropdown-content {
+    display: none; /* Hidden by default */
+    margin-top: 10px;
+    background: #fff; border: 1px solid #ddd; border-radius: 4px; overflow: hidden;
+    max-height: 200px; overflow-y: auto;
+}
+
+.log-table {
+    width: 100%; border-collapse: collapse; font-size: 0.75rem;
+}
+.log-table th { background: #f1f1f1; text-align: left; padding: 4px; position: sticky; top: 0; }
+.log-table td { border-bottom: 1px solid #eee; padding: 4px; color: #333; }
+.log-table tr:last-child td { border-bottom: none; }
+.badge-action { padding: 2px 5px; border-radius: 3px; font-size: 0.65rem; color: white; }
+.badge-start { background: #28a745; }
+.badge-stop { background: #dc3545; }
 
 /* Photo Preview */
 .photo-evidence { margin-top: 10px; border: 1px solid #ccc; padding: 3px; background: #fff; display: inline-block; }
