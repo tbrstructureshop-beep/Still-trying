@@ -1068,7 +1068,7 @@ async function resetTable() {
     loader.style.opacity = '1';
 
     // 3. Send the delete request to the backend
-    const response = await fetch(SCRIPT_URL);
+    const response = await fetch(SCRIPT_URL, {
       method: "POST",
       body: JSON.stringify({
         action: "delete",
