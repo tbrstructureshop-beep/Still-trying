@@ -1,15 +1,16 @@
 :root {
-  --primary: #3fa2a9;
-  --primary-dark: #2e7d85;
-  --bg: #e6f7f8;
-  --card: #ffffff;
-  --border: #b0d7db;
-  --text: #2c2f33;
-  --text-light: #6c6f73;
-  --hover: #d0f2f3;
-  --accent: #f4b400;
+  --primary: #3fa2a9;        /* main teal for buttons */
+  --primary-dark: #2e7d85;   /* hover variant */
+  --bg: #e6f7f8;             /* slightly tinted background for liveliness */
+  --card: #ffffff;            /* keep cards white */
+  --border: #b0d7db;         /* softer tealish border */
+  --text: #2c2f33;           /* main text */
+  --text-light: #6c6f73;     /* muted text */
+  --hover: #d0f2f3;           /* hover highlight with light teal tint */
+  --accent: #f4b400;         /* optional highlight */
 }
 
+/* GLOBAL STYLING */
 * {
   box-sizing: border-box;
   font-family: "Segoe UI", Roboto, sans-serif;
@@ -33,7 +34,7 @@ body {
   border-radius: 12px;
   padding: 16px;
   margin-bottom: 16px;
-  border: 1px solid #c0e0e0;
+  border: 1px solid #c0e0e0; /* subtle teal border */
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
   transition: box-shadow 0.3s, transform 0.2s;
   position: relative; 
@@ -43,12 +44,18 @@ body {
 .card:hover {
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
   transform: translateY(-2px);
-  background: #e0f7f8;
+  background: #e0f7f8; /* hover highlight */
 }
 
-.card:nth-child(odd) { background: #ffffff; }
-.card:nth-child(even) { background: #f0f9f9; }
+/* CARD ZEBRA STRIPES */
+.card:nth-child(odd) {
+  background: #ffffff; /* keep white for odd cards */
+}
 
+.card:nth-child(even) {
+  background: #f0f9f9; /* subtle light teal for even cards */
+}
+ 
 /* FORM */
 .form-grid {
   display: grid;
@@ -68,7 +75,9 @@ label {
   font-weight: 500;
 }
 
-input, select, textarea {
+input,
+select,
+textarea {
   padding: 10px;
   border-radius: 8px;
   border: 1px solid var(--border);
@@ -78,13 +87,17 @@ input, select, textarea {
   background: #f9fcfc;
 }
 
-input:focus, select:focus, textarea:focus {
+input:focus,
+select:focus,
+textarea:focus {
   outline: none;
   border-color: var(--primary);
   background: #e0f7f8;
 }
 
-input[readonly], textarea[readonly] {
+/* Readonly fields */
+input[readonly],
+textarea[readonly] {
   background-color: #f0f6f7;
   cursor: not-allowed;
   color: var(--text-light);
@@ -96,22 +109,25 @@ input[readonly], textarea[readonly] {
   grid-template-columns: 300px 1fr;
   gap: 12px;
   margin-top: 12px;
-  align-items: center;
+  align-items: center; /* 👈 Add this line */
 }
 
 .finding-preview img {
   width: 100%;
-  max-height: 100%;
+  max-height: 100%; /* Prevents image from exploding the box height */
   border-radius: 8px;
-  object-fit: contain;
+  object-fit: contain; /* 👈 Changed from 'cover' to 'contain' */
+  border: none;
 }
 
-#findingDesc, #findingAction {
-  min-height: 120px;
+/* NEW: Make the textareas larger */
+#findingDesc, 
+#findingAction {
+  min-height: 120px; /* Adjust this number to make it taller or shorter */
   line-height: 1.5;
-  resize: vertical;
+  resize: vertical;  /* Allows you to manually stretch it if needed */
   padding: 12px;
-  background-color: #f0f6f7;
+  background-color: #f0f6f7; /* Slight tint to show it's readonly */
 }
 
 /* TABLE */
@@ -123,6 +139,7 @@ input[readonly], textarea[readonly] {
 table {
   width: 100%;
   border-collapse: collapse;
+  table-layout: auto; /* let JS control widths based on input content */
 }
 
 th, td {
@@ -130,24 +147,86 @@ th, td {
   padding: 8px;
   font-size: 13px;
   vertical-align: middle;
+  white-space: normal;
   word-break: break-word;
   text-align: center;
 }
 
+/* Column-specific width caps (prevent stretching) */
+th:nth-child(1), td:nth-child(1) { width: 40px; }      /* No */
+th:nth-child(2), td:nth-child(2) { min-width: 120px; max-width: 180px; } /* Part No */
+th:nth-child(3), td:nth-child(3) { min-width: 180px; max-width: 320px; } /* Description */
+th:nth-child(4), td:nth-child(4) { width: 60px; }     /* Qty */
+th:nth-child(5), td:nth-child(5) { width: 60px; }     /* UoM */
+th:nth-child(6), td:nth-child(6) { min-width: 100px; max-width: 140px; } /* Availability */
+th:nth-child(7), td:nth-child(7) { min-width: 80px; max-width: 120px; }  /* PR */
+th:nth-child(8), td:nth-child(8) { min-width: 80px; max-width: 120px; }  /* PO */
+th:nth-child(9), td:nth-child(9) { min-width: 150px; max-width: 250px; } /* Note */
+th:nth-child(10), td:nth-child(10) {min-width: 140px; width: 120px; } /* Entry Date */
+
+/* Center everything inside table cells and headers */
+table th,
+table td {
+  text-align: center;
+}
+
+/* Table headers styling */
 th {
   background: var(--primary);
   color: white;
   font-weight: 600;
 }
 
-tr:nth-child(even) { background: #f0f9f9; }
-tr:hover { background: var(--hover); }
+/* Zebra stripes & hover */
+tr:nth-child(even) {
+  background: #f0f9f9;
+}
 
+tr:hover {
+  background: var(--hover);
+}
+
+/* Base input style inside table cells */
 td input {
   padding: 6px;
   font-size: 13px;
   width: 100%;
-  text-align: center;
+  display: block;
+  margin: 0 auto;          /* center horizontally */
+  transition: background 0.2s, border-color 0.2s;
+
+  white-space: nowrap;     /* input stays single-line */
+  overflow-x: auto;        /* scroll instead of hiding */
+  overflow-y: hidden;
+  text-overflow: clip;     /* no ellipsis */
+  text-align: center;      /* ✅ center input text */
+}
+
+/* Input focus styling */
+td input:focus {
+  background: #e0f7f8;
+  border-color: var(--primary);
+}
+
+/* Hover preview (desktop only) */
+td input:hover {
+  position: relative;
+  z-index: 10;
+}
+
+td input:hover::after {
+  content: attr(value);
+  position: absolute;
+  left: 0;
+  top: 100%;
+  background: #fff;
+  border: 1px solid var(--border);
+  padding: 6px;
+  white-space: normal;
+  width: max-content;
+  max-width: 400px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  pointer-events: none;    /* prevent flicker */
 }
 
 /* BUTTONS */
@@ -159,7 +238,8 @@ td input {
   margin-top: 12px;
 }
 
-.left-buttons, .right-button {
+.left-buttons,
+.right-button {
   display: flex;
   gap: 10px;
 }
@@ -170,7 +250,7 @@ button {
   border: none;
   font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
 }
 
 button:hover {
@@ -178,51 +258,135 @@ button:hover {
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
-.btn-primary { background: var(--primary); color: white; }
-.btn-primary:hover { background: var(--primary-dark); }
-.btn-danger { background: #c0392b; color: white; }
-.btn-add { background: #787f80; color: white; }
-.btn-delete { background: #4f5454; color: white; }
-.btn-reset { background: #23292b; color: white; }
-.btn-edit { background: #678f4f; color: white; }
+/* BUTTON COLORS (unchanged) */
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+.btn-primary:hover {
+  background: var(--primary-dark);
+}
 
-/* EDIT MODE STATES */
+.btn-outline {
+  background: white;
+  border: 1px solid var(--border);
+}
+.btn-outline:hover {
+  background: var(--hover);
+}
+
+.btn-danger {
+  background: #c0392b;
+  color: white;
+}
+.btn-danger:hover {
+  background: #a83225;
+}
+
+.btn-add {
+  background: #787f80;
+  color: white;
+}
+.btn-add:hover {
+  background: #6e7374;
+}
+
+.btn-delete {
+  background: #4f5454;
+  color: white;
+}
+.btn-delete:hover {
+  background: #3f4344;
+}
+
+.btn-reset {
+  background: #23292b;
+  color: white;
+}
+.btn-reset:hover {
+  background: #1b1f21;
+}
+
+.btn-edit {
+  background: #678f4f;
+  color: white;
+}
+.btn-edit.cancel {
+  background: #b04851;
+}
+.btn-edit:hover {
+  opacity: 0.9;
+}
+
+/* Add to your CSS */
+th:nth-child(11), td:nth-child(11) { width: 80px; } /* Column for Delete */
+
+.btn-row-delete {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: #ff4d4d;
+  padding: 5px;
+  transition: transform 0.2s;
+}
+
+.btn-row-delete:hover {
+  transform: scale(1.2);
+}
+
+/* Hide the 11th column (Delete) and Mobile Delete by default */
 #materialTable th:nth-child(11),
 #materialTable td:nth-child(11),
 .card-delete-container {
-  display: none !important;
+  display: none !important; /* Added !important */
 }
 
+/* Show them only when the card is in edit mode */
 .card.edit-active #materialTable th:nth-child(11),
 .card.edit-active #materialTable td:nth-child(11) {
-  display: table-cell !important;
+  display: table-cell !important; /* Added !important */
 }
 
 .card.edit-active .card-delete-container {
-  display: block !important;
+  display: block !important; /* Added !important */
 }
 
+/* Style for the Trash Button */
 .btn-row-delete {
   background: #a13030;
   color: white;
+  border: none;
   padding: 5px 10px;
   border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s;
 }
 
-/* LOADERS */
+.btn-row-delete:hover {
+  background: #cc0000;
+}
+
+/* --- LOADING SPINNER STYLES --- */
+
+/* Full Screen Overlay */
 #initial-loader {
   position: fixed;
-  top: 0; left: 0; width: 100%; height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   background: white;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   z-index: 9999;
+  transition: opacity 0.5s ease;
 }
 
+/* Spinner Animation */
 .spinner {
-  width: 50px; height: 50px;
+  width: 50px;
+  height: 50px;
   border: 5px solid var(--bg);
   border-top: 5px solid var(--primary);
   border-radius: 50%;
@@ -234,25 +398,140 @@ button:hover {
   100% { transform: rotate(360deg); }
 }
 
+/* Image Wrapper */
 .image-wrapper {
   position: relative;
+  width: 100%;
   min-height: 200px;
   background: #f0f0f0;
   border-radius: 8px;
+  overflow: hidden;
+  /* Add these three lines below: */
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* MOBILE */
+.img-spinner {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  display: none; /* Hidden by default */
+}
+
+/* MATERIAL CARDS (MOBILE) */
 @media (max-width: 768px) {
-  .finding-preview { grid-template-columns: 1fr; }
-  table#materialTable { display: none; }
+  .finding-preview {
+    grid-template-columns: 1fr;
+  }
+  table#materialTable {
+    display: none;
+  }
+
+   /* 3. Do the same for the Mobile Card delete buttons */
+  .card-delete-container {
+    display: none; /* Hide by default */
+  }
+
+  .card.edit-active .card-delete-container {
+    display: block; /* Show in edit mode */
+  }
+
+  /* For Mobile Card Delete Button */
+  .card-delete-container {
+    text-align: right;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+    margin-top: 10px;
+  }
+
+  .material-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
   .material-card {
     background: #ffffff;
     border: 1px solid #c0e0e0;
     border-radius: 12px;
     padding: 12px;
-    margin-bottom: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: box-shadow 0.3s, transform 0.2s, background 0.2s;
+  }
+
+  /* Zebra stripes for material cards (mobile) */
+  .material-cards .material-card:nth-child(odd) {
+    background: #ffffff; /* odd cards white */
+  }
+
+  .material-cards .material-card:nth-child(even) {
+    background: #f0f9f9; /* even cards light teal */
+  }
+
+  /* Hover highlight */
+  .material-cards .material-card:hover {
+    background: #e0f7f8; /* subtle teal hover */
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    transform: translateY(-2px);
+  }
+
+  .material-card .card-title {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 6px;
+    color: var(--primary-dark);
+  }
+
+  .material-card .main {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .material-card .main div {
+    flex: 1 1 45%;
+    font-size: 13px;
+  }
+
+  .material-card .detail {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    font-size: 12px;
+  }
+
+  .material-card .detail div {
+    overflow-wrap: break-word;
+  }
+
+  .material-card input {
+    text-align: left;
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .material-card input:focus {
+    background: #e0f7f8;
+    border-color: var(--primary);
+  }
+
+  .button-bar {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .left-buttons {
+    display: flex;
+    gap: 10px;
+  }
+
+  .right-button {
+    display: flex;
+    margin-left: auto;
   }
 }
