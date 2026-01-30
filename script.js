@@ -1,424 +1,443 @@
-/**
- * AIRCRAFT MAINTENANCE WO SYSTEM
- * Pure JS - LocalStorage Persistence - No Frameworks
+/* 
+ * AIRCRAFT MAINTENANCE SYSTEM
+ * Work Order + Findings + Manhours Tracker
+ * Pure JS / LocalStorage
  */
 
-// --- GLOBAL STATE ---
-const STORE_KEY = 'mro_wo_data';
-const ACTIVE_TASK_KEY = 'mro_active_task'; // Stores ID of finding currently running
-let appData = [];
+const STORAGE_KEY = 'mro_sys_data';
+const ACTIVE_LOCK_KEY = 'mro_active_lock'; // Holds ID of finding currently running
+
+let workOrders = [];
 let timerInterval = null;
 
 // --- INITIALIZATION ---
 document.addEventListener('DOMContentLoaded', () => {
-    loadData();
-    renderApp();
-    checkGlobalActiveTask();
+    loadSystemData();
+    renderSystem();
     
-    // Global Event Listeners
-    document.getElementById('btnNewWO').addEventListener('click', createNewWO);
-    document.getElementById('btnConfirmStatus').addEventListener('click', confirmStopStatus);
-    document.getElementById('photoInput').addEventListener('change', handleFileSelect);
-    document.getElementById('btnSavePhoto').addEventListener('click', savePhotoAndClose);
-    document.getElementById('btnSkipPhoto').addEventListener('click', closeWithoutPhoto);
+    // Global Listeners
+    document.getElementById('btnNewWO').addEventListener('click', createWorkOrder);
+    document.getElementById('btnConfirmStatus').addEventListener('click', finalizeStop);
+    document.getElementById('photoInput').addEventListener('change', handleImageSelect);
+    document.getElementById('btnSavePhoto').addEventListener('click', saveImage);
+    document.getElementById('btnSkipPhoto').addEventListener('click', skipImage);
+
+    // Resume Timer if page reloaded
+    startGlobalClock();
 });
 
-// --- DATA MANAGEMENT ---
-function loadData() {
-    const stored = localStorage.getItem(STORE_KEY);
-    appData = stored ? JSON.parse(stored) : [];
+// --- DATA LAYER ---
+function loadSystemData() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    workOrders = raw ? JSON.parse(raw) : [];
 }
 
-function saveData() {
-    localStorage.setItem(STORE_KEY, JSON.stringify(appData));
-    renderApp(); // Re-render to reflect changes
+function persistSystemData() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(workOrders));
+    renderSystem();
 }
 
-function getActiveTask() {
-    return localStorage.getItem(ACTIVE_TASK_KEY);
+function getActiveLock() {
+    return localStorage.getItem(ACTIVE_LOCK_KEY);
 }
 
-function setActiveTask(findingId) {
-    if (findingId) {
-        localStorage.setItem(ACTIVE_TASK_KEY, findingId);
-    } else {
-        localStorage.removeItem(ACTIVE_TASK_KEY);
-    }
-    checkGlobalActiveTask();
+function setActiveLock(findingId) {
+    if (findingId) localStorage.setItem(ACTIVE_LOCK_KEY, findingId);
+    else localStorage.removeItem(ACTIVE_LOCK_KEY);
+    toggleGlobalIndicator();
 }
 
-// --- CORE LOGIC: TIME TRACKING ---
+// --- WORK ORDER LOGIC ---
 
-// Start Logic
-function startTask(woId, findingId) {
-    const currentActive = getActiveTask();
-    if (currentActive && currentActive !== findingId) {
-        alert("SYSTEM RULE: Only one active task allowed per session. Please stop the other task first.");
-        return;
-    }
-
-    const finding = findFinding(woId, findingId);
+function createWorkOrder() {
+    const woID = Date.now().toString().slice(-6); // Simple Unique ID suffix
     
-    // Validation
-    const empId = document.getElementById(`emp-${findingId}`).value;
-    const taskCode = document.getElementById(`task-${findingId}`).value;
-
-    if (!empId || !taskCode) {
-        alert("Employee ID and Task Code are required to start.");
-        return;
-    }
-
-    // Update Data
-    finding.progression.employeeId = empId;
-    finding.progression.taskCode = taskCode;
-    finding.status = 'IN_PROGRESS';
-    
-    const now = new Date().toISOString();
-    finding.progression.currentSession = {
-        start: now,
-        active: true
+    const newWO = {
+        internalId: woID,
+        generalData: {
+            woNumber: "000000000",
+            partDesc: "",
+            pn: "",
+            sn: "",
+            acReg: "PK-GLL",
+            customer: ""
+        },
+        findings: []
     };
 
-    setActiveTask(findingId);
-    saveData();
+    // Requirement: Automatically create 5 findings (01 - 05)
+    for (let i = 1; i <= 5; i++) {
+        const fNum = i.toString().padStart(2, '0');
+        newWO.findings.push({
+            id: `${woID}-${fNum}`, // Unique ID
+            displayId: fNum,       // Visual ID (01, 02...)
+            description: "",
+            status: "OPEN", // OPEN, IN_PROGRESS, ON_HOLD, CLOSED
+            materials: [],
+            manhours: {
+                empId: "",
+                taskCode: "",
+                logs: [], // {start, stop, duration}
+                currentSession: null // {start: ISO}
+            },
+            photo: null
+        });
+    }
+
+    workOrders.unshift(newWO);
+    persistSystemData();
 }
 
-// Stop Logic (Triggers Modal)
-let tempStopData = null; // Temporary holding for modal logic
+function updateGeneralData(woInternalId, field, value) {
+    const wo = workOrders.find(w => w.internalId === woInternalId);
+    if (wo) {
+        wo.generalData[field] = value;
+        // Optimization: Don't re-render everything on keystroke, just save
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(workOrders));
+    }
+}
 
-function initiateStop(woId, findingId) {
-    const finding = findFinding(woId, findingId);
-    const now = new Date().toISOString();
+// --- FINDING LOGIC ---
+
+function updateFindingDesc(woId, fId, val) {
+    const f = findFinding(woId, fId);
+    if(f) { f.description = val; persistSystemData(); }
+}
+
+function addMaterial(woId, fId) {
+    const nameInput = document.getElementById(`mat-name-${fId}`);
+    const qtyInput = document.getElementById(`mat-qty-${fId}`);
     
-    // Pause internally
-    finding.progression.currentSession.active = false; // Temporarily flag as stopping
+    if (nameInput.value && qtyInput.value) {
+        const f = findFinding(woId, fId);
+        f.materials.push({ name: nameInput.value, qty: qtyInput.value });
+        persistSystemData();
+    }
+}
+
+function removeMaterial(woId, fId, idx) {
+    const f = findFinding(woId, fId);
+    f.materials.splice(idx, 1);
+    persistSystemData();
+}
+
+// --- TIMER / MANHOURS LOGIC ---
+
+function startTask(woId, fId) {
+    const active = getActiveLock();
+    if (active && active !== fId) {
+        alert("SYSTEM ALERT: Another task is currently running. You must stop it first.");
+        return;
+    }
+
+    const finding = findFinding(woId, fId);
+    const empInput = document.getElementById(`emp-${fId}`);
+    const taskInput = document.getElementById(`task-${fId}`);
+
+    if (!empInput.value || !taskInput.value) {
+        alert("Enter Employee ID and Task Code to start.");
+        return;
+    }
+
+    // Lock Data
+    finding.manhours.empId = empInput.value;
+    finding.manhours.taskCode = taskInput.value;
+    finding.status = "IN_PROGRESS";
+    finding.manhours.currentSession = {
+        start: new Date().toISOString()
+    };
+
+    setActiveLock(fId);
+    persistSystemData();
+}
+
+// Temporary state for the Modal interaction
+let pendingStop = null; 
+
+function stopTaskRequest(woId, fId) {
+    const finding = findFinding(woId, fId);
+    const stopTime = new Date().toISOString();
     
-    // Store context for modal
-    tempStopData = { woId, findingId, stopTime: now };
-    
+    // Store context for Modal
+    pendingStop = {
+        woId, 
+        fId,
+        stopTime
+    };
+
     // Show Modal
     document.getElementById('statusModal').style.display = 'block';
 }
 
-// Modal: Confirm Status
-function confirmStopStatus() {
-    if (!tempStopData) return;
+function finalizeStop() {
+    if (!pendingStop) return;
+
+    const { woId, fId, stopTime } = pendingStop;
+    const finding = findFinding(woId, fId);
+    const sessionStart = finding.manhours.currentSession.start;
     
-    const { woId, findingId, stopTime } = tempStopData;
-    const finding = findFinding(woId, findingId);
-    const selectedStatus = document.querySelector('input[name="taskStatus"]:checked').value; // ON_HOLD or CLOSED
+    // Calculate duration
+    const duration = new Date(stopTime) - new Date(sessionStart);
     
-    // Calculate Duration
-    const startTime = new Date(finding.progression.currentSession.start);
-    const stopTimeDate = new Date(stopTime);
-    const durationMs = stopTimeDate - startTime;
-    
-    // Archive Session Log
-    finding.progression.logs.push({
-        start: finding.progression.currentSession.start,
+    // Save to Log
+    finding.manhours.logs.push({
+        start: sessionStart,
         stop: stopTime,
-        duration: durationMs
+        duration: duration
     });
     
-    // Reset Current Session
-    finding.progression.currentSession = null;
-    
-    // Update Finding Status
-    finding.status = selectedStatus;
-    
-    // Clear Active Lock
-    setActiveTask(null);
-    
+    // Clear Session
+    finding.manhours.currentSession = null;
+    setActiveLock(null); // Release lock
+
+    // Determine Status
+    const choice = document.querySelector('input[name="taskStatus"]:checked').value;
+    finding.status = choice; // ON_HOLD or CLOSED
+
     document.getElementById('statusModal').style.display = 'none';
 
-    if (selectedStatus === 'CLOSED') {
-        // Trigger Photo Modal
-        tempStopData.isClosed = true; // Flag for photo modal
+    if (choice === 'CLOSED') {
+        // Trigger Photo Flow
+        pendingStop.isClosed = true; // Flag
         document.getElementById('photoModal').style.display = 'block';
-        // Reset file input
-        document.getElementById('photoInput').value = '';
-        document.getElementById('fileNameDisplay').textContent = "No file chosen";
-        document.getElementById('btnSavePhoto').disabled = true;
+        resetPhotoModal();
     } else {
-        saveData();
+        persistSystemData();
     }
 }
 
-// --- PHOTO LOGIC ---
-let currentPhotoBase64 = null;
+// --- PHOTO HANDLER ---
+let tempImgData = null;
 
-function handleFileSelect(e) {
+function resetPhotoModal() {
+    document.getElementById('photoInput').value = '';
+    document.getElementById('fileNameDisplay').innerText = 'No file chosen';
+    document.getElementById('btnSavePhoto').disabled = true;
+    tempImgData = null;
+}
+
+function handleImageSelect(e) {
     const file = e.target.files[0];
     if (file) {
-        document.getElementById('fileNameDisplay').textContent = file.name;
         const reader = new FileReader();
-        reader.onload = function(evt) {
-            currentPhotoBase64 = evt.target.result;
+        reader.onload = (evt) => {
+            tempImgData = evt.target.result;
+            document.getElementById('fileNameDisplay').innerText = file.name;
             document.getElementById('btnSavePhoto').disabled = false;
         };
         reader.readAsDataURL(file);
     }
 }
 
-function savePhotoAndClose() {
-    if (tempStopData && currentPhotoBase64) {
-        const finding = findFinding(tempStopData.woId, tempStopData.findingId);
-        finding.closingPhoto = currentPhotoBase64;
-        currentPhotoBase64 = null;
+function saveImage() {
+    if (pendingStop && tempImgData) {
+        const finding = findFinding(pendingStop.woId, pendingStop.fId);
+        finding.photo = tempImgData;
         document.getElementById('photoModal').style.display = 'none';
-        saveData();
+        persistSystemData();
     }
 }
 
-function closeWithoutPhoto() {
+function skipImage() {
     document.getElementById('photoModal').style.display = 'none';
-    saveData();
+    persistSystemData();
 }
 
-// --- RENDERING UI ---
+// --- RENDERING ---
 
-function renderApp() {
+function renderSystem() {
     const container = document.getElementById('appContainer');
     container.innerHTML = '';
 
-    appData.forEach(wo => {
+    workOrders.forEach(wo => {
         const woEl = document.createElement('div');
-        woEl.className = 'wo-card';
+        woEl.className = 'wo-sheet';
+        
+        // 1. General Data Grid
         woEl.innerHTML = `
-            <div class="wo-header">
-                <h3>WO #: ${wo.id}</h3>
-                <button class="btn-secondary btn-sm" onclick="addFinding('${wo.id}')">+ Add Finding</button>
+            <div class="wo-general-data">
+                <div class="data-field">
+                    <label>WO Number</label>
+                    <input type="text" value="${wo.generalData.woNumber}" onchange="updateGeneralData('${wo.internalId}', 'woNumber', this.value)">
+                </div>
+                <div class="data-field">
+                    <label>Customer</label>
+                    <input type="text" value="${wo.generalData.customer}" onchange="updateGeneralData('${wo.internalId}', 'customer', this.value)">
+                </div>
+                <div class="data-field">
+                    <label>A/C Reg (ex PK-GLL)</label>
+                    <input type="text" value="${wo.generalData.acReg}" onchange="updateGeneralData('${wo.internalId}', 'acReg', this.value)">
+                </div>
+                <div class="data-field">
+                    <label>Part Description</label>
+                    <input type="text" value="${wo.generalData.partDesc}" onchange="updateGeneralData('${wo.internalId}', 'partDesc', this.value)">
+                </div>
+                <div class="data-field">
+                    <label>P/N</label>
+                    <input type="text" value="${wo.generalData.pn}" onchange="updateGeneralData('${wo.internalId}', 'pn', this.value)">
+                </div>
+                <div class="data-field">
+                    <label>S/N</label>
+                    <input type="text" value="${wo.generalData.sn}" onchange="updateGeneralData('${wo.internalId}', 'sn', this.value)">
+                </div>
             </div>
-            <div class="wo-body" id="wo-body-${wo.id}">
-                <!-- Findings go here -->
+            <div class="wo-findings-container" id="findings-${wo.internalId}">
+                <!-- Findings Injected Here -->
             </div>
         `;
+        
         container.appendChild(woEl);
-
-        const findingContainer = woEl.querySelector(`#wo-body-${wo.id}`);
-        wo.findings.forEach(finding => {
-            findingContainer.appendChild(createFindingElement(wo.id, finding));
+        
+        // 2. Render Findings
+        const fContainer = document.getElementById(`findings-${wo.internalId}`);
+        wo.findings.forEach(f => {
+            fContainer.appendChild(createFindingCard(wo.internalId, f));
         });
     });
 
-    startGlobalTimer(); // Start the interval engine
+    toggleGlobalIndicator();
 }
 
-function createFindingElement(woId, finding) {
-    const div = document.createElement('div');
-    const isClosed = finding.status === 'CLOSED';
-    const isActive = finding.status === 'IN_PROGRESS';
-    div.className = `finding-item ${isClosed ? 'closed' : ''}`;
+function createFindingCard(woId, f) {
+    const card = document.createElement('div');
+    card.className = 'finding-card';
+    card.setAttribute('data-status', f.status);
     
-    // Status Badge Logic
-    let badgeClass = 'status-open';
-    if(finding.status === 'IN_PROGRESS') badgeClass = 'status-active';
-    if(finding.status === 'ON_HOLD') badgeClass = 'status-hold';
-    if(finding.status === 'CLOSED') badgeClass = 'status-closed';
-
-    // Calculate Totals
-    const totalPreviousMs = finding.progression.logs.reduce((acc, log) => acc + log.duration, 0);
-    const totalDurationStr = formatTime(totalPreviousMs);
-
-    // Initial inputs values
-    const empVal = finding.progression.employeeId || '';
-    const taskVal = finding.progression.taskCode || '';
+    // Status visual helpers
+    const isRunning = f.status === 'IN_PROGRESS';
+    const isClosed = f.status === 'CLOSED';
+    const isLocked = isRunning || isClosed; // Inputs locked
     
-    // Disable inputs if running or closed
-    const inputsDisabled = isActive || isClosed ? 'disabled' : '';
-    const descDisabled = isClosed ? 'disabled' : '';
+    // Status Badge Color
+    let badgeClass = 'bg-open';
+    if(isRunning) badgeClass = 'bg-active';
+    if(f.status === 'ON_HOLD') badgeClass = 'bg-hold';
+    if(isClosed) badgeClass = 'bg-closed';
 
-    div.innerHTML = `
-        <div class="finding-header">
-            <strong>ID: ${finding.id}</strong>
-            <span class="status-badge ${badgeClass}">${finding.status.replace('_', ' ')}</span>
+    // Time Calculation
+    const historyMs = f.manhours.logs.reduce((acc, l) => acc + l.duration, 0);
+    const historyStr = formatMs(historyMs);
+
+    card.innerHTML = `
+        <div class="fc-header">
+            <div class="fc-title">Finding #${f.displayId}</div>
+            <div class="fc-status ${badgeClass}">${f.status.replace('_', ' ')}</div>
         </div>
         
-        <textarea class="finding-desc" placeholder="Describe finding..." onchange="updateDesc('${woId}', '${finding.id}', this.value)" ${descDisabled}>${finding.description}</textarea>
-        
-        <!-- Materials Section -->
-        <div class="materials-section">
-            <h4 style="font-size:0.8rem; color:#666;">Materials</h4>
-            <table class="material-table">
-                <thead><tr><th>Part Name</th><th width="80">Qty</th><th width="50">Action</th></tr></thead>
-                <tbody id="mat-list-${finding.id}">
-                    ${finding.materials.map((m, idx) => `
+        <div class="fc-body">
+            <!-- Left Side -->
+            <div class="fc-left">
+                <textarea placeholder="Description of Finding..." 
+                    ${isClosed ? 'disabled' : ''} 
+                    onchange="updateFindingDesc('${woId}', '${f.id}', this.value)">${f.description}</textarea>
+                
+                <div style="font-size:0.8rem; font-weight:bold; margin-bottom:4px;">Materials Consumed:</div>
+                <table class="mat-table">
+                    <thead><tr><th>P/N or Name</th><th width="50">Qty</th><th width="30"></th></tr></thead>
+                    <tbody>
+                        ${f.materials.map((m, i) => `
                         <tr>
                             <td>${m.name}</td>
                             <td>${m.qty}</td>
-                            <td>${!isClosed ? `<i class="fas fa-trash" style="color:red; cursor:pointer;" onclick="deleteMaterial('${woId}', '${finding.id}', ${idx})"></i>` : '-'}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-            ${!isClosed ? `
-            <div style="display:flex; gap:5px; margin-top:5px;">
-                <input type="text" placeholder="Part Name" class="input-sm" id="new-mat-name-${finding.id}">
-                <input type="number" placeholder="Qty" class="input-sm" style="width:60px" id="new-mat-qty-${finding.id}">
-                <button class="btn-secondary" style="padding:2px 8px;" onclick="addMaterial('${woId}', '${finding.id}')">Add</button>
-            </div>` : ''}
-        </div>
-
-        <!-- PROGRESS SECTION -->
-        <div class="progression-panel">
-            <div class="panel-title">Task Progression</div>
-            <div class="progression-grid">
-                <div class="form-group">
-                    <label>Employee ID</label>
-                    <input type="text" id="emp-${finding.id}" value="${empVal}" ${inputsDisabled}>
-                </div>
-                <div class="form-group">
-                    <label>Task Code</label>
-                    <input type="text" id="task-${finding.id}" value="${taskVal}" ${inputsDisabled}>
-                </div>
-                <div class="form-group">
-                    <div class="timer-display" id="timer-${finding.id}">00:00:00</div>
-                    <div style="text-align:center; font-size:0.7rem; color:#888;">Live Consuming Hours</div>
-                </div>
+                            <td>${!isClosed ? `<i class="fas fa-times" style="color:red; cursor:pointer;" onclick="removeMaterial('${woId}', '${f.id}', ${i})"></i>` : ''}</td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>
+                ${!isClosed ? `
+                <div style="display:flex; gap:5px; margin-top:5px;">
+                    <input type="text" id="mat-name-${f.id}" placeholder="Part Name" style="flex:1; padding:4px;">
+                    <input type="number" id="mat-qty-${f.id}" placeholder="Qty" style="width:50px; padding:4px;">
+                    <button class="btn-secondary" onclick="addMaterial('${woId}', '${f.id}')">+</button>
+                </div>` : ''}
             </div>
 
-            <div class="controls-row">
-                ${!isActive && !isClosed ? 
-                    `<button class="btn-success" onclick="startTask('${woId}', '${finding.id}')"><i class="fas fa-play"></i> START</button>` : 
-                    `<button class="btn-success" disabled style="opacity:0.3"><i class="fas fa-play"></i> START</button>`
-                }
+            <!-- Right Side (Manhours) -->
+            <div class="fc-right">
+                <div class="progression-header">Manhours Record</div>
                 
-                ${isActive ? 
-                    `<button class="btn-danger" onclick="initiateStop('${woId}', '${finding.id}')"><i class="fas fa-stop"></i> STOP</button>` : 
-                    `<button class="btn-danger" disabled style="opacity:0.3"><i class="fas fa-stop"></i> STOP</button>`
-                }
-
-                <div class="timestamp-display">
-                    <div>Total Duration: <strong>${totalDurationStr}</strong></div>
-                    ${isActive ? `<div>Started: ${new Date(finding.progression.currentSession.start).toLocaleTimeString()}</div>` : ''}
+                <div class="mh-inputs">
+                    <input type="text" id="emp-${f.id}" placeholder="Emp ID" value="${f.manhours.empId}" ${isLocked ? 'disabled' : ''}>
+                    <input type="text" id="task-${f.id}" placeholder="Task Code" value="${f.manhours.taskCode}" ${isLocked ? 'disabled' : ''}>
                 </div>
+
+                <div class="timer-box" id="timer-${f.id}">00:00:00</div>
+
+                <div class="ctrl-buttons">
+                    ${!isRunning && !isClosed ? 
+                        `<button class="btn-success" onclick="startTask('${woId}', '${f.id}')"><i class="fas fa-play"></i> START</button>` : 
+                        `<button class="btn-success" disabled><i class="fas fa-play"></i> START</button>`
+                    }
+                    ${isRunning ? 
+                        `<button class="btn-danger" onclick="stopTaskRequest('${woId}', '${f.id}')"><i class="fas fa-stop"></i> STOP</button>` : 
+                        `<button class="btn-danger" disabled><i class="fas fa-stop"></i> STOP</button>`
+                    }
+                </div>
+
+                <div class="log-summary">
+                    Total: <strong>${historyStr}</strong>
+                    ${f.manhours.logs.length > 0 ? `<br><span style="font-size:0.7em">(${f.manhours.logs.length} sessions)</span>` : ''}
+                </div>
+
+                ${f.photo ? `
+                    <div class="photo-evidence">
+                        <img src="${f.photo}" alt="Evidence">
+                        <span class="photo-badge">EVIDENCE ATTACHED</span>
+                    </div>
+                ` : ''}
             </div>
-
-            ${finding.closingPhoto ? `
-                <div style="margin-top:10px;">
-                    <div style="font-size:0.75rem; font-weight:bold;">Evidence:</div>
-                    <img src="${finding.closingPhoto}" class="image-preview">
-                </div>
-            ` : ''}
         </div>
     `;
-    return div;
+    return card;
 }
 
-// --- HELPER FUNCTIONS ---
+// --- UTILS & HELPERS ---
 
-function createNewWO() {
-    const id = 'WO-' + Math.floor(1000 + Math.random() * 9000);
-    appData.unshift({
-        id: id,
-        findings: []
-    });
-    saveData();
+function findFinding(woInternalId, fId) {
+    const wo = workOrders.find(w => w.internalId === woInternalId);
+    if (!wo) return null;
+    return wo.findings.find(f => f.id === fId);
 }
 
-function addFinding(woId) {
-    const wo = appData.find(w => w.id === woId);
-    if(wo) {
-        wo.findings.push({
-            id: 'F-' + Math.floor(1000 + Math.random() * 9000),
-            description: '',
-            status: 'OPEN',
-            materials: [],
-            progression: {
-                employeeId: '',
-                taskCode: '',
-                logs: [], // History
-                currentSession: null // { start: ISOString, active: Bool }
-            },
-            closingPhoto: null
-        });
-        saveData();
-    }
-}
-
-function updateDesc(woId, fId, val) {
-    const f = findFinding(woId, fId);
-    if(f) {
-        f.description = val;
-        saveData();
-    }
-}
-
-function addMaterial(woId, fId) {
-    const name = document.getElementById(`new-mat-name-${fId}`).value;
-    const qty = document.getElementById(`new-mat-qty-${fId}`).value;
-    if(name && qty) {
-        const f = findFinding(woId, fId);
-        f.materials.push({name, qty});
-        saveData();
-    }
-}
-
-function deleteMaterial(woId, fId, idx) {
-    const f = findFinding(woId, fId);
-    f.materials.splice(idx, 1);
-    saveData();
-}
-
-function findFinding(woId, fId) {
-    const wo = appData.find(w => w.id === woId);
-    return wo ? wo.findings.find(f => f.id === fId) : null;
-}
-
-// --- TIMER ENGINE ---
-
-function formatTime(ms) {
+function formatMs(ms) {
     if(!ms) return "00:00:00";
-    let seconds = Math.floor((ms / 1000) % 60);
-    let minutes = Math.floor((ms / (1000 * 60)) % 60);
-    let hours = Math.floor((ms / (1000 * 60 * 60)));
-
-    hours = (hours < 10) ? "0" + hours : hours;
-    minutes = (minutes < 10) ? "0" + minutes : minutes;
-    seconds = (seconds < 10) ? "0" + seconds : seconds;
-
-    return hours + ":" + minutes + ":" + seconds;
+    let secs = Math.floor((ms / 1000) % 60);
+    let mins = Math.floor((ms / (1000 * 60)) % 60);
+    let hrs = Math.floor((ms / (1000 * 60 * 60)));
+    return `${pad(hrs)}:${pad(mins)}:${pad(secs)}`;
 }
+function pad(n) { return n < 10 ? '0'+n : n; }
 
-function startGlobalTimer() {
+function startGlobalClock() {
     if (timerInterval) clearInterval(timerInterval);
-    
     timerInterval = setInterval(() => {
-        const activeTaskID = getActiveTask();
-        
-        if (activeTaskID) {
-            // Find the active data
-            let activeFinding = null;
-            let activeWO = null;
-            
-            for(let w of appData) {
-                const f = w.findings.find(x => x.id === activeTaskID);
-                if (f && f.progression.currentSession && f.progression.currentSession.active) {
-                    activeFinding = f;
-                    break;
-                }
+        const activeId = getActiveLock();
+        if (activeId) {
+            // Find finding in memory
+            let activeF = null;
+            for(const w of workOrders) {
+                const f = w.findings.find(x => x.id === activeId);
+                if(f) { activeF = f; break; }
             }
-            
-            if (activeFinding) {
-                const start = new Date(activeFinding.progression.currentSession.start);
+
+            if (activeF && activeF.manhours.currentSession) {
+                const start = new Date(activeF.manhours.currentSession.start);
                 const now = new Date();
                 const diff = now - start;
-                
-                const timerEl = document.getElementById(`timer-${activeTaskID}`);
-                if (timerEl) {
-                    timerEl.textContent = formatTime(diff);
-                }
+                const el = document.getElementById(`timer-${activeId}`);
+                if(el) el.innerText = formatMs(diff);
             }
         }
     }, 1000);
 }
 
-function checkGlobalActiveTask() {
-    const active = getActiveTask();
-    const indicator = document.getElementById('globalTaskIndicator');
-    if (active) {
-        indicator.style.display = 'flex';
+function toggleGlobalIndicator() {
+    const activeId = getActiveLock();
+    const ind = document.getElementById('globalTaskIndicator');
+    if(activeId) {
+        ind.style.display = 'flex';
+        // Optional: show which finding is running
+        document.getElementById('activeTaskLabel').innerText = "Running: Finding " + activeId.split('-')[1];
     } else {
-        indicator.style.display = 'none';
+        ind.style.display = 'none';
     }
 }
