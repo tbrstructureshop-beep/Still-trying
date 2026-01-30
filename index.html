@@ -9,98 +9,100 @@
 </head>
 <body>
 
-    <datalist id="availabilityList"></datalist>
+<!-- Put this anywhere inside the <body> -->
+<datalist id="availabilityList"></datalist>
+  
+<div id="initial-loader">
+  <div class="spinner"></div>
+  <p style="margin-top: 15px; color: var(--primary-dark); font-weight: 600;">Loading Material Requirement...</p>
+</div>
+
+<div class="container">
+
+  <!-- GENERAL DESCRIPTION -->
+  <div class="card">
+    <h3>General Description</h3>
+    <div class="form-grid">
+      <div class="form-group"><label>WO No</label><input id="woNo" readonly></div>
+      <div class="form-group"><label>Part Description</label><input id="partDesc" readonly></div>
+      <div class="form-group"><label>PN</label><input id="pn" readonly></div>
+      <div class="form-group"><label>SN</label><input id="sn" readonly></div>
+      <div class="form-group"><label>A/C Reg</label><input id="acReg" readonly></div>
+      <div class="form-group"><label>Customer</label><input id="customer" readonly></div>
+    </div>
+  </div>
+
+<!-- FINDING CARD -->
+  <div class="card">
+    <h3>Selected Finding</h3>
+    <div class="form-group">
+      <label>Finding</label>
+      <select id="findingSelect">
+        <option value="">-- Select Finding --</option>
+      </select>
+    </div>
     
-    <!-- Full Screen Loader -->
-    <div id="initial-loader">
-        <div class="spinner"></div>
-        <p style="margin-top: 15px; color: var(--primary-dark); font-weight: 600;">Loading Material Requirement...</p>
+    <div class="finding-preview">
+      <div class="image-wrapper">
+        <div class="spinner img-spinner" id="imageSpinner"></div> 
+        <!-- Default image set to No Image Available -->
+        <img id="findingImage" 
+           src="https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg" 
+           alt="Finding Image" 
+           onload="hideImageSpinner()">
+      </div>
+      <div>
+        <label>Description</label>
+        <textarea id="findingDesc" rows="5" readonly></textarea>
+        <label style="margin-top:8px;">Action Given</label>
+        <textarea id="findingAction" rows="15" readonly></textarea>
+      </div>
+    </div>
+  </div> <!--  *** ADD THIS TAG HERE to close the Finding Card *** -->
+
+  <!-- MATERIAL ROW CARD (Now it will be separate) -->
+  <div class="card">
+    <h3>Material Requirement</h3>
+
+    <div class="table-wrapper">
+      <table id="materialTable">
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Part No.</th>
+            <th>Material Description</th>
+            <th>Qty</th>
+            <th>UoM</th>
+            <th>Availability</th>
+            <th>PR</th>
+            <th>PO</th>
+            <th>Note (Reference)</th>
+            <th>Entry Date</th>
+            <th>REMOVE MATERIAL</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
 
-    <div class="container">
-        <!-- GENERAL DESCRIPTION -->
-        <div class="card">
-            <h3>General Description</h3>
-            <div class="form-grid">
-                <div class="form-group"><label>WO No</label><input id="woNo" readonly></div>
-                <div class="form-group"><label>Part Description</label><input id="partDesc" readonly></div>
-                <div class="form-group"><label>PN</label><input id="pn" readonly></div>
-                <div class="form-group"><label>SN</label><input id="sn" readonly></div>
-                <div class="form-group"><label>A/C Reg</label><input id="acReg" readonly></div>
-                <div class="form-group"><label>Customer</label><input id="customer" readonly></div>
-            </div>
-        </div>
+    <div class="material-cards" id="materialCards"></div>
 
-        <!-- FINDING CARD -->
-        <div class="card">
-            <h3>Selected Finding</h3>
-            <div class="form-group">
-                <label>Finding</label>
-                <select id="findingSelect">
-                    <option value="">-- Select Finding --</option>
-                </select>
-            </div>
-            
-            <div class="finding-preview">
-                <div class="image-wrapper">
-                    <div class="spinner img-spinner" id="imageSpinner"></div> 
-                    <img id="findingImage" 
-                         src="https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg" 
-                         alt="Finding Image" 
-                         onload="hideImageSpinner()">
-                </div>
-                <div>
-                    <label>Description</label>
-                    <textarea id="findingDesc" rows="5" readonly></textarea>
-                    <label style="margin-top:8px;">Action Given</label>
-                    <textarea id="findingAction" rows="15" readonly></textarea>
-                </div>
-            </div>
-        </div>
+    <div class="button-bar">
+      <div class="left-buttons" id="editControls" style="display: none;">
+        <button class="btn-add" onclick="addRow()">➕ Add Row</button>
+        <button class="btn-delete" onclick="removeLastRow()">🗑️ Cancel Row</button>
+        <button class="btn-reset" onclick="resetTable()">🔄 Reset Material</button>
+        <button class="btn-primary" onclick="saveData()">💾 Save</button>
+      </div>
 
-        <!-- MATERIAL REQUIREMENT CARD -->
-        <div class="card">
-            <h3>Material Requirement</h3>
-            <div class="table-wrapper">
-                <table id="materialTable">
-                    <thead>
-                        <tr>
-                            <th>No</th>
-                            <th>Part No.</th>
-                            <th>Material Description</th>
-                            <th>Qty</th>
-                            <th>UoM</th>
-                            <th>Availability</th>
-                            <th>PR</th>
-                            <th>PO</th>
-                            <th>Note (Reference)</th>
-                            <th>Entry Date</th>
-                            <th>REMOVE MATERIAL</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-
-            <div class="material-cards" id="materialCards"></div>
-
-            <div class="button-bar">
-                <div class="left-buttons" id="editControls" style="display: none;">
-                    <button class="btn-add" onclick="addRow()">➕ Add Row</button>
-                    <button class="btn-delete" onclick="removeLastRow()">🗑️ Cancel Row</button>
-                    <button class="btn-reset" onclick="resetTable()">🔄 Reset Material</button>
-                    <button class="btn-primary" onclick="saveData()">💾 Save</button>
-                </div>
-
-                <div class="right-button">
-                    <span id="editHint" style="color: #c0392b; font-size: 12px; align-self: center; margin-right: 10px; display: none; font-weight: bold;">
-                        ⚠️ Please select finding first
-                    </span>
-                    <button class="btn-edit" id="editBtn" onclick="toggleEdit()">✏️ Edit</button>
-                </div>
-            </div>
-        </div>
+      <div class="right-button">
+        <span id="editHint" style="color: #c0392b; font-size: 12px; align-self: center; margin-right: 10px; display: none; font-weight: bold;">
+    ⚠️ Please select finding first
+        </span>
+        <button class="btn-edit" id="editBtn" onclick="toggleEdit()">✏️ Edit</button>
+      </div>
     </div>
+  </div> <!-- This closes the Material Card -->
 
     <!-- Link to external JS -->
     <script src="script.js"></script>
