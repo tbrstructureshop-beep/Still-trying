@@ -3,55 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MRO Digital Work Order</title>
+    <title>MRO Team Work Order</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
     <header class="app-header">
         <div class="brand">
-            <h1><i class="fas fa-plane-departure"></i> Aircraft MRO System</h1>
+            <h1><i class="fas fa-users-cog"></i> MRO Team Tracker</h1>
         </div>
         <div class="header-controls">
+            <!-- Global Alert if any task is running -->
             <div class="active-task-indicator" id="globalTaskIndicator" style="display: none;">
-                <span class="pulsing-dot"></span> <span id="activeTaskLabel">Task Running...</span>
+                <span class="pulsing-dot"></span> <span id="activeTaskLabel">Task in Progress...</span>
             </div>
-            <button id="btnNewWO" class="btn-primary"><i class="fas fa-file-medical"></i> Create WO Sheet</button>
+            <button id="btnNewWO" class="btn-primary"><i class="fas fa-plus-circle"></i> New WO Sheet</button>
         </div>
     </header>
 
     <main id="appContainer" class="app-container">
-        <!-- Work Orders injected here -->
+        <!-- Dynamic Work Orders -->
     </main>
 
-    <!-- MODAL: STOP TASK / STATUS DECISION -->
+    <!-- MODAL: STOP & STATUS -->
     <div id="statusModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Task Completed</h2>
+                <h2><i class="fas fa-pause-circle"></i> Task Stopped</h2>
             </div>
             <div class="modal-body">
-                <p>Select final status for this finding:</p>
+                <p>The timer has been paused. What is the status of this finding?</p>
                 <div class="radio-group">
                     <label class="radio-card">
                         <input type="radio" name="taskStatus" value="ON_HOLD" checked>
                         <div class="radio-info">
-                            <span class="status-badge status-blue">Still In Progress</span>
-                            <small>Pause timer. Resume later.</small>
+                            <span class="status-badge status-blue">Handover / In Progress</span>
+                            <small>Keep open for next shift/employee.</small>
                         </div>
                     </label>
                     <label class="radio-card">
                         <input type="radio" name="taskStatus" value="CLOSED">
                         <div class="radio-info">
-                            <span class="status-badge status-green">Closed</span>
-                            <small>Repair done. Lock finding.</small>
+                            <span class="status-badge status-green">Finding Closed</span>
+                            <small>Repair complete. No further work needed.</small>
                         </div>
                     </label>
                 </div>
             </div>
             <div class="modal-footer">
-                <button id="btnConfirmStatus" class="btn-primary">Confirm</button>
+                <button id="btnConfirmStatus" class="btn-primary">Confirm Status</button>
             </div>
         </div>
     </div>
@@ -60,21 +62,20 @@
     <div id="photoModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Upload Evidence</h2>
+                <h2>Evidence Upload</h2>
             </div>
             <div class="modal-body">
-                <p>Upload after-repair photo (Optional):</p>
                 <div class="file-upload-wrapper">
                     <input type="file" id="photoInput" accept="image/png, image/jpeg">
                     <label for="photoInput" class="file-label">
-                        <i class="fas fa-camera"></i> Select Image
+                        <i class="fas fa-camera"></i> Take Photo / Upload
                     </label>
-                    <span id="fileNameDisplay">No file chosen</span>
+                    <span id="fileNameDisplay">No file selected</span>
                 </div>
             </div>
             <div class="modal-footer">
-                <button id="btnSkipPhoto" class="btn-secondary">Skip</button>
-                <button id="btnSavePhoto" class="btn-primary" disabled>Upload & Close</button>
+                <button id="btnSkipPhoto" class="btn-secondary">Close Without Photo</button>
+                <button id="btnSavePhoto" class="btn-primary" disabled>Save Evidence</button>
             </div>
         </div>
     </div>
