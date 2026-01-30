@@ -1,110 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MATERIAL DETAIL</title>
-    <!-- Link to external CSS -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aircraft Maintenance Tracker</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
-<!-- Put this anywhere inside the <body> -->
-<datalist id="availabilityList"></datalist>
-  
-<div id="initial-loader">
-  <div class="spinner"></div>
-  <p style="margin-top: 15px; color: var(--primary-dark); font-weight: 600;">Loading Material Requirement...</p>
-</div>
+    <header class="app-header">
+        <h1><i class="fas fa-plane"></i> MRO Tech | Work Order System</h1>
+        <div class="active-task-indicator" id="globalTaskIndicator" style="display: none;">
+            <span class="pulsing-dot"></span> Active Task Running
+        </div>
+        <button id="btnNewWO" class="btn-primary"><i class="fas fa-plus"></i> New Work Order</button>
+    </header>
 
-<div class="container">
+    <main id="appContainer" class="app-container">
+        <!-- Dynamic Content will be injected here -->
+    </main>
 
-  <!-- GENERAL DESCRIPTION -->
-  <div class="card">
-    <h3>General Description</h3>
-    <div class="form-grid">
-      <div class="form-group"><label>WO No</label><input id="woNo" readonly></div>
-      <div class="form-group"><label>Part Description</label><input id="partDesc" readonly></div>
-      <div class="form-group"><label>PN</label><input id="pn" readonly></div>
-      <div class="form-group"><label>SN</label><input id="sn" readonly></div>
-      <div class="form-group"><label>A/C Reg</label><input id="acReg" readonly></div>
-      <div class="form-group"><label>Customer</label><input id="customer" readonly></div>
-    </div>
-  </div>
-
-<!-- FINDING CARD -->
-  <div class="card">
-    <h3>Selected Finding</h3>
-    <div class="form-group">
-      <label>Finding</label>
-      <select id="findingSelect">
-        <option value="">-- Select Finding --</option>
-      </select>
-    </div>
-    
-    <div class="finding-preview">
-      <div class="image-wrapper">
-        <div class="spinner img-spinner" id="imageSpinner"></div> 
-        <!-- Default image set to No Image Available -->
-        <img id="findingImage" 
-           src="https://upload.wikimedia.org/wikipedia/commons/1/14/No_Image_Available.jpg" 
-           alt="Finding Image" 
-           onload="hideImageSpinner()">
-      </div>
-      <div>
-        <label>Description</label>
-        <textarea id="findingDesc" rows="5" readonly></textarea>
-        <label style="margin-top:8px;">Action Given</label>
-        <textarea id="findingAction" rows="15" readonly></textarea>
-      </div>
-    </div>
-  </div> <!--  *** ADD THIS TAG HERE to close the Finding Card *** -->
-
-  <!-- MATERIAL ROW CARD (Now it will be separate) -->
-  <div class="card">
-    <h3>Material Requirement</h3>
-
-    <div class="table-wrapper">
-      <table id="materialTable">
-        <thead>
-          <tr>
-            <th>No</th>
-            <th>Part No.</th>
-            <th>Material Description</th>
-            <th>Qty</th>
-            <th>UoM</th>
-            <th>Availability</th>
-            <th>PR</th>
-            <th>PO</th>
-            <th>Note (Reference)</th>
-            <th>Entry Date</th>
-            <th>REMOVE MATERIAL</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+    <!-- MODAL: STOP TASK / STATUS DECISION -->
+    <div id="statusModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Task Completed</h2>
+            </div>
+            <div class="modal-body">
+                <p>You have stopped the timer. What is the status of this finding?</p>
+                <div class="radio-group">
+                    <label class="radio-card">
+                        <input type="radio" name="taskStatus" value="ON_HOLD" checked>
+                        <div class="radio-info">
+                            <span class="status-badge status-blue">Still In Progress</span>
+                            <small>Task is incomplete. Resume later.</small>
+                        </div>
+                    </label>
+                    <label class="radio-card">
+                        <input type="radio" name="taskStatus" value="CLOSED">
+                        <div class="radio-info">
+                            <span class="status-badge status-green">Closed</span>
+                            <small>Repairs finished. Lock finding.</small>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btnConfirmStatus" class="btn-primary">Confirm Status</button>
+            </div>
+        </div>
     </div>
 
-    <div class="material-cards" id="materialCards"></div>
-
-    <div class="button-bar">
-      <div class="left-buttons" id="editControls" style="display: none;">
-        <button class="btn-add" onclick="addRow()">➕ Add Row</button>
-        <button class="btn-delete" onclick="removeLastRow()">🗑️ Cancel Row</button>
-        <button class="btn-reset" onclick="resetTable()">🔄 Reset Material</button>
-        <button class="btn-primary" onclick="saveData()">💾 Save</button>
-      </div>
-
-      <div class="right-button">
-        <span id="editHint" style="color: #c0392b; font-size: 12px; align-self: center; margin-right: 10px; display: none; font-weight: bold;">
-    ⚠️ Please select finding first
-        </span>
-        <button class="btn-edit" id="editBtn" onclick="toggleEdit()">✏️ Edit</button>
-      </div>
+    <!-- MODAL: PHOTO UPLOAD -->
+    <div id="photoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Upload Evidence</h2>
+            </div>
+            <div class="modal-body">
+                <p>Do you want to upload an after-repair photo?</p>
+                <div class="file-upload-wrapper">
+                    <input type="file" id="photoInput" accept="image/png, image/jpeg">
+                    <label for="photoInput" class="file-label">
+                        <i class="fas fa-cloud-upload-alt"></i> Choose Image
+                    </label>
+                    <span id="fileNameDisplay">No file chosen</span>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="btnSkipPhoto" class="btn-secondary">No, Close Without Photo</button>
+                <button id="btnSavePhoto" class="btn-primary" disabled>Upload & Close</button>
+            </div>
+        </div>
     </div>
-  </div> <!-- This closes the Material Card -->
 
-    <!-- Link to external JS -->
     <script src="script.js"></script>
 </body>
 </html>
