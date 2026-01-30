@@ -3,23 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aircraft Maintenance Tracker</title>
+    <title>MRO Digital Work Order</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Font Awesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
     <header class="app-header">
-        <h1><i class="fas fa-plane"></i> MRO Tech | Work Order System</h1>
-        <div class="active-task-indicator" id="globalTaskIndicator" style="display: none;">
-            <span class="pulsing-dot"></span> Active Task Running
+        <div class="brand">
+            <h1><i class="fas fa-plane-departure"></i> Aircraft MRO System</h1>
         </div>
-        <button id="btnNewWO" class="btn-primary"><i class="fas fa-plus"></i> New Work Order</button>
+        <div class="header-controls">
+            <div class="active-task-indicator" id="globalTaskIndicator" style="display: none;">
+                <span class="pulsing-dot"></span> <span id="activeTaskLabel">Task Running...</span>
+            </div>
+            <button id="btnNewWO" class="btn-primary"><i class="fas fa-file-medical"></i> Create WO Sheet</button>
+        </div>
     </header>
 
     <main id="appContainer" class="app-container">
-        <!-- Dynamic Content will be injected here -->
+        <!-- Work Orders injected here -->
     </main>
 
     <!-- MODAL: STOP TASK / STATUS DECISION -->
@@ -29,26 +32,26 @@
                 <h2>Task Completed</h2>
             </div>
             <div class="modal-body">
-                <p>You have stopped the timer. What is the status of this finding?</p>
+                <p>Select final status for this finding:</p>
                 <div class="radio-group">
                     <label class="radio-card">
                         <input type="radio" name="taskStatus" value="ON_HOLD" checked>
                         <div class="radio-info">
                             <span class="status-badge status-blue">Still In Progress</span>
-                            <small>Task is incomplete. Resume later.</small>
+                            <small>Pause timer. Resume later.</small>
                         </div>
                     </label>
                     <label class="radio-card">
                         <input type="radio" name="taskStatus" value="CLOSED">
                         <div class="radio-info">
                             <span class="status-badge status-green">Closed</span>
-                            <small>Repairs finished. Lock finding.</small>
+                            <small>Repair done. Lock finding.</small>
                         </div>
                     </label>
                 </div>
             </div>
             <div class="modal-footer">
-                <button id="btnConfirmStatus" class="btn-primary">Confirm Status</button>
+                <button id="btnConfirmStatus" class="btn-primary">Confirm</button>
             </div>
         </div>
     </div>
@@ -60,17 +63,17 @@
                 <h2>Upload Evidence</h2>
             </div>
             <div class="modal-body">
-                <p>Do you want to upload an after-repair photo?</p>
+                <p>Upload after-repair photo (Optional):</p>
                 <div class="file-upload-wrapper">
                     <input type="file" id="photoInput" accept="image/png, image/jpeg">
                     <label for="photoInput" class="file-label">
-                        <i class="fas fa-cloud-upload-alt"></i> Choose Image
+                        <i class="fas fa-camera"></i> Select Image
                     </label>
                     <span id="fileNameDisplay">No file chosen</span>
                 </div>
             </div>
             <div class="modal-footer">
-                <button id="btnSkipPhoto" class="btn-secondary">No, Close Without Photo</button>
+                <button id="btnSkipPhoto" class="btn-secondary">Skip</button>
                 <button id="btnSavePhoto" class="btn-primary" disabled>Upload & Close</button>
             </div>
         </div>
