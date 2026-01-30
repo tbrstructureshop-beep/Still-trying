@@ -1,11 +1,11 @@
 /* 
  * AIRCRAFT MAINTENANCE SYSTEM
- * Work Order + Findings + Manhours Tracker
+ * Work Order + Findings + Detailed Log
  * Pure JS / LocalStorage
  */
 
-const STORAGE_KEY = 'mro_sys_data';
-const ACTIVE_LOCK_KEY = 'mro_active_lock'; // Holds ID of finding currently running
+const STORAGE_KEY = 'mro_sys_data_v2';
+const ACTIVE_LOCK_KEY = 'mro_active_lock'; 
 
 let workOrders = [];
 let timerInterval = null;
@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btnSavePhoto').addEventListener('click', saveImage);
     document.getElementById('btnSkipPhoto').addEventListener('click', skipImage);
 
-    // Resume Timer if page reloaded
+    // Resume Timer
     startGlobalClock();
 });
 
@@ -50,7 +50,7 @@ function setActiveLock(findingId) {
 // --- WORK ORDER LOGIC ---
 
 function createWorkOrder() {
-    const woID = Date.now().toString().slice(-6); // Simple Unique ID suffix
+    const woID = Date.now().toString().slice(-6); 
     
     const newWO = {
         internalId: woID,
@@ -65,20 +65,22 @@ function createWorkOrder() {
         findings: []
     };
 
-    // Requirement: Automatically create 5 findings (01 - 05)
+    // Auto-create 5 findings
     for (let i = 1; i <= 5; i++) {
         const fNum = i.toString().padStart(2, '0');
         newWO.findings.push({
-            id: `${woID}-${fNum}`, // Unique ID
-            displayId: fNum,       // Visual ID (01, 02...)
+            id: `${woID}-${fNum}`, 
+            displayId: fNum,
             description: "",
-            status: "OPEN", // OPEN, IN_PROGRESS, ON_HOLD, CLOSED
+            status: "OPEN",
             materials: [],
             manhours: {
                 empId: "",
                 taskCode: "",
-                logs: [], // {start, stop, duration}
-                currentSession: null // {start: ISO}
+                // 'logs' stores completed sessions: { start, stop, duration, empId, taskCode }
+                logs: [], 
+                // 'currentSession' stores active state: { start, empId, taskCode }
+                currentSession: null 
             },
             photo: null
         });
@@ -92,8 +94,7 @@ function updateGeneralData(woInternalId, field, value) {
     const wo = workOrders.find(w => w.internalId === woInternalId);
     if (wo) {
         wo.generalData[field] = value;
-        // Optimization: Don't re-render everything on keystroke, just save
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(workOrders));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(workOrders)); // Quick save
     }
 }
 
@@ -126,7 +127,7 @@ function removeMaterial(woId, fId, idx) {
 function startTask(woId, fId) {
     const active = getActiveLock();
     if (active && active !== fId) {
-        alert("SYSTEM ALERT: Another task is currently running. You must stop it first.");
+        alert("SYSTEM ALERT: Another task is currently running. Please stop it first.");
         return;
     }
 
@@ -139,33 +140,25 @@ function startTask(woId, fId) {
         return;
     }
 
-    // Lock Data
     finding.manhours.empId = empInput.value;
     finding.manhours.taskCode = taskInput.value;
     finding.status = "IN_PROGRESS";
     finding.manhours.currentSession = {
-        start: new Date().toISOString()
+        start: new Date().toISOString(),
+        empId: empInput.value,
+        taskCode: taskInput.value
     };
 
     setActiveLock(fId);
     persistSystemData();
 }
 
-// Temporary state for the Modal interaction
 let pendingStop = null; 
 
 function stopTaskRequest(woId, fId) {
-    const finding = findFinding(woId, fId);
+    // Just trigger modal, don't stop logical timer yet
     const stopTime = new Date().toISOString();
-    
-    // Store context for Modal
-    pendingStop = {
-        woId, 
-        fId,
-        stopTime
-    };
-
-    // Show Modal
+    pendingStop = { woId, fId, stopTime };
     document.getElementById('statusModal').style.display = 'block';
 }
 
@@ -174,31 +167,31 @@ function finalizeStop() {
 
     const { woId, fId, stopTime } = pendingStop;
     const finding = findFinding(woId, fId);
-    const sessionStart = finding.manhours.currentSession.start;
+    const session = finding.manhours.currentSession;
     
-    // Calculate duration
-    const duration = new Date(stopTime) - new Date(sessionStart);
+    const duration = new Date(stopTime) - new Date(session.start);
     
-    // Save to Log
+    // Save to Log History
     finding.manhours.logs.push({
-        start: sessionStart,
+        start: session.start,
         stop: stopTime,
-        duration: duration
+        duration: duration,
+        empId: session.empId,
+        taskCode: session.taskCode
     });
     
     // Clear Session
     finding.manhours.currentSession = null;
-    setActiveLock(null); // Release lock
+    setActiveLock(null); 
 
-    // Determine Status
+    // Status Update
     const choice = document.querySelector('input[name="taskStatus"]:checked').value;
-    finding.status = choice; // ON_HOLD or CLOSED
+    finding.status = choice;
 
     document.getElementById('statusModal').style.display = 'none';
 
     if (choice === 'CLOSED') {
-        // Trigger Photo Flow
-        pendingStop.isClosed = true; // Flag
+        pendingStop.isClosed = true;
         document.getElementById('photoModal').style.display = 'block';
         resetPhotoModal();
     } else {
@@ -246,6 +239,10 @@ function skipImage() {
 // --- RENDERING ---
 
 function renderSystem() {
+    // Note: We need to preserve dropdown states if re-rendering
+    // But since this is a simple app, we might close them on full render.
+    // For better UX, let's keep it simple: Re-render closes dropdowns.
+    
     const container = document.getElementById('appContainer');
     container.innerHTML = '';
 
@@ -253,42 +250,20 @@ function renderSystem() {
         const woEl = document.createElement('div');
         woEl.className = 'wo-sheet';
         
-        // 1. General Data Grid
         woEl.innerHTML = `
             <div class="wo-general-data">
-                <div class="data-field">
-                    <label>WO Number</label>
-                    <input type="text" value="${wo.generalData.woNumber}" onchange="updateGeneralData('${wo.internalId}', 'woNumber', this.value)">
-                </div>
-                <div class="data-field">
-                    <label>Customer</label>
-                    <input type="text" value="${wo.generalData.customer}" onchange="updateGeneralData('${wo.internalId}', 'customer', this.value)">
-                </div>
-                <div class="data-field">
-                    <label>A/C Reg (ex PK-GLL)</label>
-                    <input type="text" value="${wo.generalData.acReg}" onchange="updateGeneralData('${wo.internalId}', 'acReg', this.value)">
-                </div>
-                <div class="data-field">
-                    <label>Part Description</label>
-                    <input type="text" value="${wo.generalData.partDesc}" onchange="updateGeneralData('${wo.internalId}', 'partDesc', this.value)">
-                </div>
-                <div class="data-field">
-                    <label>P/N</label>
-                    <input type="text" value="${wo.generalData.pn}" onchange="updateGeneralData('${wo.internalId}', 'pn', this.value)">
-                </div>
-                <div class="data-field">
-                    <label>S/N</label>
-                    <input type="text" value="${wo.generalData.sn}" onchange="updateGeneralData('${wo.internalId}', 'sn', this.value)">
-                </div>
+                <div class="data-field"><label>WO Number</label><input type="text" value="${wo.generalData.woNumber}" onchange="updateGeneralData('${wo.internalId}', 'woNumber', this.value)"></div>
+                <div class="data-field"><label>Customer</label><input type="text" value="${wo.generalData.customer}" onchange="updateGeneralData('${wo.internalId}', 'customer', this.value)"></div>
+                <div class="data-field"><label>A/C Reg</label><input type="text" value="${wo.generalData.acReg}" onchange="updateGeneralData('${wo.internalId}', 'acReg', this.value)"></div>
+                <div class="data-field"><label>Part Desc</label><input type="text" value="${wo.generalData.partDesc}" onchange="updateGeneralData('${wo.internalId}', 'partDesc', this.value)"></div>
+                <div class="data-field"><label>P/N</label><input type="text" value="${wo.generalData.pn}" onchange="updateGeneralData('${wo.internalId}', 'pn', this.value)"></div>
+                <div class="data-field"><label>S/N</label><input type="text" value="${wo.generalData.sn}" onchange="updateGeneralData('${wo.internalId}', 'sn', this.value)"></div>
             </div>
-            <div class="wo-findings-container" id="findings-${wo.internalId}">
-                <!-- Findings Injected Here -->
-            </div>
+            <div class="wo-findings-container" id="findings-${wo.internalId}"></div>
         `;
         
         container.appendChild(woEl);
         
-        // 2. Render Findings
         const fContainer = document.getElementById(`findings-${wo.internalId}`);
         wo.findings.forEach(f => {
             fContainer.appendChild(createFindingCard(wo.internalId, f));
@@ -303,99 +278,137 @@ function createFindingCard(woId, f) {
     card.className = 'finding-card';
     card.setAttribute('data-status', f.status);
     
-    // Status visual helpers
     const isRunning = f.status === 'IN_PROGRESS';
     const isClosed = f.status === 'CLOSED';
-    const isLocked = isRunning || isClosed; // Inputs locked
     
-    // Status Badge Color
+    // Badge
     let badgeClass = 'bg-open';
     if(isRunning) badgeClass = 'bg-active';
     if(f.status === 'ON_HOLD') badgeClass = 'bg-hold';
     if(isClosed) badgeClass = 'bg-closed';
 
-    // Time Calculation
+    // Total Duration Calc
     const historyMs = f.manhours.logs.reduce((acc, l) => acc + l.duration, 0);
-    const historyStr = formatMs(historyMs);
+    
+    // --- BUILD LOG EVENTS (START/STOP Transactional View) ---
+    // We break down logs into individual events
+    let events = [];
+    
+    // Add completed sessions
+    f.manhours.logs.forEach(l => {
+        events.push({ type: 'STOP', time: l.stop, emp: l.empId, task: l.taskCode });
+        events.push({ type: 'START', time: l.start, emp: l.empId, task: l.taskCode });
+    });
+    
+    // Add current session if running
+    if (f.manhours.currentSession) {
+        const s = f.manhours.currentSession;
+        events.push({ type: 'START', time: s.start, emp: s.empId, task: s.taskCode });
+    }
+    
+    // Sort by time descending (newest first)
+    events.sort((a, b) => new Date(b.time) - new Date(a.time));
+
+    // Generate Table Rows
+    const logRows = events.map(e => `
+        <tr>
+            <td>${formatDateSimple(e.time)}</td>
+            <td>${e.emp}</td>
+            <td>${e.task}</td>
+            <td><span class="badge-action ${e.type === 'START' ? 'badge-start' : 'badge-stop'}">${e.type}</span></td>
+        </tr>
+    `).join('');
 
     card.innerHTML = `
         <div class="fc-header">
             <div class="fc-title">Finding #${f.displayId}</div>
             <div class="fc-status ${badgeClass}">${f.status.replace('_', ' ')}</div>
         </div>
-        
         <div class="fc-body">
-            <!-- Left Side -->
             <div class="fc-left">
-                <textarea placeholder="Description of Finding..." 
-                    ${isClosed ? 'disabled' : ''} 
+                <textarea placeholder="Description..." ${isClosed ? 'disabled' : ''} 
                     onchange="updateFindingDesc('${woId}', '${f.id}', this.value)">${f.description}</textarea>
                 
-                <div style="font-size:0.8rem; font-weight:bold; margin-bottom:4px;">Materials Consumed:</div>
                 <table class="mat-table">
-                    <thead><tr><th>P/N or Name</th><th width="50">Qty</th><th width="30"></th></tr></thead>
+                    <thead><tr><th>P/N or Name</th><th>Qty</th><th></th></tr></thead>
                     <tbody>
                         ${f.materials.map((m, i) => `
-                        <tr>
-                            <td>${m.name}</td>
-                            <td>${m.qty}</td>
+                        <tr><td>${m.name}</td><td>${m.qty}</td>
                             <td>${!isClosed ? `<i class="fas fa-times" style="color:red; cursor:pointer;" onclick="removeMaterial('${woId}', '${f.id}', ${i})"></i>` : ''}</td>
                         </tr>`).join('')}
                     </tbody>
                 </table>
                 ${!isClosed ? `
                 <div style="display:flex; gap:5px; margin-top:5px;">
-                    <input type="text" id="mat-name-${f.id}" placeholder="Part Name" style="flex:1; padding:4px;">
+                    <input type="text" id="mat-name-${f.id}" placeholder="Part" style="flex:1; padding:4px;">
                     <input type="number" id="mat-qty-${f.id}" placeholder="Qty" style="width:50px; padding:4px;">
                     <button class="btn-secondary" onclick="addMaterial('${woId}', '${f.id}')">+</button>
                 </div>` : ''}
             </div>
 
-            <!-- Right Side (Manhours) -->
             <div class="fc-right">
                 <div class="progression-header">Manhours Record</div>
-                
                 <div class="mh-inputs">
-                    <input type="text" id="emp-${f.id}" placeholder="Emp ID" value="${f.manhours.empId}" ${isLocked ? 'disabled' : ''}>
-                    <input type="text" id="task-${f.id}" placeholder="Task Code" value="${f.manhours.taskCode}" ${isLocked ? 'disabled' : ''}>
+                    <input type="text" id="emp-${f.id}" placeholder="Emp ID" value="${f.manhours.empId}" ${isRunning || isClosed ? 'disabled' : ''}>
+                    <input type="text" id="task-${f.id}" placeholder="Task No" value="${f.manhours.taskCode}" ${isRunning || isClosed ? 'disabled' : ''}>
                 </div>
-
                 <div class="timer-box" id="timer-${f.id}">00:00:00</div>
-
+                
                 <div class="ctrl-buttons">
                     ${!isRunning && !isClosed ? 
                         `<button class="btn-success" onclick="startTask('${woId}', '${f.id}')"><i class="fas fa-play"></i> START</button>` : 
-                        `<button class="btn-success" disabled><i class="fas fa-play"></i> START</button>`
+                        `<button class="btn-success" disabled style="opacity:0.3">START</button>`
                     }
                     ${isRunning ? 
                         `<button class="btn-danger" onclick="stopTaskRequest('${woId}', '${f.id}')"><i class="fas fa-stop"></i> STOP</button>` : 
-                        `<button class="btn-danger" disabled><i class="fas fa-stop"></i> STOP</button>`
+                        `<button class="btn-danger" disabled style="opacity:0.3">STOP</button>`
                     }
                 </div>
 
-                <div class="log-summary">
-                    Total: <strong>${historyStr}</strong>
-                    ${f.manhours.logs.length > 0 ? `<br><span style="font-size:0.7em">(${f.manhours.logs.length} sessions)</span>` : ''}
+                <div class="log-summary-container">
+                    <div style="text-align:right; font-size:0.8rem; margin-bottom:5px;">Total Duration: <strong>${formatMs(historyMs)}</strong></div>
+                    
+                    <button class="log-toggle-btn" onclick="toggleLogView('${f.id}')">
+                        See Performing Log <i class="fas fa-chevron-down"></i>
+                    </button>
+                    
+                    <div id="log-content-${f.id}" class="log-dropdown-content">
+                        <table class="log-table">
+                            <thead><tr><th>Time Stamp</th><th>ID</th><th>Task</th><th>Action</th></tr></thead>
+                            <tbody>${logRows}</tbody>
+                        </table>
+                    </div>
                 </div>
 
-                ${f.photo ? `
-                    <div class="photo-evidence">
-                        <img src="${f.photo}" alt="Evidence">
-                        <span class="photo-badge">EVIDENCE ATTACHED</span>
-                    </div>
-                ` : ''}
+                ${f.photo ? `<div class="photo-evidence"><img src="${f.photo}"><span class="photo-badge">EVIDENCE</span></div>` : ''}
             </div>
         </div>
     `;
     return card;
 }
 
-// --- UTILS & HELPERS ---
+// --- VIEW HELPERS ---
+
+function toggleLogView(id) {
+    const el = document.getElementById(`log-content-${id}`);
+    if (el.style.display === 'block') {
+        el.style.display = 'none';
+    } else {
+        el.style.display = 'block';
+    }
+}
+
+function formatDateSimple(isoStr) {
+    if (!isoStr) return "";
+    const d = new Date(isoStr);
+    const datePart = d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    const timePart = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    return `${datePart} <br> <span style="color:#777">${timePart}</span>`;
+}
 
 function findFinding(woInternalId, fId) {
     const wo = workOrders.find(w => w.internalId === woInternalId);
-    if (!wo) return null;
-    return wo.findings.find(f => f.id === fId);
+    return wo ? wo.findings.find(f => f.id === fId) : null;
 }
 
 function formatMs(ms) {
@@ -412,17 +425,13 @@ function startGlobalClock() {
     timerInterval = setInterval(() => {
         const activeId = getActiveLock();
         if (activeId) {
-            // Find finding in memory
             let activeF = null;
             for(const w of workOrders) {
                 const f = w.findings.find(x => x.id === activeId);
                 if(f) { activeF = f; break; }
             }
-
             if (activeF && activeF.manhours.currentSession) {
-                const start = new Date(activeF.manhours.currentSession.start);
-                const now = new Date();
-                const diff = now - start;
+                const diff = new Date() - new Date(activeF.manhours.currentSession.start);
                 const el = document.getElementById(`timer-${activeId}`);
                 if(el) el.innerText = formatMs(diff);
             }
@@ -435,8 +444,7 @@ function toggleGlobalIndicator() {
     const ind = document.getElementById('globalTaskIndicator');
     if(activeId) {
         ind.style.display = 'flex';
-        // Optional: show which finding is running
-        document.getElementById('activeTaskLabel').innerText = "Running: Finding " + activeId.split('-')[1];
+        document.getElementById('activeTaskLabel').innerText = "Running: #" + activeId.split('-')[1];
     } else {
         ind.style.display = 'none';
     }
