@@ -634,6 +634,9 @@ th:nth-child(11), td:nth-child(11) { width: 80px; } /* Column for Delete */
       </div>
 
       <div class="right-button">
+        <span id="editHint" style="color: #c0392b; font-size: 12px; align-self: center; margin-right: 10px; display: none; font-weight: bold;">
+    ⚠️ Please select finding first
+        </span>
         <button class="btn-edit" id="editBtn" onclick="toggleEdit()">✏️ Edit</button>
       </div>
     </div>
@@ -1107,8 +1110,16 @@ async function resetTable() {
 
 // Toggle button to edit data material
 function toggleEdit() {
-  if (findingSelect.value === "" || findingSelect.value === "-- Select Finding --") {
-    alert("Please select a finding first!");
+  const findingVal = findingSelect.value;
+  
+  if (findingVal === "" || findingVal === null) {
+    // Make the hint blink red to grab attention
+    const hint = document.getElementById("editHint");
+    hint.style.display = "inline";
+    hint.style.color = "red";
+    setTimeout(() => { hint.style.color = "#c0392b"; }, 500);
+    
+    alert("Please select a finding from the dropdown first!");
     return;
   }
 
@@ -1209,6 +1220,7 @@ async function saveData() {
 
 function setButtonsEnabled(enabled) {
   const editBtn = document.getElementById("editBtn");
+  const editHint = document.getElementById("editHint"); // Target the new hint
   document.querySelectorAll("#editControls button").forEach(btn => {
     btn.disabled = !enabled;
     btn.style.opacity = enabled ? "1" : "0.6"; // optional visual cue
@@ -1216,8 +1228,19 @@ function setButtonsEnabled(enabled) {
   });
 
   // Pastikan edit button hanya aktif setelah finding dipilih
-  editBtn.disabled = !enabled;
-  document.getElementById("editControls").style.display = enabled ? "flex" : "none";
+  if (!enabled) {
+    // When disabled: Show tooltip and the red text hint
+    editBtn.title = "Please select a finding first";
+    editBtn.style.opacity = "0.6";
+    editBtn.style.cursor = "not-allowed";
+    editHint.style.display = "inline"; 
+  } else {
+    // When enabled: Clear tooltip and hide the red text hint
+    editBtn.title = "";
+    editBtn.style.opacity = "1";
+    editBtn.style.cursor = "pointer";
+    editHint.style.display = "none";
+  }
 }
 
   
