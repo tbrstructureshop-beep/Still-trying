@@ -643,6 +643,9 @@ th:nth-child(11), td:nth-child(11) { width: 80px; } /* Column for Delete */
   </div> <!-- This closes the Material Card -->
 
 <script>
+
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyQG9-FrBkQidkbUzWgVUUHxK7mFVYyru5RO7EKyfOzomliEn8KBCF_bkagjNw_CK8r/exec";
+
 let isEditMode = false;
 let materialsByFinding = {};
   
@@ -682,7 +685,7 @@ function isMobile() {
 async function loadData() {
   const loader = document.getElementById('initial-loader');
   try {
-    const res = await fetch("https://script.google.com/macros/s/AKfycbyQG9-FrBkQidkbUzWgVUUHxK7mFVYyru5RO7EKyfOzomliEn8KBCF_bkagjNw_CK8r/exec"); 
+    const res = await fetch(SCRIPT_URL);
     const data = await res.json();
 
     woNo.value = data.generalData.woNo;
@@ -1065,7 +1068,7 @@ async function resetTable() {
     loader.style.opacity = '1';
 
     // 3. Send the delete request to the backend
-    const response = await fetch("https://script.google.com/macros/s/AKfycbyQG9-FrBkQidkbUzWgVUUHxK7mFVYyru5RO7EKyfOzomliEn8KBCF_bkagjNw_CK8r/exec", {
+    const response = await fetch(SCRIPT_URL);
       method: "POST",
       body: JSON.stringify({
         action: "delete",
@@ -1211,7 +1214,7 @@ async function saveData() {
       materials: materials
     };
 
-    const response = await fetch("https://script.google.com/macros/s/AKfycbyQG9-FrBkQidkbUzWgVUUHxK7mFVYyru5RO7EKyfOzomliEn8KBCF_bkagjNw_CK8r/exec", {
+    const response = await fetch(SCRIPT_URL, {
       method: "POST",
       body: JSON.stringify(payload)
     });
@@ -1309,7 +1312,7 @@ async function deleteSpecificRow(btn, cardIdx = null) {
 
   try {
     // 3. Call Backend to delete from Spreadsheet
-    const response = await fetch("https://script.google.com/macros/s/AKfycbyQG9-FrBkQidkbUzWgVUUHxK7mFVYyru5RO7EKyfOzomliEn8KBCF_bkagjNw_CK8r/exec", {
+    const response = await fetch(SCRIPT_URL, {
       method: "POST",
       body: JSON.stringify({
         action: "delete_row",
