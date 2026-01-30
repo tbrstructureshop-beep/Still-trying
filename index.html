@@ -3,51 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MRO Team Work Order</title>
+    <title>MRO Team Collaborative System</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
     <header class="app-header">
         <div class="brand">
-            <h1><i class="fas fa-users-cog"></i> MRO Team Tracker</h1>
+            <h1><i class="fas fa-users"></i> MRO Collaborative WO</h1>
         </div>
         <div class="header-controls">
-            <!-- Global Alert if any task is running -->
-            <div class="active-task-indicator" id="globalTaskIndicator" style="display: none;">
-                <span class="pulsing-dot"></span> <span id="activeTaskLabel">Task in Progress...</span>
-            </div>
             <button id="btnNewWO" class="btn-primary"><i class="fas fa-plus-circle"></i> New WO Sheet</button>
         </div>
     </header>
 
     <main id="appContainer" class="app-container">
-        <!-- Dynamic Work Orders -->
+        <!-- Work Orders -->
     </main>
 
-    <!-- MODAL: STOP & STATUS -->
+    <!-- MODAL: CONCURRENT WORK CHECK -->
+    <div id="conflictModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-exclamation-triangle" style="color:#ffc107"></i> Active Task Detected</h2>
+            </div>
+            <div class="modal-body">
+                <p><strong>Warning:</strong> This finding is currently being worked on by:</p>
+                <ul id="activeUserList" style="margin-bottom:15px; padding-left:20px; color:#555;"></ul>
+                <p>Are you joining them to work on the <strong>same finding</strong>?</p>
+            </div>
+            <div class="modal-footer">
+                <button id="btnConflictNo" class="btn-secondary">No (Cancel)</button>
+                <button id="btnConflictYes" class="btn-success">Yes, Join Team</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: STOP SELECTION (Who is stopping?) -->
+    <div id="stopSelectModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Sign Off</h2>
+            </div>
+            <div class="modal-body">
+                <p>Select Employee stopping the task:</p>
+                <div id="stopUserButtons" class="user-select-grid">
+                    <!-- Buttons injected via JS -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="document.getElementById('stopSelectModal').style.display='none'" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: FINAL STATUS (Only if last person) -->
     <div id="statusModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2><i class="fas fa-pause-circle"></i> Task Stopped</h2>
+                <h2>Task Completed</h2>
             </div>
             <div class="modal-body">
-                <p>The timer has been paused. What is the status of this finding?</p>
+                <p>You are the last person working on this finding.</p>
+                <p>What is the final status?</p>
                 <div class="radio-group">
                     <label class="radio-card">
                         <input type="radio" name="taskStatus" value="ON_HOLD" checked>
                         <div class="radio-info">
                             <span class="status-badge status-blue">Handover / In Progress</span>
-                            <small>Keep open for next shift/employee.</small>
+                            <small>Keep open for next shift.</small>
                         </div>
                     </label>
                     <label class="radio-card">
                         <input type="radio" name="taskStatus" value="CLOSED">
                         <div class="radio-info">
                             <span class="status-badge status-green">Finding Closed</span>
-                            <small>Repair complete. No further work needed.</small>
+                            <small>Repair complete.</small>
                         </div>
                     </label>
                 </div>
@@ -58,7 +90,7 @@
         </div>
     </div>
 
-    <!-- MODAL: PHOTO UPLOAD -->
+    <!-- MODAL: PHOTO -->
     <div id="photoModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -67,15 +99,13 @@
             <div class="modal-body">
                 <div class="file-upload-wrapper">
                     <input type="file" id="photoInput" accept="image/png, image/jpeg">
-                    <label for="photoInput" class="file-label">
-                        <i class="fas fa-camera"></i> Take Photo / Upload
-                    </label>
+                    <label for="photoInput" class="file-label"><i class="fas fa-camera"></i> Upload</label>
                     <span id="fileNameDisplay">No file selected</span>
                 </div>
             </div>
             <div class="modal-footer">
-                <button id="btnSkipPhoto" class="btn-secondary">Close Without Photo</button>
-                <button id="btnSavePhoto" class="btn-primary" disabled>Save Evidence</button>
+                <button id="btnSkipPhoto" class="btn-secondary">Close</button>
+                <button id="btnSavePhoto" class="btn-primary" disabled>Save</button>
             </div>
         </div>
     </div>
