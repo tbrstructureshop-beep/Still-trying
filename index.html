@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MRO Team Collaborative System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MRO Mobile Work Order</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
@@ -11,46 +11,43 @@
 
     <header class="app-header">
         <div class="brand">
-            <h1><i class="fas fa-users"></i> MRO Collaborative WO</h1>
+            <h1><i class="fas fa-tools"></i> MRO Mobile</h1>
         </div>
         <div class="header-controls">
-            <button id="btnNewWO" class="btn-primary"><i class="fas fa-plus-circle"></i> New WO Sheet</button>
+            <button id="btnNewWO" class="btn-primary btn-icon-only"><i class="fas fa-plus"></i></button>
         </div>
     </header>
 
     <main id="appContainer" class="app-container">
-        <!-- Work Orders -->
+        <!-- Work Orders injected here -->
     </main>
 
     <!-- MODAL: CONCURRENT WORK CHECK -->
     <div id="conflictModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2><i class="fas fa-exclamation-triangle" style="color:#ffc107"></i> Active Task Detected</h2>
+                <h2>Active Task Detected</h2>
             </div>
             <div class="modal-body">
-                <p><strong>Warning:</strong> This finding is currently being worked on by:</p>
-                <ul id="activeUserList" style="margin-bottom:15px; padding-left:20px; color:#555;"></ul>
-                <p>Are you joining them to work on the <strong>same finding</strong>?</p>
+                <p>Finding is currently active by:</p>
+                <ul id="activeUserList" class="user-list-ul"></ul>
+                <p>Join this team?</p>
             </div>
             <div class="modal-footer">
-                <button id="btnConflictNo" class="btn-secondary">No (Cancel)</button>
-                <button id="btnConflictYes" class="btn-success">Yes, Join Team</button>
+                <button id="btnConflictNo" class="btn-secondary">No</button>
+                <button id="btnConflictYes" class="btn-success">Yes, Join</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL: STOP SELECTION (Who is stopping?) -->
+    <!-- MODAL: STOP SELECTION -->
     <div id="stopSelectModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Sign Off</h2>
+                <h2>Who is signing off?</h2>
             </div>
             <div class="modal-body">
-                <p>Select Employee stopping the task:</p>
-                <div id="stopUserButtons" class="user-select-grid">
-                    <!-- Buttons injected via JS -->
-                </div>
+                <div id="stopUserButtons" class="user-select-grid"></div>
             </div>
             <div class="modal-footer">
                 <button onclick="document.getElementById('stopSelectModal').style.display='none'" class="btn-secondary">Cancel</button>
@@ -58,34 +55,33 @@
         </div>
     </div>
 
-    <!-- MODAL: FINAL STATUS (Only if last person) -->
+    <!-- MODAL: FINAL STATUS -->
     <div id="statusModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Task Completed</h2>
             </div>
             <div class="modal-body">
-                <p>You are the last person working on this finding.</p>
-                <p>What is the final status?</p>
+                <p>Select Final Status:</p>
                 <div class="radio-group">
                     <label class="radio-card">
                         <input type="radio" name="taskStatus" value="ON_HOLD" checked>
                         <div class="radio-info">
-                            <span class="status-badge status-blue">Handover / In Progress</span>
-                            <small>Keep open for next shift.</small>
+                            <span class="status-badge status-blue">Handover</span>
+                            <small>Continue later</small>
                         </div>
                     </label>
                     <label class="radio-card">
                         <input type="radio" name="taskStatus" value="CLOSED">
                         <div class="radio-info">
-                            <span class="status-badge status-green">Finding Closed</span>
-                            <small>Repair complete.</small>
+                            <span class="status-badge status-green">Closed</span>
+                            <small>Job Done</small>
                         </div>
                     </label>
                 </div>
             </div>
             <div class="modal-footer">
-                <button id="btnConfirmStatus" class="btn-primary">Confirm Status</button>
+                <button id="btnConfirmStatus" class="btn-primary">Confirm</button>
             </div>
         </div>
     </div>
@@ -94,17 +90,17 @@
     <div id="photoModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Evidence Upload</h2>
+                <h2>Upload Evidence</h2>
             </div>
             <div class="modal-body">
                 <div class="file-upload-wrapper">
                     <input type="file" id="photoInput" accept="image/png, image/jpeg">
-                    <label for="photoInput" class="file-label"><i class="fas fa-camera"></i> Upload</label>
-                    <span id="fileNameDisplay">No file selected</span>
+                    <label for="photoInput" class="file-label"><i class="fas fa-camera"></i> Camera / File</label>
+                    <div id="fileNameDisplay" style="margin-top:10px; font-size:0.8rem;"></div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button id="btnSkipPhoto" class="btn-secondary">Close</button>
+                <button id="btnSkipPhoto" class="btn-secondary">Skip</button>
                 <button id="btnSavePhoto" class="btn-primary" disabled>Save</button>
             </div>
         </div>
