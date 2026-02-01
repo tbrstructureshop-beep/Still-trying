@@ -1,112 +1,302 @@
-/* Code.gs */
-/**
- * GOOGLE APPS SCRIPT BACKEND
- * Deployment: Deploy as Web App -> Access: Anyone
- */
+/* script.js */
+const API_URL = "https://script.google.com/macros/s/AKfycbyneQ_EO9rlekZQrinWWuy9jsEcdkjStvBBPsjr4WzMfDmQVsPpdobmt8Ctgcnr3QJusg/exec";
+const SHEET_ID = new URLSearchParams(window.location.search).get('sheetId');
+const NO_IMAGE = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Noimage.svg/250px-Noimage.svg.png";
 
-const FOLDER_ID = "1zu3F68ayIj9JqalTfWcOFKff8pP9zsGf";
+let appState = {
+    info: {},
+    findings: [],
+    materials: [],
+    logs: [],
+    activeInterval: null
+};
 
-function doGet(e) {
-  const action = e.parameter.action;
-  const sheetId = e.parameter.sheetId;
-  const ss = SpreadsheetApp.openById(sheetId);
-  
-  let data = {};
-  
-  if (action === 'getAll') {
-    data.info = getSheetData(ss, "INFO");
-    data.findings = getSheetData(ss, "FINDING");
-    data.materials = getSheetData(ss, "MATERIAL LIST");
-    data.logs = getSheetData(ss, "MANHOUR_LOG");
-  }
+document.addEventListener('DOMContentLoaded', init);
 
-  return ContentService.createTextOutput(JSON.stringify(data))
-    .setMimeType(ContentService.MimeType.JSON);
+async function init() {
+    if (!SHEET_ID) {
+        document.getElementById('app-container').innerHTML = `<div class="error">Error: No sheetId provided in URL parameters.</div>`;
+        return;
+    }
+    await refreshData();
+    startGlobalTimer();
 }
 
-function doPost(e) {
-  const body = JSON.parse(e.postData.contents);
-  const ss = SpreadsheetApp.openById(body.sheetId);
-  const logSheet = ss.getSheetByName("MANHOUR_LOG");
-  
-  if (body.action === 'startManhour') {
-    // 1.executionId, 2.employeeId, 3.timestamp, 4.findingNo, 5.taskCode, 6.actionPerformed, 7.lastStatus, 8.imageUrl, 9.totalDuration
-    logSheet.appendRow([
-      body.executionId,
-      body.employeeId,
-      body.timestamp,
-      body.findingNo,
-      "'" + body.taskCode, // Force string
-      "START",
-      "PROGRESS",
-      "",
-      ""
-    ]);
-    return jsonResponse({status: "success"});
-  }
-  
-  if (body.action === 'stopManhour') {
-    // Calculate Duration
-    const logs = logSheet.getDataRange().getValues();
-    let startTime = "";
-    for (let i = 0; i < logs.length; i++) {
-      if (logs[i][0] === body.executionId && logs[i][5] === "START") {
-        startTime = new Date(logs[i][2]);
-        break;
-      }
+async function refreshData() {
+    try {
+        const resp = await fetch(`${API_URL}?action=getAll&sheetId=${SHEET_ID}`);
+        const data = await resp.json();
+        appState.info = data.info[0];
+        appState.findings = data.findings;
+        appState.materials = data.materials;
+        appState.logs = data.logs;
+
+        updateUI();
+        document.getElementById('connection-status').classList.add('online');
+        document.getElementById('sync-text').innerText = "Real-time Ready";
+    } catch (e) {
+        console.error("Fetch Error", e);
+        document.getElementById('sync-text').innerText = "Offline / Error";
     }
+}
+
+function updateUI() {
+    document.getElementById('wo-title').innerText = `WO: ${appState.info.woNo || 'Unknown'}`;
+    document.getElementById('wo-subtitle').innerText = `${appState.info.aircraft || ''} - ${appState.info.type || ''}`;
     
-    const stopTime = new Date(body.timestamp);
-    const durationHours = startTime ? (stopTime - startTime) / (1000 * 60 * 60) : 0;
-    
-    logSheet.appendRow([
-      body.executionId,
-      body.employeeId,
-      body.timestamp,
-      body.findingNo,
-      "", 
-      "STOP",
-      body.lastStatus,
-      body.imageUrl,
-      durationHours.toFixed(2)
-    ]);
-    
-    // Update Finding Status if CLOSED
-    if (body.lastStatus === "CLOSED") {
-      const findingSheet = ss.getSheetByName("FINDING");
-      const fData = findingSheet.getDataRange().getValues();
-      for (let j = 1; j < fData.length; j++) {
-        if (fData[j][0] == body.findingNo) {
-          findingSheet.getRange(j + 1, 5).setValue("CLOSED"); // Assuming Col 5 is Status
-          break;
+    const container = document.getElementById('app-container');
+    container.innerHTML = '';
+
+    appState.findings.forEach(finding => {
+        const card = createFindingCard(finding);
+        container.appendChild(card);
+    });
+}
+
+function createFindingCard(finding) {
+    const findingLogs = appState.logs.filter(l => l.findingNo == finding.findingNo);
+    const activeExecutions = findActiveExecutions(findingLogs);
+    const isClosed = finding.status === 'CLOSED';
+    const status = isClosed ? 'CLOSED' : (activeExecutions.length > 0 ? 'PROGRESS' : 'OPEN');
+
+    const card = document.createElement('div');
+    card.className = `finding-card ${isClosed ? 'locked-card' : ''}`;
+    card.innerHTML = `
+        <div class="card-header" onclick="toggleCard(this)">
+            <div class="card-info">
+                <div class="finding-no">#${finding.findingNo}</div>
+                <div class="finding-desc-short">${finding.description}</div>
+            </div>
+            <div class="badge badge-${status.toLowerCase()}">${status}</div>
+        </div>
+        <div class="card-body" id="body-${finding.findingNo}">
+            <div class="full-desc">${finding.description}</div>
+            <div class="action-given"><strong>Action:</strong> ${finding.actionGiven || 'Pending'}</div>
+            
+            <div class="image-grid">
+                ${renderImages(finding.images)}
+            </div>
+
+            <h5>Material Requirements</h5>
+            <table class="materials-table">
+                <thead><tr><th>PN</th><th>Description</th><th>Qty</th></tr></thead>
+                <tbody>
+                    ${renderMaterials(finding.findingNo)}
+                </tbody>
+            </table>
+
+            <div class="control-panel">
+                <div class="active-tasks" id="active-tasks-${finding.findingNo}">
+                    ${renderActiveTimers(activeExecutions)}
+                </div>
+                ${!isClosed ? `<button class="btn btn-primary" onclick="openStartModal('${finding.findingNo}')">START WORK</button>` : ''}
+                
+                <div class="history-log">
+                    <strong>Audit Trail:</strong>
+                    ${renderHistory(findingLogs)}
+                </div>
+            </div>
+        </div>
+    `;
+    return card;
+}
+
+function renderImages(imageString) {
+    if (!imageString) return `<img src="${NO_IMAGE}" class="thumb">`;
+    return imageString.split(',').map(url => {
+        const idMatch = url.match(/[-\w]{25,}/);
+        const thumbUrl = idMatch ? `https://drive.google.com/thumbnail?id=${idMatch[0]}&sz=w800` : url;
+        return `<img src="${thumbUrl}" class="thumb" onclick="previewImage('${url}')">`;
+    }).join('');
+}
+
+function renderMaterials(findingNo) {
+    const mats = appState.materials.filter(m => m.findingNo == findingNo);
+    if (mats.length === 0) return '<tr><td colspan="3">No materials listed</td></tr>';
+    return mats.map(m => `<tr><td>${m.partNumber}</td><td>${m.description}</td><td>${m.qty}</td></tr>`).join('');
+}
+
+function findActiveExecutions(logs) {
+    const groups = {};
+    logs.forEach(l => {
+        if (!groups[l.executionId]) groups[l.executionId] = [];
+        groups[l.executionId].push(l);
+    });
+    const actives = [];
+    for (const id in groups) {
+        const sorted = groups[id].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+        if (sorted[0].actionPerformed === 'START') {
+            actives.push(sorted[0]);
         }
-      }
     }
+    return actives;
+}
+
+function renderActiveTimers(actives) {
+    return actives.map(task => `
+        <div class="timer-row">
+            <div class="timer-info">
+                <strong>${task.employeeId}</strong> [Task ${task.taskCode}]<br>
+                <small>${new Date(task.timestamp).toLocaleTimeString()}</small>
+            </div>
+            <div class="timer-clock" data-start="${task.timestamp}">00:00:00</div>
+            <button class="btn btn-danger btn-sm" onclick="openStopModal('${task.executionId}', '${task.findingNo}', '${task.employeeId}')">STOP</button>
+        </div>
+    `).join('');
+}
+
+function renderHistory(logs) {
+    return logs.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)).map(l => `
+        <div class="history-item">
+            ${new Date(l.timestamp).toLocaleString('en-GB', {day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit'})} | 
+            ${l.employeeId} | ${l.actionPerformed} | ${l.lastStatus} 
+            ${l.imageUrl ? `<a href="${l.imageUrl}" target="_blank">View Evidence</a>` : ''}
+        </div>
+    `).join('');
+}
+
+/* Logic Functions */
+
+function toggleCard(header) {
+    const body = header.nextElementSibling;
+    body.classList.toggle('active');
+}
+
+function openStartModal(findingNo) {
+    const modal = document.getElementById('modal-start');
+    const active = findActiveExecutions(appState.logs.filter(l => l.findingNo == findingNo));
     
-    return jsonResponse({status: "success"});
-  }
-  
-  if (body.action === 'uploadEvidence') {
-    const folder = DriveApp.getFolderById(FOLDER_ID);
-    const blob = Utilities.newBlob(Utilities.base64Decode(body.data), body.mimeType, body.filename);
-    const file = folder.createFile(blob);
-    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    return jsonResponse({url: file.getUrl()});
-  }
+    if (active.length > 0) {
+        const ids = active.map(a => a.employeeId).join(', ');
+        if (!confirm(`Parallel Work Alert: ${ids} already working. Join session?`)) return;
+    }
+
+    modal.style.display = 'block';
+    document.getElementById('btn-confirm-start').onclick = () => performStart(findingNo);
 }
 
-function getSheetData(ss, name) {
-  const sheet = ss.getSheetByName(name);
-  const rows = sheet.getDataRange().getValues();
-  const headers = rows.shift();
-  return rows.map(row => {
-    let obj = {};
-    headers.forEach((h, i) => obj[h] = row[i]);
-    return obj;
-  });
+async function performStart(findingNo) {
+    const empId = document.getElementById('input-emp-id').value;
+    const taskCode = document.getElementById('input-task-code').value;
+
+    if (!empId || !taskCode) return alert("All fields required");
+
+    const payload = {
+        action: 'startManhour',
+        sheetId: SHEET_ID,
+        employeeId: empId,
+        taskCode: taskCode,
+        findingNo: findingNo,
+        timestamp: new Date().toISOString(),
+        executionId: `EXEC-${Date.now()}`
+    };
+
+    setLoading(true);
+    await postToGAS(payload);
+    closeModals();
+    await refreshData();
+    setLoading(false);
 }
 
-function jsonResponse(obj) {
-  return ContentService.createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON);
+function openStopModal(executionId, findingNo, employeeId) {
+    const modal = document.getElementById('modal-stop');
+    document.getElementById('stop-details').innerText = `Stopping work for ${employeeId} on Finding #${findingNo}`;
+    modal.style.display = 'block';
+    
+    const select = document.getElementById('select-final-status');
+    const evidenceDiv = document.getElementById('evidence-upload-section');
+    
+    select.onchange = () => {
+        evidenceDiv.classList.toggle('hidden', select.value !== 'CLOSED');
+    };
+
+    document.getElementById('btn-confirm-stop').onclick = () => performStop(executionId, findingNo, employeeId);
+}
+
+async function performStop(executionId, findingNo, employeeId) {
+    const status = document.getElementById('select-final-status').value;
+    const fileInput = document.getElementById('input-evidence');
+    let imageUrl = "";
+
+    setLoading(true);
+
+    if (status === 'CLOSED' && fileInput.files.length > 0) {
+        imageUrl = await uploadFile(fileInput.files[0]);
+    }
+
+    const payload = {
+        action: 'stopManhour',
+        sheetId: SHEET_ID,
+        executionId: executionId,
+        findingNo: findingNo,
+        employeeId: employeeId,
+        timestamp: new Date().toISOString(),
+        lastStatus: status,
+        imageUrl: imageUrl
+    };
+
+    await postToGAS(payload);
+    closeModals();
+    await refreshData();
+    setLoading(false);
+}
+
+async function uploadFile(file) {
+    const reader = new FileReader();
+    return new Promise((resolve) => {
+        reader.onload = async () => {
+            const base64 = reader.result.split(',')[1];
+            const resp = await fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'uploadEvidence',
+                    sheetId: SHEET_ID,
+                    filename: file.name,
+                    mimeType: file.type,
+                    data: base64
+                })
+            });
+            const result = await resp.json();
+            resolve(result.url);
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function startGlobalTimer() {
+    setInterval(() => {
+        document.querySelectorAll('.timer-clock').forEach(el => {
+            const start = new Date(el.dataset.start);
+            const now = new Date();
+            const diff = Math.floor((now - start) / 1000);
+            
+            const h = Math.floor(diff / 3600).toString().padStart(2, '0');
+            const m = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
+            const s = (diff % 60).toString().padStart(2, '0');
+            
+            el.innerText = `${h}:${m}:${s}`;
+        });
+    }, 1000);
+}
+
+function previewImage(url) {
+    const modal = document.getElementById('modal-image');
+    const img = document.getElementById('img-preview-target');
+    img.src = url;
+    modal.style.display = "flex";
+}
+
+function closeModals() {
+    document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+}
+
+function setLoading(isLoading) {
+    document.getElementById('loading-spinner').style.display = isLoading ? 'block' : 'none';
+}
+
+async function postToGAS(payload) {
+    return fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify(payload)
+    }).then(r => r.json());
 }
