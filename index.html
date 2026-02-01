@@ -1,65 +1,70 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <base target="_top">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <?!= include('style'); ?>
+  <base target="_top">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <?!= HtmlService.createHtmlOutputFromFile('style').getContent(); ?>
 </head>
 <body>
-    <div id="loading-overlay" class="loader-hidden">
-        <div class="spinner"></div>
-    </div>
 
-    <!-- PAGE 1: START JOB -->
-    <div id="page-start" class="page active">
-        <div class="landing-container">
-            <div class="logo-placeholder">✈️</div>
-            <h1>Aviation Task Manager</h1>
-            <p>Professional Job Execution & Man-hour Logging</p>
-            <button id="btn-start-job" class="btn-primary btn-large">START THE JOB</button>
+  <!-- LOADING SPINNER -->
+  <div id="loadingOverlay" class="overlay" style="display: none;">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- PAGE 1: START JOB -->
+  <div id="page1" class="page active">
+    <div class="landing-container">
+      <div class="logo-area">
+        <i class="fas fa-plane-departure" style="font-size: 3rem; color: #1c5d69;"></i>
+        <h1>Aviation Ops</h1>
+      </div>
+      <button id="btnStartJob" class="btn-primary-lg">START THE JOB</button>
+    </div>
+  </div>
+
+  <!-- PAGE 2: EXECUTION PAGE -->
+  <div id="page2" class="page">
+    <header class="app-header">
+      <div class="header-content">
+        <h2>Job Execution</h2>
+        <div id="summaryCounters" class="summary-pills">
+          <!-- Populated by JS -->
         </div>
-    </div>
+      </div>
+    </header>
 
-    <!-- PAGE 2: EXECUTION -->
-    <div id="page-execution" class="page">
-        <header class="app-header">
-            <div class="header-content">
-                <h2>Job Execution Panel</h2>
-                <div id="summary-counters" class="counters">
-                    <span class="badge open">OPEN: <span id="count-open">0</span></span>
-                    <span class="badge progress">PROGRESS: <span id="count-progress">0</span></span>
-                    <span class="badge closed">CLOSED: <span id="count-closed">0</span></span>
-                </div>
-            </div>
-        </header>
-
-        <main class="container">
-            <!-- General Info Section -->
-            <section class="card info-card">
-                <h3>General Information</h3>
-                <div class="info-grid" id="general-info-content">
-                    <!-- Dynamic Content -->
-                </div>
-            </section>
-
-            <!-- Findings Section -->
-            <div id="findings-container">
-                <!-- Finding Cards injected here -->
-            </div>
-        </main>
-    </div>
-
-    <!-- MODAL FOR INPUTS -->
-    <div id="modal-overlay" class="modal-hidden">
-        <div class="modal-content">
-            <h3 id="modal-title">Attention</h3>
-            <div id="modal-body"></div>
-            <div class="modal-actions" id="modal-footer"></div>
+    <main class="container">
+      <!-- GENERAL INFO SECTION -->
+      <section class="card info-card">
+        <h3>General Information</h3>
+        <div class="info-grid" id="generalInfo">
+          <!-- Populated by JS -->
         </div>
-    </div>
+      </section>
 
-    <script>
-        <?!= include('script'); ?>
-    </script>
+      <!-- FINDINGS SECTION -->
+      <section id="findingsContainer">
+        <!-- Finding Cards dynamic -->
+      </section>
+    </main>
+  </div>
+
+  <!-- MODALS -->
+  <div id="modalOverlay" class="modal-overlay" style="display:none;">
+    <div class="modal-content">
+      <h3 id="modalTitle">Notification</h3>
+      <p id="modalBody"></p>
+      <div class="modal-actions">
+        <button id="modalNo" class="btn-secondary">No</button>
+        <button id="modalYes" class="btn-primary">Yes</button>
+      </div>
+    </div>
+  </div>
+
+  <input type="file" id="imageUpload" style="display:none" accept="image/*">
+
+  <?!= HtmlService.createHtmlOutputFromFile('script').getContent(); ?>
 </body>
 </html>
