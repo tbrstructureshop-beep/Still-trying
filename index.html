@@ -1,113 +1,78 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MRO Team Collaborative System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AeroTrack | Collaborative Work Order</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-
     <header class="app-header">
-        <div class="brand">
-            <h1><i class="fas fa-users"></i> MRO Collaborative WO</h1>
+        <div class="header-content">
+            <h1 id="wo-title">LOADING...</h1>
+            <div id="wo-subtitle">Aircraft Maintenance System</div>
         </div>
-        <div class="header-controls">
-            <button id="btnNewWO" class="btn-primary"><i class="fas fa-plus-circle"></i> New WO Sheet</button>
+        <div class="status-bar">
+            <span id="connection-status" class="dot"></span>
+            <span id="sync-text">Syncing...</span>
         </div>
     </header>
 
-    <main id="appContainer" class="app-container">
-        <!-- Work Orders -->
+    <main id="app-container">
+        <!-- Findings list will be injected here -->
+        <div id="loading-spinner" class="spinner-overlay">
+            <div class="loader"></div>
+            <p>Fetching Maintenance Data...</p>
+        </div>
     </main>
 
-    <!-- MODAL: CONCURRENT WORK CHECK -->
-    <div id="conflictModal" class="modal">
+    <!-- Modal: Start Task -->
+    <div id="modal-start" class="modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2><i class="fas fa-exclamation-triangle" style="color:#ffc107"></i> Active Task Detected</h2>
+            <h3>Start Maintenance Action</h3>
+            <div class="form-group">
+                <label>Employee ID</label>
+                <input type="text" id="input-emp-id" placeholder="Enter ID (e.g. 10245)" autocomplete="off">
             </div>
-            <div class="modal-body">
-                <p><strong>Warning:</strong> This finding is currently being worked on by:</p>
-                <ul id="activeUserList" style="margin-bottom:15px; padding-left:20px; color:#555;"></ul>
-                <p>Are you joining them to work on the <strong>same finding</strong>?</p>
+            <div class="form-group">
+                <label>Task Code</label>
+                <input type="text" id="input-task-code" placeholder="e.g. 2000" maxlength="4">
             </div>
-            <div class="modal-footer">
-                <button id="btnConflictNo" class="btn-secondary">No (Cancel)</button>
-                <button id="btnConflictYes" class="btn-success">Yes, Join Team</button>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModals()">Cancel</button>
+                <button class="btn btn-primary" id="btn-confirm-start">Start Timer</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL: STOP SELECTION (Who is stopping?) -->
-    <div id="stopSelectModal" class="modal">
+    <!-- Modal: Stop / Finalize -->
+    <div id="modal-stop" class="modal">
         <div class="modal-content">
-            <div class="modal-header">
-                <h2>Sign Off</h2>
+            <h3>Complete Execution</h3>
+            <p id="stop-details"></p>
+            <div class="form-group" id="final-status-group">
+                <label>Next Status</label>
+                <select id="select-final-status">
+                    <option value="PROGRESS">ON HOLD (Requires more work)</option>
+                    <option value="CLOSED">CLOSED (Finding Rectified)</option>
+                </select>
             </div>
-            <div class="modal-body">
-                <p>Select Employee stopping the task:</p>
-                <div id="stopUserButtons" class="user-select-grid">
-                    <!-- Buttons injected via JS -->
-                </div>
+            <div id="evidence-upload-section" class="form-group hidden">
+                <label>Final Evidence (Photo)</label>
+                <input type="file" id="input-evidence" accept="image/*">
             </div>
-            <div class="modal-footer">
-                <button onclick="document.getElementById('stopSelectModal').style.display='none'" class="btn-secondary">Cancel</button>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeModals()">Cancel</button>
+                <button class="btn btn-danger" id="btn-confirm-stop">Stop & Log</button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL: FINAL STATUS (Only if last person) -->
-    <div id="statusModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Task Completed</h2>
-            </div>
-            <div class="modal-body">
-                <p>You are the last person working on this finding.</p>
-                <p>What is the final status?</p>
-                <div class="radio-group">
-                    <label class="radio-card">
-                        <input type="radio" name="taskStatus" value="ON_HOLD" checked>
-                        <div class="radio-info">
-                            <span class="status-badge status-blue">Handover / In Progress</span>
-                            <small>Keep open for next shift.</small>
-                        </div>
-                    </label>
-                    <label class="radio-card">
-                        <input type="radio" name="taskStatus" value="CLOSED">
-                        <div class="radio-info">
-                            <span class="status-badge status-green">Finding Closed</span>
-                            <small>Repair complete.</small>
-                        </div>
-                    </label>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button id="btnConfirmStatus" class="btn-primary">Confirm Status</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL: PHOTO -->
-    <div id="photoModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Evidence Upload</h2>
-            </div>
-            <div class="modal-body">
-                <div class="file-upload-wrapper">
-                    <input type="file" id="photoInput" accept="image/png, image/jpeg">
-                    <label for="photoInput" class="file-label"><i class="fas fa-camera"></i> Upload</label>
-                    <span id="fileNameDisplay">No file selected</span>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button id="btnSkipPhoto" class="btn-secondary">Close</button>
-                <button id="btnSavePhoto" class="btn-primary" disabled>Save</button>
-            </div>
-        </div>
+    <!-- Modal: Image Preview -->
+    <div id="modal-image" class="modal" onclick="closeModals()">
+        <span class="close-img">&times;</span>
+        <img class="modal-img-content" id="img-preview-target">
     </div>
 
     <script src="script.js"></script>
