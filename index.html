@@ -1,12 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Inside <head> -->
+    <style>
+      <?!= HtmlService.createHtmlOutputFromFile('style.css').getContent(); ?>
+    </style>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aviation Work Order System</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
+
+<!-- Before </body> -->
+<script>
+  <?!= HtmlService.createHtmlOutputFromFile('script.js').getContent(); ?>
+</script>    
 <body>
     <!-- Global Loading Spinner -->
     <div id="loader" class="loader-overlay" style="display: none;">
