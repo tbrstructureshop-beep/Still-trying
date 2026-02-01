@@ -1,297 +1,271 @@
-/* script.js */
-const API_URL = "https://script.google.com/macros/s/AKfycbypoq7k-aw8_x_9Q3WuqZ4AzS5UQmlSUEiMQooxfG8i2UIjGnAReYvmxlHsfP-WTxUI/exec"; // Replace after deployment
-const urlParams = new URLSearchParams(window.location.search);
-const SHEET_ID = urlParams.get('sheetId') || "1IyjNL723csoFdYA9Zo8_oMOhIxzPPpNOXw5YSJLGh-c";
-const WO_ID = urlParams.get('woId');
+let appData = {};
+let activeTimers = {};
 
-let STATE = {
-    info: {},
-    findings: [],
-    materials: [],
-    logs: [],
-    activeFinding: null,
-    pendingStop: null
-};
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('btn-start-job').addEventListener('click', startJobFlow);
+});
 
-// Initialization
-window.onload = () => {
-    if (!SHEET_ID) return alert("Missing Sheet ID");
-    fetchData();
-    setInterval(updateTimers, 1000);
-};
+function showLoader() { document.getElementById('loading-overlay').classList.remove('loader-hidden'); }
+function hideLoader() { document.getElementById('loading-overlay').classList.add('loader-hidden'); }
 
-async function fetchData() {
-    showLoading(true);
-    try {
-        const response = await fetch(`${API_URL}?action=getAll&sheetId=${SHEET_ID}`);
-        const data = await response.json();
-        STATE.info = data.info[0] || {};
-        STATE.findings = data.findings;
-        STATE.materials = data.materials;
-        STATE.logs = data.logs;
-        renderUI();
-    } catch (err) {
-        console.error(err);
-    } finally {
-        showLoading(false);
-    }
+async function startJobFlow() {
+    showLoader();
+    google.script.run.withSuccessHandler(data => {
+        appData = data;
+        renderPage2();
+        document.getElementById('page-start').classList.remove('active');
+        document.getElementById('page-execution').classList.add('active');
+        hideLoader();
+    }).getInitialData();
 }
 
-function renderUI() {
-    // Header
-    document.getElementById('wo-title').innerText = `Work Order: ${STATE.info.woNo || 'N/A'}`;
-    document.getElementById('head-customer').innerText = STATE.info.customer || '-';
-    document.getElementById('head-reg').innerText = STATE.info.aCReg || '-';
-    document.getElementById('head-desc').innerText = STATE.info.partDescription || '-';
-    document.getElementById('head-pn').innerText = STATE.info.partNumber || '-';
-    document.getElementById('head-sn').innerText = STATE.info.serialNumber || '-';
+function renderPage2() {
+    // Render Info
+    const info = appData.info;
+    document.getElementById('general-info-content').innerHTML = `
+        <div class="info-item"><label>A/C Reg</label><span>${info.acReg}</span></div>
+        <div class="info-item"><label>W/O No</label><span>${info.woNo}</span></div>
+        <div class="info-item"><label>Part Description</label><span>${info.partDesc}</span></div>
+        <div class="info-item"><label>PN / SN</label><span>${info.pn} / ${info.sn}</span></div>
+        <div class="info-item"><label>Qty</label><span>${info.qty}</span></div>
+        <div class="info-item"><label>Date Received</label><span>${info.dateReceived}</span></div>
+    `;
 
+    renderFindings();
+}
+
+function renderFindings() {
     const container = document.getElementById('findings-container');
     container.innerHTML = '';
+    
+    let stats = { open: 0, progress: 0, closed: 0 };
 
-    STATE.findings.forEach(finding => {
-        const activeUsers = getActiveUsers(finding.findingno);
+    appData.findings.forEach(finding => {
+        const findingNo = finding[0];
+        const status = calculateStatus(findingNo);
+        stats[status.toLowerCase()]++;
+
         const card = document.createElement('div');
-        card.className = 'finding-card';
+        card.className = `card finding-card`;
         card.innerHTML = `
-            <div class="card-summary" onclick="toggleDetails('${finding.findingno}')">
-                <div>
-                    <h3>#${finding.findingno}</h3>
-                    <p>${finding.findingdescription}</p>
-                </div>
-                <div class="status-badge">${activeUsers.length > 0 ? '🟢 ACTIVE' : '⚪ IDLE'}</div>
+            <div class="finding-header" onclick="toggleAccordion('content-${findingNo}')">
+                <div><strong>${findingNo}</strong> – ${finding[2]}</div>
+                <span class="status-badge ${status.toLowerCase()}">${status}</span>
             </div>
-            <div id="details-${finding.findingno}" class="card-details">
-                <div class="section-title"><span>Finding Details</span></div>
-                <p><b>Action:</b> ${finding.actiongiven || 'None'}</p>
-                <img src="${formatImgUrl(finding.findingimageurl)}" class="finding-img" onclick="previewImage(this.src)">
-                
-                <div class="section-title"><span>Material Availability</span></div>
-                <div class="table-responsive">
-                    <table>
-                        <thead><tr><th>Part No</th><th>Desc</th><th>Qty</th><th>Status</th></tr></thead>
-                        <tbody>${renderMaterials(finding.findingno)}</tbody>
-                    </table>
+            
+            <div id="content-${findingNo}" class="accordion-content">
+                <!-- 1. Detail -->
+                <div class="accordion-section">
+                    <button class="accordion-trigger" onclick="toggleSubAccordion(this)">Detail of Finding <span>▼</span></button>
+                    <div class="accordion-content">
+                        <img src="https://drive.google.com/thumbnail?id=${extractId(finding[1])}&sz=w1000" style="max-width:100%; border-radius:8px;">
+                        <p style="white-space: pre-wrap; margin-top:10px;">${finding[3]}</p>
+                    </div>
                 </div>
 
-                <div class="section-title"><span>Man-Hour Activity</span></div>
-                <div id="active-list-${finding.findingno}">${renderActiveMechanics(activeUsers)}</div>
-                
-                <div class="input-group"><input type="text" id="emp-${finding.findingno}" placeholder="Employee ID"></div>
-                <div class="input-group"><input type="text" id="task-${finding.findingno}" placeholder="Task Code"></div>
-                
-                <div class="btn-grid">
-                    <button class="btn btn-primary" onclick="handleStart('${finding.findingno}')" id="btn-start-${finding.findingno}">START</button>
-                    <button class="btn btn-secondary" onclick="handleStop('${finding.findingno}')" id="btn-stop-${finding.findingno}">STOP</button>
+                <!-- 2. Materials -->
+                <div class="accordion-section">
+                    <button class="accordion-trigger" onclick="toggleSubAccordion(this)">Material List <span>▼</span></button>
+                    <div class="accordion-content">
+                        ${renderMaterials(findingNo)}
+                    </div>
                 </div>
 
-                <details class="section-title">
-                    <summary>Performing Log</summary>
-                    <table class="log-table">
-                        <thead><tr><th>Date</th><th>User</th><th>Action</th></tr></thead>
-                        <tbody>${renderLogs(finding.findingno)}</tbody>
-                    </table>
-                </details>
+                <!-- 3. Man-hour Record -->
+                <div class="accordion-section">
+                    <button class="accordion-trigger" onclick="toggleSubAccordion(this)">Man-hour Record <span>▼</span></button>
+                    <div class="accordion-content">
+                        ${renderManHourInput(findingNo, status)}
+                    </div>
+                </div>
+
+                <!-- 4. Log -->
+                <div class="accordion-section">
+                    <button class="accordion-trigger" onclick="toggleSubAccordion(this)">Logged Actions <span>▼</span></button>
+                    <div class="accordion-content">
+                        ${renderLogs(findingNo)}
+                    </div>
+                </div>
             </div>
         `;
         container.appendChild(card);
     });
+
+    document.getElementById('count-open').innerText = stats.open;
+    document.getElementById('count-progress').innerText = stats.progress;
+    document.getElementById('count-closed').innerText = stats.closed;
 }
 
-// Logic Functions
-function getActiveUsers(findingNo) {
-    const starts = STATE.logs.filter(l => l.findingno == findingNo && l.action === 'START');
-    const stops = STATE.logs.filter(l => l.findingno == findingNo && l.action === 'STOP');
+function calculateStatus(findingNo) {
+    const logs = appData.logs.filter(l => l[2] == findingNo);
+    if (logs.length === 0) return 'OPEN';
+    const hasProgress = logs.some(l => l[6] === 'PROGRESS');
+    const allClosed = logs.every(l => l[6] === 'CLOSED');
+    return hasProgress ? 'PROGRESS' : (allClosed ? 'CLOSED' : 'OPEN');
+}
+
+function renderMaterials(findingNo) {
+    const materials = appData.materials.filter(m => m[0] == findingNo);
+    if (!materials.length) return '<p>No materials required.</p>';
+    return `
+        <table style="width:100%; font-size:0.85rem; border-collapse:collapse;">
+            <tr style="text-align:left; border-bottom:1px solid #eee;">
+                <th>P/N</th><th>Description</th><th>Qty</th><th>Status</th>
+            </tr>
+            ${materials.map(m => `
+                <tr style="border-bottom:1px solid #eee;">
+                    <td>${m[1]}</td><td>${m[2]}</td><td>${m[3]} ${m[4]}</td><td>${m[5]}</td>
+                </tr>
+            `).join('')}
+        </table>
+    `;
+}
+
+function renderManHourInput(findingNo, status) {
+    if (status === 'CLOSED') return '<p class="text-red">Finding is closed. No further logging allowed.</p>';
     
-    return starts.filter(s => !stops.some(st => st.executionid === s.executionid));
+    return `
+        <div class="manhour-form" id="form-${findingNo}">
+            <div class="manhour-controls">
+                <div class="input-group">
+                    <label>Employee ID</label>
+                    <input type="text" id="emp-${findingNo}" placeholder="ID">
+                </div>
+                <div class="input-group">
+                    <label>Task No</label>
+                    <input type="text" id="task-${findingNo}" value="0000">
+                </div>
+                <button class="btn-primary" onclick="handleStart('${findingNo}')">START</button>
+            </div>
+            <div id="timer-${findingNo}" class="timer-display" style="display:none;">00:00:00</div>
+            <button id="stop-${findingNo}" class="btn-large" style="display:none; background:var(--red); width:100%; margin-top:10px;" onclick="handleStop('${findingNo}')">STOP</button>
+        </div>
+    `;
 }
 
 function handleStart(findingNo) {
     const empId = document.getElementById(`emp-${findingNo}`).value;
-    const task = document.getElementById(`task-${findingNo}`).value;
-    if (!empId || !task) return alert("Enter Employee ID and Task Code");
+    const taskNo = document.getElementById(`task-${findingNo}`).value;
 
-    const active = getActiveUsers(findingNo);
-    if (active.length > 0) {
-        document.getElementById('conflict-msg').innerText = `Active mechanics: ${active.map(a => a.employeeid).join(', ')}. Continue?`;
-        document.getElementById('btn-confirm-parallel').onclick = () => startJob(findingNo, empId, task);
-        openModal('modal-conflict');
-    } else {
-        startJob(findingNo, empId, task);
+    if (!empId) return alert("Employee ID Required");
+
+    // Collision Check
+    const activeEntry = appData.logs.find(l => l[2] == findingNo && l[5] === 'START' && !appData.logs.some(stop => stop[0] === l[0] && stop[5] === 'STOP'));
+    
+    if (activeEntry) {
+        if (!confirm(`Employee ${activeEntry[1]} is currently working on this. Join?`)) return;
     }
-}
 
-async function startJob(findingNo, empId, task) {
-    closeModal('modal-conflict');
-    showActionLoading(`btn-start-${findingNo}`, true);
+    const execId = 'EX-' + Date.now();
     const payload = {
-        action: 'startManhour',
-        sheetId: SHEET_ID,
-        executionId: Date.now().toString(),
+        executionId: execId,
         employeeId: empId,
         findingNo: findingNo,
-        taskCode: task,
-        timestamp: new Date().toISOString()
+        taskNo: taskNo,
+        action: 'START',
+        status: 'PROGRESS'
     };
-    await postData(payload);
-    await fetchData();
-}
 
-function handleStop(findingNo) {
-    const active = getActiveUsers(findingNo);
-    if (active.length === 0) return alert("No active session found");
-    
-    STATE.activeFinding = findingNo;
-
-    if (active.length > 1) {
-        const list = document.getElementById('user-select-list');
-        list.innerHTML = '';
-        active.forEach(user => {
-            const b = document.createElement('button');
-            b.className = 'btn btn-secondary';
-            b.style.width = '100%';
-            b.style.marginBottom = '5px';
-            b.innerText = `${user.employeeid} (${user.taskcode})`;
-            b.onclick = () => { STATE.pendingStop = user; closeModal('modal-user-select'); checkFinality(); };
-            list.appendChild(b);
+    showLoader();
+    google.script.run.withSuccessHandler(() => {
+        refreshData(() => {
+            initTimer(findingNo, Date.now(), execId);
+            document.getElementById(`stop-${findingNo}`).style.display = 'block';
+            document.getElementById(`timer-${findingNo}`).style.display = 'block';
+            hideLoader();
         });
-        openModal('modal-user-select');
-    } else {
-        STATE.pendingStop = active[0];
-        checkFinality();
-    }
+    }).logManhourAction(payload);
 }
 
-function checkFinality() {
-    const active = getActiveUsers(STATE.activeFinding);
-    if (active.length === 1) {
-        openModal('modal-final-status');
-    } else {
-        finalizeJob('PROGRESS');
+async function handleStop(findingNo) {
+    const activeTask = activeTimers[findingNo];
+    if (!activeTask) return;
+
+    if (!confirm("Is the job still in progress?")) {
+        if (!confirm("Is there any other task still required for this finding?")) {
+            // Flow to CLOSED
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'image/*';
+            fileInput.onchange = async (e) => {
+                const file = e.target.files[0];
+                showLoader();
+                const reader = new FileReader();
+                reader.onload = async (f) => {
+                    const imgUrl = await new Promise(resolve => google.script.run.withSuccessHandler(resolve).uploadImage(f.target.result, file.name));
+                    submitStop(findingNo, activeTask, 'CLOSED', imgUrl);
+                };
+                reader.readAsDataURL(file);
+            };
+            fileInput.click();
+            return;
+        }
     }
+    submitStop(findingNo, activeTask, 'PROGRESS');
 }
 
-async function finalizeJob(status) {
-    closeModal('modal-final-status');
-    if (status === 'CLOSED') {
-        openModal('modal-upload');
-        document.getElementById('btn-upload-submit').onclick = async () => {
-            const fileInput = document.getElementById('file-input');
-            if (fileInput.files.length === 0) return alert("Photo required for CLOSED status");
-            
-            showLoading(true);
-            const base64 = await toBase64(fileInput.files[0]);
-            const uploadRes = await postData({
-                action: 'uploadEvidence',
-                data: base64.split(',')[1],
-                mimeType: fileInput.files[0].type,
-                filename: `finding_${STATE.activeFinding}.jpg`
-            });
-            executeStop(status, uploadRes.url);
-        };
-    } else {
-        executeStop(status, "");
-    }
-}
-
-async function executeStop(status, imageUrl) {
-    closeModal('modal-upload');
-    showLoading(true);
+function submitStop(findingNo, taskData, finalStatus, imgUrl = '') {
     const payload = {
-        action: 'stopManhour',
-        sheetId: SHEET_ID,
-        executionId: STATE.pendingStop.executionid,
-        employeeId: STATE.pendingStop.employeeid,
-        findingNo: STATE.activeFinding,
-        timestamp: new Date().toISOString(),
-        lastStatus: status,
-        imageUrl: imageUrl
+        executionId: taskData.execId,
+        employeeId: document.getElementById(`emp-${findingNo}`).value,
+        findingNo: findingNo,
+        taskNo: document.getElementById(`task-${findingNo}`).value,
+        action: 'STOP',
+        status: finalStatus,
+        imageUrl: imgUrl
     };
-    await postData(payload);
-    await fetchData();
+
+    google.script.run.withSuccessHandler(() => {
+        clearInterval(taskData.interval);
+        delete activeTimers[findingNo];
+        refreshData();
+    }).logManhourAction(payload);
 }
 
-// Helpers
-async function postData(data) {
-    const res = await fetch(API_URL, {
-        method: 'POST',
-        body: JSON.stringify(data)
-    });
-    return res.json();
+function initTimer(findingNo, startTime, execId) {
+    const display = document.getElementById(`timer-${findingNo}`);
+    const interval = setInterval(() => {
+        const diff = Date.now() - startTime;
+        const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
+        const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+        const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+        display.innerText = `${h}:${m}:${s}`;
+    }, 1000);
+    activeTimers[findingNo] = { interval, startTime, execId };
 }
 
-function toggleDetails(id) {
-    document.getElementById(`details-${id}`).classList.toggle('active');
+function refreshData(callback) {
+    google.script.run.withSuccessHandler(data => {
+        appData = data;
+        renderFindings();
+        if (callback) callback();
+        hideLoader();
+    }).getInitialData();
 }
 
-function renderMaterials(findingNo) {
-    return STATE.materials
-        .filter(m => m.findingno == findingNo)
-        .map(m => `<tr><td>${m.partno}</td><td>${m.materialdescription}</td><td>${m.qty} ${m.uom}</td><td>${m.availability}</td></tr>`)
-        .join('');
+function toggleAccordion(id) {
+    const el = document.getElementById(id);
+    el.classList.toggle('show');
 }
 
-function renderActiveMechanics(users) {
-    if (users.length === 0) return '';
-    return `<div class="active-mechanics">${users.map(u => `
-        <div class="mechanic-row">
-            <span><b>${u.employeeid}</b> [${u.taskcode}]</span>
-            <span class="timer" data-start="${u.timestamp}">00:00:00</span>
-        </div>
-    `).join('')}</div>`;
+function toggleSubAccordion(btn) {
+    const content = btn.nextElementSibling;
+    content.classList.toggle('show');
+    btn.querySelector('span').innerText = content.classList.contains('show') ? '▲' : '▼';
 }
 
 function renderLogs(findingNo) {
-    return STATE.logs
-        .filter(l => l.findingno == findingNo)
-        .reverse()
-        .map(l => `<tr><td>${new Date(l.timestamp).toLocaleString()}</td><td><b>${l.employeeid}</b></td><td>${l.action}</td></tr>`)
-        .join('');
+    const logs = appData.logs.filter(l => l[2] == findingNo).reverse();
+    if (!logs.length) return '<p>No history available.</p>';
+    return logs.map(l => `
+        <div style="font-size:0.8rem; border-bottom:1px solid #eee; padding:5px 0;">
+            <strong>${l[5]}:</strong> Emp ${l[1]} | Task ${l[3]}<br>
+            <small>${new Date(l[4]).toLocaleString()}</small>
+        </div>
+    `).join('');
 }
 
-function updateTimers() {
-    document.querySelectorAll('.timer').forEach(timer => {
-        const start = new Date(timer.dataset.start);
-        const diff = Math.floor((new Date() - start) / 1000);
-        const h = Math.floor(diff / 3600).toString().padStart(2, '0');
-        const m = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
-        const s = (diff % 60).toString().padStart(2, '0');
-        timer.innerText = `${h}:${m}:${s}`;
-    });
+function extractId(url) {
+    const match = url.match(/[-\w]{25,}/);
+    return match ? match[0] : '';
 }
-
-function formatImgUrl(url) {
-    if (!url || url.includes('Noimage')) return "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Noimage.svg/250px-Noimage.svg.png";
-    if (url.includes('drive.google.com')) {
-        const id = url.split('id=')[1] || url.split('/d/')[1].split('/')[0];
-        return `https://lh3.googleusercontent.com/d/${id}`;
-    }
-    return url;
-}
-
-function previewImage(src) {
-    document.getElementById('modal-img-preview').src = src;
-    openModal('modal-image');
-}
-
-function showLoading(show) {
-    document.getElementById('loader-overlay').style.display = show ? 'flex' : 'none';
-}
-
-function showActionLoading(btnId, show) {
-    const btn = document.getElementById(btnId);
-    if (show) {
-        btn.disabled = true;
-        btn.innerHTML = `<span class="inline-spinner"></span> Processing...`;
-    }
-}
-
-function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-
-const toBase64 = file => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = error => reject(error);
-});
