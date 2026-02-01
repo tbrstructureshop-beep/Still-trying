@@ -1,70 +1,79 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <base target="_top">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <?!= HtmlService.createHtmlOutputFromFile('style').getContent(); ?>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aviation Work Order System</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-
-  <!-- LOADING SPINNER -->
-  <div id="loadingOverlay" class="overlay" style="display: none;">
-    <div class="spinner"></div>
-  </div>
-
-  <!-- PAGE 1: START JOB -->
-  <div id="page1" class="page active">
-    <div class="landing-container">
-      <div class="logo-area">
-        <i class="fas fa-plane-departure" style="font-size: 3rem; color: #1c5d69;"></i>
-        <h1>Aviation Ops</h1>
-      </div>
-      <button id="btnStartJob" class="btn-primary-lg">START THE JOB</button>
+    <!-- Global Loading Spinner -->
+    <div id="loader" class="loader-overlay" style="display: none;">
+        <div class="spinner"></div>
     </div>
-  </div>
 
-  <!-- PAGE 2: EXECUTION PAGE -->
-  <div id="page2" class="page">
-    <header class="app-header">
-      <div class="header-content">
-        <h2>Job Execution</h2>
-        <div id="summaryCounters" class="summary-pills">
-          <!-- Populated by JS -->
+    <!-- PAGE 1: START JOB -->
+    <section id="page-start" class="page active">
+        <div class="landing-container">
+            <div class="logo-area">
+                <div class="aviation-icon">✈</div>
+                <h1>Aviation Maintenance</h1>
+                <p>MRO Execution System</p>
+            </div>
+            <button id="btn-start-job" class="btn-primary btn-lg">START THE JOB</button>
         </div>
-      </div>
-    </header>
+    </section>
 
-    <main class="container">
-      <!-- GENERAL INFO SECTION -->
-      <section class="card info-card">
-        <h3>General Information</h3>
-        <div class="info-grid" id="generalInfo">
-          <!-- Populated by JS -->
+    <!-- PAGE 2: JOB EXECUTION -->
+    <section id="page-execution" class="page">
+        <header class="app-header">
+            <div class="header-content">
+                <h2>Work Order Dashboard</h2>
+                <div id="summary-counters" class="counters">
+                    <span class="badge badge-open">OPEN: <span id="count-open">0</span></span>
+                    <span class="badge badge-progress">PROGRESS: <span id="count-progress">0</span></span>
+                    <span class="badge badge-closed">CLOSED: <span id="count-closed">0</span></span>
+                </div>
+            </div>
+        </header>
+
+        <main class="container">
+            <!-- General Info Section -->
+            <section class="info-card shadow">
+                <div class="card-header primary-bg">General Information</div>
+                <div class="info-grid" id="general-info-content">
+                    <!-- Dynamic Content -->
+                </div>
+            </section>
+
+            <!-- Findings List -->
+            <section id="findings-container">
+                <h3>Findings & Tasks</h3>
+                <div id="findings-list">
+                    <!-- Dynamic Finding Cards -->
+                </div>
+            </section>
+        </main>
+    </section>
+
+    <!-- Modal for Image Upload / Stop Action -->
+    <div id="stop-modal" class="modal">
+        <div class="modal-content">
+            <h3>Complete Task</h3>
+            <p>Is this finding still in progress?</p>
+            <div class="modal-actions">
+                <button id="btn-progress-yes" class="btn-secondary">YES (In Progress)</button>
+                <button id="btn-progress-no" class="btn-success">NO (Task Finished)</button>
+            </div>
+            <div id="final-step" style="display:none; margin-top:20px;">
+                <p>Upload completion photo:</p>
+                <input type="file" id="image-upload" accept="image/*" capture="environment">
+                <button id="btn-submit-stop" class="btn-primary">Finalize Log</button>
+            </div>
         </div>
-      </section>
-
-      <!-- FINDINGS SECTION -->
-      <section id="findingsContainer">
-        <!-- Finding Cards dynamic -->
-      </section>
-    </main>
-  </div>
-
-  <!-- MODALS -->
-  <div id="modalOverlay" class="modal-overlay" style="display:none;">
-    <div class="modal-content">
-      <h3 id="modalTitle">Notification</h3>
-      <p id="modalBody"></p>
-      <div class="modal-actions">
-        <button id="modalNo" class="btn-secondary">No</button>
-        <button id="modalYes" class="btn-primary">Yes</button>
-      </div>
     </div>
-  </div>
 
-  <input type="file" id="imageUpload" style="display:none" accept="image/*">
-
-  <?!= HtmlService.createHtmlOutputFromFile('script').getContent(); ?>
+    <script src="script.js"></script>
 </body>
 </html>
