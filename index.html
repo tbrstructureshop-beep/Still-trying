@@ -4,75 +4,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AeroTrack | Collaborative Work Order</title>
+    <title>Aircraft Work Order System</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header class="app-header">
-        <div class="header-content">
-            <h1 id="wo-title">LOADING...</h1>
-            <div id="wo-subtitle">Aircraft Maintenance System</div>
-        </div>
-        <div class="status-bar">
-            <span id="connection-status" class="dot"></span>
-            <span id="sync-text">Syncing...</span>
+    <div id="loader-overlay" class="loader-overlay">
+        <div class="spinner"></div>
+    </div>
+
+    <header class="main-header">
+        <div class="container">
+            <h1 id="wo-title">Work Order: ...</h1>
+            <div class="header-grid">
+                <div class="info-item"><span>Customer:</span> <b id="head-customer">-</b></div>
+                <div class="info-item"><span>A/C Reg:</span> <b id="head-reg">-</b></div>
+                <div class="info-item"><span>Part Desc:</span> <b id="head-desc">-</b></div>
+                <div class="info-item"><span>Part No:</span> <b id="head-pn">-</b></div>
+                <div class="info-item"><span>Serial No:</span> <b id="head-sn">-</b></div>
+            </div>
         </div>
     </header>
 
-    <main id="app-container">
-        <!-- Findings list will be injected here -->
-        <div id="loading-spinner" class="spinner-overlay">
-            <div class="loader"></div>
-            <p>Fetching Maintenance Data...</p>
+    <main class="container">
+        <div id="findings-container">
+            <!-- Finding Cards Generated Here -->
         </div>
     </main>
 
-    <!-- Modal: Start Task -->
-    <div id="modal-start" class="modal">
+    <!-- Modals -->
+    <div id="modal-conflict" class="modal">
         <div class="modal-content">
-            <h3>Start Maintenance Action</h3>
-            <div class="form-group">
-                <label>Employee ID</label>
-                <input type="text" id="input-emp-id" placeholder="Enter ID (e.g. 10245)" autocomplete="off">
-            </div>
-            <div class="form-group">
-                <label>Task Code</label>
-                <input type="text" id="input-task-code" placeholder="e.g. 2000" maxlength="4">
-            </div>
+            <h3>Parallel Work Conflict</h3>
+            <p id="conflict-msg"></p>
             <div class="modal-actions">
-                <button class="btn btn-secondary" onclick="closeModals()">Cancel</button>
-                <button class="btn btn-primary" id="btn-confirm-start">Start Timer</button>
+                <button id="btn-confirm-parallel" class="btn btn-primary">YES (Start Parallel)</button>
+                <button onclick="closeModal('modal-conflict')" class="btn btn-secondary">NO (Cancel)</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal: Stop / Finalize -->
-    <div id="modal-stop" class="modal">
+    <div id="modal-user-select" class="modal">
         <div class="modal-content">
-            <h3>Complete Execution</h3>
-            <p id="stop-details"></p>
-            <div class="form-group" id="final-status-group">
-                <label>Next Status</label>
-                <select id="select-final-status">
-                    <option value="PROGRESS">ON HOLD (Requires more work)</option>
-                    <option value="CLOSED">CLOSED (Finding Rectified)</option>
-                </select>
-            </div>
-            <div id="evidence-upload-section" class="form-group hidden">
-                <label>Final Evidence (Photo)</label>
-                <input type="file" id="input-evidence" accept="image/*">
-            </div>
+            <h3>Select Your ID to Stop</h3>
+            <div id="user-select-list" class="list-group"></div>
             <div class="modal-actions">
-                <button class="btn btn-secondary" onclick="closeModals()">Cancel</button>
-                <button class="btn btn-danger" id="btn-confirm-stop">Stop & Log</button>
+                <button onclick="closeModal('modal-user-select')" class="btn btn-secondary">Cancel</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal: Image Preview -->
-    <div id="modal-image" class="modal" onclick="closeModals()">
-        <span class="close-img">&times;</span>
-        <img class="modal-img-content" id="img-preview-target">
+    <div id="modal-final-status" class="modal">
+        <div class="modal-content">
+            <h3>Finalize Finding</h3>
+            <p>You are the last mechanic. Set final status:</p>
+            <div class="modal-actions-vertical">
+                <button onclick="finalizeJob('ON HOLD')" class="btn btn-warning">ON HOLD</button>
+                <button onclick="finalizeJob('CLOSED')" class="btn btn-success">CLOSED (Require Photo)</button>
+                <button onclick="closeModal('modal-final-status')" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-upload" class="modal">
+        <div class="modal-content">
+            <h3>Upload Evidence</h3>
+            <p>Action: CLOSED. Evidence required.</p>
+            <input type="file" id="file-input" accept="image/*" capture="environment">
+            <div class="modal-actions">
+                <button id="btn-upload-submit" class="btn btn-primary">Upload & Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-image" class="modal" onclick="closeModal('modal-image')">
+        <img id="modal-img-preview" src="" alt="Finding Image">
     </div>
 
     <script src="script.js"></script>
