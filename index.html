@@ -1,85 +1,65 @@
-<!-- index.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Aircraft Work Order System</title>
-    <link rel="stylesheet" href="style.css">
+    <base target="_top">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <?!= include('style'); ?>
 </head>
 <body>
-    <div id="loader-overlay" class="loader-overlay">
+    <div id="loading-overlay" class="loader-hidden">
         <div class="spinner"></div>
     </div>
 
-    <header class="main-header">
-        <div class="container">
-            <h1 id="wo-title">Work Order: ...</h1>
-            <div class="header-grid">
-                <div class="info-item"><span>Customer:</span> <b id="head-customer">-</b></div>
-                <div class="info-item"><span>A/C Reg:</span> <b id="head-reg">-</b></div>
-                <div class="info-item"><span>Part Desc:</span> <b id="head-desc">-</b></div>
-                <div class="info-item"><span>Part No:</span> <b id="head-pn">-</b></div>
-                <div class="info-item"><span>Serial No:</span> <b id="head-sn">-</b></div>
+    <!-- PAGE 1: START JOB -->
+    <div id="page-start" class="page active">
+        <div class="landing-container">
+            <div class="logo-placeholder">✈️</div>
+            <h1>Aviation Task Manager</h1>
+            <p>Professional Job Execution & Man-hour Logging</p>
+            <button id="btn-start-job" class="btn-primary btn-large">START THE JOB</button>
+        </div>
+    </div>
+
+    <!-- PAGE 2: EXECUTION -->
+    <div id="page-execution" class="page">
+        <header class="app-header">
+            <div class="header-content">
+                <h2>Job Execution Panel</h2>
+                <div id="summary-counters" class="counters">
+                    <span class="badge open">OPEN: <span id="count-open">0</span></span>
+                    <span class="badge progress">PROGRESS: <span id="count-progress">0</span></span>
+                    <span class="badge closed">CLOSED: <span id="count-closed">0</span></span>
+                </div>
             </div>
-        </div>
-    </header>
+        </header>
 
-    <main class="container">
-        <div id="findings-container">
-            <!-- Finding Cards Generated Here -->
-        </div>
-    </main>
+        <main class="container">
+            <!-- General Info Section -->
+            <section class="card info-card">
+                <h3>General Information</h3>
+                <div class="info-grid" id="general-info-content">
+                    <!-- Dynamic Content -->
+                </div>
+            </section>
 
-    <!-- Modals -->
-    <div id="modal-conflict" class="modal">
+            <!-- Findings Section -->
+            <div id="findings-container">
+                <!-- Finding Cards injected here -->
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL FOR INPUTS -->
+    <div id="modal-overlay" class="modal-hidden">
         <div class="modal-content">
-            <h3>Parallel Work Conflict</h3>
-            <p id="conflict-msg"></p>
-            <div class="modal-actions">
-                <button id="btn-confirm-parallel" class="btn btn-primary">YES (Start Parallel)</button>
-                <button onclick="closeModal('modal-conflict')" class="btn btn-secondary">NO (Cancel)</button>
-            </div>
+            <h3 id="modal-title">Attention</h3>
+            <div id="modal-body"></div>
+            <div class="modal-actions" id="modal-footer"></div>
         </div>
     </div>
 
-    <div id="modal-user-select" class="modal">
-        <div class="modal-content">
-            <h3>Select Your ID to Stop</h3>
-            <div id="user-select-list" class="list-group"></div>
-            <div class="modal-actions">
-                <button onclick="closeModal('modal-user-select')" class="btn btn-secondary">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-final-status" class="modal">
-        <div class="modal-content">
-            <h3>Finalize Finding</h3>
-            <p>You are the last mechanic. Set final status:</p>
-            <div class="modal-actions-vertical">
-                <button onclick="finalizeJob('ON HOLD')" class="btn btn-warning">ON HOLD</button>
-                <button onclick="finalizeJob('CLOSED')" class="btn btn-success">CLOSED (Require Photo)</button>
-                <button onclick="closeModal('modal-final-status')" class="btn btn-secondary">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-upload" class="modal">
-        <div class="modal-content">
-            <h3>Upload Evidence</h3>
-            <p>Action: CLOSED. Evidence required.</p>
-            <input type="file" id="file-input" accept="image/*" capture="environment">
-            <div class="modal-actions">
-                <button id="btn-upload-submit" class="btn btn-primary">Upload & Close</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="modal-image" class="modal" onclick="closeModal('modal-image')">
-        <img id="modal-img-preview" src="" alt="Finding Image">
-    </div>
-
-    <script src="script.js"></script>
+    <script>
+        <?!= include('script'); ?>
+    </script>
 </body>
 </html>
