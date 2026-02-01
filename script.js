@@ -1,6 +1,8 @@
 /* script.js */
 const API_URL = "https://script.google.com/macros/s/AKfycbypoq7k-aw8_x_9Q3WuqZ4AzS5UQmlSUEiMQooxfG8i2UIjGnAReYvmxlHsfP-WTxUI/exec";
-const SHEET_ID = new URLSearchParams(window.location.search).get('sheetId');
+const DEFAULT_SHEET_ID = "1IyjNL723csoFdYA9Zo8_oMOhIxzPPpNOXw5YSJLGh-c";
+const SHEET_ID = new URLSearchParams(window.location.search).get('sheetId') || DEFAULT_SHEET_ID;
+//const SHEET_ID = new URLSearchParams(window.location.search).get('sheetId');//
 const NO_IMAGE = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Noimage.svg/250px-Noimage.svg.png";
 
 let appState = {
