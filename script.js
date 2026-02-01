@@ -1,271 +1,283 @@
-let appData = {};
-let activeTimers = {};
+<script>
+let appData = null;
+let timers = {}; // Stores intervals for counters
 
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('btn-start-job').addEventListener('click', startJobFlow);
-});
+// INITIALIZATION
+document.getElementById('btnStartJob').addEventListener('click', startJobFlow);
 
-function showLoader() { document.getElementById('loading-overlay').classList.remove('loader-hidden'); }
-function hideLoader() { document.getElementById('loading-overlay').classList.add('loader-hidden'); }
-
-async function startJobFlow() {
-    showLoader();
-    google.script.run.withSuccessHandler(data => {
-        appData = data;
-        renderPage2();
-        document.getElementById('page-start').classList.remove('active');
-        document.getElementById('page-execution').classList.add('active');
-        hideLoader();
-    }).getInitialData();
+function showLoading(show) {
+  document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
 }
 
-function renderPage2() {
-    // Render Info
-    const info = appData.info;
-    document.getElementById('general-info-content').innerHTML = `
-        <div class="info-item"><label>A/C Reg</label><span>${info.acReg}</span></div>
-        <div class="info-item"><label>W/O No</label><span>${info.woNo}</span></div>
-        <div class="info-item"><label>Part Description</label><span>${info.partDesc}</span></div>
-        <div class="info-item"><label>PN / SN</label><span>${info.pn} / ${info.sn}</span></div>
-        <div class="info-item"><label>Qty</label><span>${info.qty}</span></div>
-        <div class="info-item"><label>Date Received</label><span>${info.dateReceived}</span></div>
-    `;
+function startJobFlow() {
+  showLoading(true);
+  google.script.run
+    .withSuccessHandler(data => {
+      appData = data;
+      renderApp();
+      switchPage('page2');
+      showLoading(false);
+    })
+    .getInitialData();
+}
 
-    renderFindings();
+function switchPage(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+}
+
+function renderApp() {
+  renderGeneralInfo();
+  renderFindings();
+  updateSummaryCounters();
+}
+
+function renderGeneralInfo() {
+  const info = appData.info;
+  const container = document.getElementById('generalInfo');
+  container.innerHTML = `
+    <div class="info-item"><label>A/C Reg.</label><span>${info.acReg}</span></div>
+    <div class="info-item"><label>W/O No.</label><span>${info.woNo}</span></div>
+    <div class="info-item"><label>Part Description</label><span>${info.partDesc}</span></div>
+    <div class="info-item"><label>Part Number</label><span>${info.pn}</span></div>
+    <div class="info-item"><label>Serial Number</label><span>${info.sn}</span></div>
+    <div class="info-item"><label>Quantity</label><span>${info.qty}</span></div>
+    <div class="info-item"><label>Date Received</label><span>${info.dateReceived}</span></div>
+  `;
 }
 
 function renderFindings() {
-    const container = document.getElementById('findings-container');
-    container.innerHTML = '';
+  const container = document.getElementById('findingsContainer');
+  container.innerHTML = '';
+
+  appData.findings.forEach(f => {
+    const status = getFindingStatus(f.no);
+    const card = document.createElement('div');
+    card.className = `card finding-card status-${status.toLowerCase()}`;
+    card.id = `card-${f.no}`;
     
-    let stats = { open: 0, progress: 0, closed: 0 };
-
-    appData.findings.forEach(finding => {
-        const findingNo = finding[0];
-        const status = calculateStatus(findingNo);
-        stats[status.toLowerCase()]++;
-
-        const card = document.createElement('div');
-        card.className = `card finding-card`;
-        card.innerHTML = `
-            <div class="finding-header" onclick="toggleAccordion('content-${findingNo}')">
-                <div><strong>${findingNo}</strong> – ${finding[2]}</div>
-                <span class="status-badge ${status.toLowerCase()}">${status}</span>
-            </div>
-            
-            <div id="content-${findingNo}" class="accordion-content">
-                <!-- 1. Detail -->
-                <div class="accordion-section">
-                    <button class="accordion-trigger" onclick="toggleSubAccordion(this)">Detail of Finding <span>▼</span></button>
-                    <div class="accordion-content">
-                        <img src="https://drive.google.com/thumbnail?id=${extractId(finding[1])}&sz=w1000" style="max-width:100%; border-radius:8px;">
-                        <p style="white-space: pre-wrap; margin-top:10px;">${finding[3]}</p>
-                    </div>
-                </div>
-
-                <!-- 2. Materials -->
-                <div class="accordion-section">
-                    <button class="accordion-trigger" onclick="toggleSubAccordion(this)">Material List <span>▼</span></button>
-                    <div class="accordion-content">
-                        ${renderMaterials(findingNo)}
-                    </div>
-                </div>
-
-                <!-- 3. Man-hour Record -->
-                <div class="accordion-section">
-                    <button class="accordion-trigger" onclick="toggleSubAccordion(this)">Man-hour Record <span>▼</span></button>
-                    <div class="accordion-content">
-                        ${renderManHourInput(findingNo, status)}
-                    </div>
-                </div>
-
-                <!-- 4. Log -->
-                <div class="accordion-section">
-                    <button class="accordion-trigger" onclick="toggleSubAccordion(this)">Logged Actions <span>▼</span></button>
-                    <div class="accordion-content">
-                        ${renderLogs(findingNo)}
-                    </div>
-                </div>
-            </div>
-        `;
-        container.appendChild(card);
-    });
-
-    document.getElementById('count-open').innerText = stats.open;
-    document.getElementById('count-progress').innerText = stats.progress;
-    document.getElementById('count-closed').innerText = stats.closed;
-}
-
-function calculateStatus(findingNo) {
-    const logs = appData.logs.filter(l => l[2] == findingNo);
-    if (logs.length === 0) return 'OPEN';
-    const hasProgress = logs.some(l => l[6] === 'PROGRESS');
-    const allClosed = logs.every(l => l[6] === 'CLOSED');
-    return hasProgress ? 'PROGRESS' : (allClosed ? 'CLOSED' : 'OPEN');
-}
-
-function renderMaterials(findingNo) {
-    const materials = appData.materials.filter(m => m[0] == findingNo);
-    if (!materials.length) return '<p>No materials required.</p>';
-    return `
-        <table style="width:100%; font-size:0.85rem; border-collapse:collapse;">
-            <tr style="text-align:left; border-bottom:1px solid #eee;">
-                <th>P/N</th><th>Description</th><th>Qty</th><th>Status</th>
-            </tr>
-            ${materials.map(m => `
-                <tr style="border-bottom:1px solid #eee;">
-                    <td>${m[1]}</td><td>${m[2]}</td><td>${m[3]} ${m[4]}</td><td>${m[5]}</td>
-                </tr>
-            `).join('')}
-        </table>
-    `;
-}
-
-function renderManHourInput(findingNo, status) {
-    if (status === 'CLOSED') return '<p class="text-red">Finding is closed. No further logging allowed.</p>';
-    
-    return `
-        <div class="manhour-form" id="form-${findingNo}">
-            <div class="manhour-controls">
-                <div class="input-group">
-                    <label>Employee ID</label>
-                    <input type="text" id="emp-${findingNo}" placeholder="ID">
-                </div>
-                <div class="input-group">
-                    <label>Task No</label>
-                    <input type="text" id="task-${findingNo}" value="0000">
-                </div>
-                <button class="btn-primary" onclick="handleStart('${findingNo}')">START</button>
-            </div>
-            <div id="timer-${findingNo}" class="timer-display" style="display:none;">00:00:00</div>
-            <button id="stop-${findingNo}" class="btn-large" style="display:none; background:var(--red); width:100%; margin-top:10px;" onclick="handleStop('${findingNo}')">STOP</button>
+    card.innerHTML = `
+      <div class="status-badge bg-${status.toLowerCase()}">${status}</div>
+      <h3>${f.no} – ${f.idText}</h3>
+      
+      <!-- DROPDOWN 1 -->
+      <div class="dropdown">
+        <div class="dropdown-header" onclick="toggleDropdown(this)">Detail of Finding <i class="fas fa-chevron-down"></i></div>
+        <div class="dropdown-content">
+          ${f.pic ? `<img src="${f.pic}" style="max-width:100%; border-radius:8px; margin-bottom:10px;">` : ''}
+          <p style="white-space: pre-wrap;">${f.action}</p>
         </div>
-    `;
-}
+      </div>
 
-function handleStart(findingNo) {
-    const empId = document.getElementById(`emp-${findingNo}`).value;
-    const taskNo = document.getElementById(`task-${findingNo}`).value;
-
-    if (!empId) return alert("Employee ID Required");
-
-    // Collision Check
-    const activeEntry = appData.logs.find(l => l[2] == findingNo && l[5] === 'START' && !appData.logs.some(stop => stop[0] === l[0] && stop[5] === 'STOP'));
-    
-    if (activeEntry) {
-        if (!confirm(`Employee ${activeEntry[1]} is currently working on this. Join?`)) return;
-    }
-
-    const execId = 'EX-' + Date.now();
-    const payload = {
-        executionId: execId,
-        employeeId: empId,
-        findingNo: findingNo,
-        taskNo: taskNo,
-        action: 'START',
-        status: 'PROGRESS'
-    };
-
-    showLoader();
-    google.script.run.withSuccessHandler(() => {
-        refreshData(() => {
-            initTimer(findingNo, Date.now(), execId);
-            document.getElementById(`stop-${findingNo}`).style.display = 'block';
-            document.getElementById(`timer-${findingNo}`).style.display = 'block';
-            hideLoader();
-        });
-    }).logManhourAction(payload);
-}
-
-async function handleStop(findingNo) {
-    const activeTask = activeTimers[findingNo];
-    if (!activeTask) return;
-
-    if (!confirm("Is the job still in progress?")) {
-        if (!confirm("Is there any other task still required for this finding?")) {
-            // Flow to CLOSED
-            const fileInput = document.createElement('input');
-            fileInput.type = 'file';
-            fileInput.accept = 'image/*';
-            fileInput.onchange = async (e) => {
-                const file = e.target.files[0];
-                showLoader();
-                const reader = new FileReader();
-                reader.onload = async (f) => {
-                    const imgUrl = await new Promise(resolve => google.script.run.withSuccessHandler(resolve).uploadImage(f.target.result, file.name));
-                    submitStop(findingNo, activeTask, 'CLOSED', imgUrl);
-                };
-                reader.readAsDataURL(file);
-            };
-            fileInput.click();
-            return;
-        }
-    }
-    submitStop(findingNo, activeTask, 'PROGRESS');
-}
-
-function submitStop(findingNo, taskData, finalStatus, imgUrl = '') {
-    const payload = {
-        executionId: taskData.execId,
-        employeeId: document.getElementById(`emp-${findingNo}`).value,
-        findingNo: findingNo,
-        taskNo: document.getElementById(`task-${findingNo}`).value,
-        action: 'STOP',
-        status: finalStatus,
-        imageUrl: imgUrl
-    };
-
-    google.script.run.withSuccessHandler(() => {
-        clearInterval(taskData.interval);
-        delete activeTimers[findingNo];
-        refreshData();
-    }).logManhourAction(payload);
-}
-
-function initTimer(findingNo, startTime, execId) {
-    const display = document.getElementById(`timer-${findingNo}`);
-    const interval = setInterval(() => {
-        const diff = Date.now() - startTime;
-        const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
-        const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
-        const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
-        display.innerText = `${h}:${m}:${s}`;
-    }, 1000);
-    activeTimers[findingNo] = { interval, startTime, execId };
-}
-
-function refreshData(callback) {
-    google.script.run.withSuccessHandler(data => {
-        appData = data;
-        renderFindings();
-        if (callback) callback();
-        hideLoader();
-    }).getInitialData();
-}
-
-function toggleAccordion(id) {
-    const el = document.getElementById(id);
-    el.classList.toggle('show');
-}
-
-function toggleSubAccordion(btn) {
-    const content = btn.nextElementSibling;
-    content.classList.toggle('show');
-    btn.querySelector('span').innerText = content.classList.contains('show') ? '▲' : '▼';
-}
-
-function renderLogs(findingNo) {
-    const logs = appData.logs.filter(l => l[2] == findingNo).reverse();
-    if (!logs.length) return '<p>No history available.</p>';
-    return logs.map(l => `
-        <div style="font-size:0.8rem; border-bottom:1px solid #eee; padding:5px 0;">
-            <strong>${l[5]}:</strong> Emp ${l[1]} | Task ${l[3]}<br>
-            <small>${new Date(l[4]).toLocaleString()}</small>
+      <!-- DROPDOWN 2 -->
+      <div class="dropdown">
+        <div class="dropdown-header" onclick="toggleDropdown(this)">Material List <i class="fas fa-chevron-down"></i></div>
+        <div class="dropdown-content">
+          <table class="log-table">
+            <thead><tr><th>PN</th><th>Desc</th><th>Qty</th><th>Avail</th></tr></thead>
+            <tbody>${renderMaterials(f.no)}</tbody>
+          </table>
         </div>
-    `).join('');
+      </div>
+
+      <!-- DROPDOWN 3 -->
+      <div class="dropdown">
+        <div class="dropdown-header" onclick="toggleDropdown(this)">Man-hour Record <i class="fas fa-chevron-down"></i></div>
+        <div class="dropdown-content">
+          <div id="mh-active-info-${f.no}" style="color:var(--blue); font-weight:600; margin-bottom:10px;"></div>
+          <div class="mh-form">
+            <input type="text" id="empId-${f.no}" placeholder="Employee ID">
+            <input type="text" id="taskNo-${f.no}" placeholder="Task No" value="0000">
+            <div id="timerDisplay-${f.no}" style="font-size:1.5rem; font-weight:bold; color:var(--primary); display:none;">00:00:00</div>
+            <div class="btn-row">
+              <button class="btn-primary" id="btnStart-${f.no}" onclick="handleStart('${f.no}')">START</button>
+              <button class="btn-secondary" id="btnStop-${f.no}" style="display:none;" onclick="handleStop('${f.no}')">STOP</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DROPDOWN 4 -->
+      <div class="dropdown">
+        <div class="dropdown-header" onclick="toggleDropdown(this)">History Logs <i class="fas fa-chevron-down"></i></div>
+        <div class="dropdown-content">
+          <table class="log-table">
+            <thead><tr><th>Emp ID</th><th>Date/Time</th><th>Task</th><th>Action</th></tr></thead>
+            <tbody>${renderLogs(f.no)}</tbody>
+          </table>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+    initFindingState(f.no);
+  });
 }
 
-function extractId(url) {
-    const match = url.match(/[-\w]{25,}/);
-    return match ? match[0] : '';
+function toggleDropdown(el) {
+  el.parentElement.classList.toggle('active');
 }
+
+function getFindingStatus(findingNo) {
+  const logs = appData.logs.filter(l => l.findingNo == findingNo);
+  if (logs.length === 0) return 'OPEN';
+  if (logs.some(l => l.status === 'CLOSED')) return 'CLOSED';
+  if (logs.some(l => l.action === 'START')) {
+    // Check if there is an unmatched START
+    const unmatched = findActiveLog(findingNo);
+    return unmatched ? 'PROGRESS' : 'OPEN';
+  }
+  return 'OPEN';
+}
+
+function findActiveLog(findingNo, empId = null) {
+  const fLogs = appData.logs.filter(l => l.findingNo == findingNo);
+  const activeLogs = {};
+  fLogs.forEach(l => {
+    if (l.action === 'START') activeLogs[l.execId] = l;
+    else if (l.action === 'STOP') delete activeLogs[l.execId];
+  });
+  const actives = Object.values(activeLogs);
+  return empId ? actives.find(a => a.empId == empId) : actives[0];
+}
+
+function initFindingState(findingNo) {
+  const active = findActiveLog(findingNo);
+  const startBtn = document.getElementById(`btnStart-${findingNo}`);
+  const stopBtn = document.getElementById(`btnStop-${findingNo}`);
+  
+  if (getFindingStatus(findingNo) === 'CLOSED') {
+    startBtn.disabled = true;
+    startBtn.innerText = 'CLOSED';
+    return;
+  }
+
+  // Check if current user (simulated) is the one active
+  // In real app, we'd know current user's ID. 
+}
+
+function renderMaterials(fNo) {
+  const mats = appData.materials.filter(m => m.findingNo == fNo);
+  return mats.length ? mats.map(m => `<tr><td>${m.pn}</td><td>${m.desc}</td><td>${m.qtyUom}</td><td>${m.avail}</td></tr>`).join('') : '<tr><td colspan="4">No materials</td></tr>';
+}
+
+function renderLogs(fNo) {
+  const logs = appData.logs.filter(l => l.findingNo == fNo);
+  return logs.map(l => {
+    const d = new Date(l.timestamp);
+    const dateStr = `${d.getDate()} ${d.toLocaleString('en-US', {month:'short'})} ${d.getFullYear()} ${d.getHours()}:${d.getMinutes().toString().padStart(2,'0')}`;
+    return `<tr><td>${l.empId}</td><td>${dateStr}</td><td>${l.taskNo}</td><td>${l.action}</td></tr>`;
+  }).join('');
+}
+
+// MAN-HOUR LOGIC
+async function handleStart(fNo) {
+  const empId = document.getElementById(`empId-${fNo}`).value;
+  const taskNo = document.getElementById(`taskNo-${fNo}`).value;
+
+  if (!empId) { alert("Enter Employee ID"); return; }
+
+  const otherActive = findActiveLog(fNo);
+  if (otherActive && otherActive.empId != empId) {
+    const join = await showConfirm(`Employee ${otherActive.empId} is currently working on this. Join?`);
+    if (!join) return;
+  }
+
+  const execId = 'EX' + Date.now();
+  const logData = { execId, empId, findingNo: fNo, taskNo, action: 'START' };
+  
+  showLoading(true);
+  google.script.run.withSuccessHandler(res => {
+    appData.logs.push({...logData, timestamp: res.timestamp});
+    startTimerUI(fNo, res.timestamp, execId, empId);
+    showLoading(false);
+  }).logAction(logData);
+}
+
+function startTimerUI(fNo, startTime, execId, empId) {
+  const timerDiv = document.getElementById(`timerDisplay-${fNo}`);
+  const startBtn = document.getElementById(`btnStart-${fNo}`);
+  const stopBtn = document.getElementById(`btnStop-${fNo}`);
+  
+  timerDiv.style.display = 'block';
+  startBtn.style.display = 'none';
+  stopBtn.style.display = 'block';
+  stopBtn.dataset.execId = execId;
+  stopBtn.dataset.empId = empId;
+
+  timers[fNo] = setInterval(() => {
+    const diff = new Date().getTime() - startTime;
+    const h = Math.floor(diff / 3600000).toString().padStart(2, '0');
+    const m = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+    const s = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+    timerDiv.innerText = `${h}:${m}:${s}`;
+  }, 1000);
+}
+
+async function handleStop(fNo) {
+  const stopBtn = document.getElementById(`btnStop-${fNo}`);
+  const execId = stopBtn.dataset.execId;
+  const empId = stopBtn.dataset.empId;
+  const taskNo = document.getElementById(`taskNo-${fNo}`).value;
+
+  clearInterval(timers[fNo]);
+
+  const stillInProg = await showConfirm("Is the job still in progress?");
+  let finalStatus = 'PROGRESS';
+  let imgUrl = '';
+
+  if (!stillInProg) {
+    const otherTasks = await showConfirm("Is there any other task required for this finding?");
+    if (!otherTasks) {
+      finalStatus = 'CLOSED';
+      imgUrl = await handleImageUpload();
+    }
+  }
+
+  const logData = { execId, empId, findingNo: fNo, taskNo, action: 'STOP', status: finalStatus, imageUrl: imgUrl };
+  
+  showLoading(true);
+  google.script.run.withSuccessHandler(() => {
+    location.reload(); // Refresh to reflect all multi-user changes
+  }).logAction(logData);
+}
+
+function handleImageUpload() {
+  return new Promise((resolve) => {
+    const input = document.getElementById('imageUpload');
+    input.onchange = e => {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        google.script.run.withSuccessHandler(url => resolve(url))
+          .uploadImage(evt.target.result, file.name);
+      };
+      reader.readAsDataURL(file);
+    };
+    alert("Finding Closing: Please select completion image.");
+    input.click();
+  });
+}
+
+function showConfirm(msg) {
+  return new Promise(resolve => {
+    const modal = document.getElementById('modalOverlay');
+    document.getElementById('modalBody').innerText = msg;
+    modal.style.display = 'flex';
+    document.getElementById('modalYes').onclick = () => { modal.style.display='none'; resolve(true); };
+    document.getElementById('modalNo').onclick = () => { modal.style.display='none'; resolve(false); };
+  });
+}
+
+function updateSummaryCounters() {
+  const counts = { OPEN: 0, PROGRESS: 0, CLOSED: 0 };
+  appData.findings.forEach(f => {
+    counts[getFindingStatus(f.no)]++;
+  });
+  
+  document.getElementById('summaryCounters').innerHTML = `
+    <span class="pill bg-open">OPEN: ${counts.OPEN}</span>
+    <span class="pill bg-progress">PROGRESS: ${counts.PROGRESS}</span>
+    <span class="pill bg-closed">CLOSED: ${counts.CLOSED}</span>
+  `;
+}
+</script>
