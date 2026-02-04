@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Attendance History</title>
+  <!-- Google Fonts and Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --primary: #307c91;
+      --primary-dark: #245f6f;
+      --primary-light: #e6f1f4;
+      --bg: #f0f4f7;
+      --card: #ffffff;
+      --text-main: #0f2f36;
+      --text-sub: #5f7f88;
+      --accent: #3fa2b8;
+      --warning: #f39c12;
+      --radius: 16px;
+      --shadow: 0 10px 25px -5px rgba(48, 124, 145, 0.1), 0 8px 10px -6px rgba(48, 124, 145, 0.1);
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(48, 124, 145, 0.05) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(63, 162, 184, 0.05) 0px, transparent 50%);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 500px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .greeting {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .employee-meta {
+      font-size: 0.85rem;
+      opacity: 0.9;
+      line-height: 1.4;
+    }
+
+    .history-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .section-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin: 10px 0 4px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .day-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,0.8);
+      transition: var(--transition);
+    }
+
+    /* Accidental Entry Styling */
+    .day-card.warning-card {
+      border-left: 5px solid var(--warning);
+    }
+
+    .date-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: var(--primary-light);
+      padding: 10px;
+      border-radius: 12px;
+      min-width: 65px;
+    }
+
+    .warning-card .date-box {
+      background: #fff9f0;
+    }
+
+    .date-day {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .warning-card .date-day { color: var(--warning); }
+
+    .date-month {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: var(--primary-dark);
+    }
+
+    .time-details {
+      flex: 1;
+      padding-left: 15px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .time-slot {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .time-label {
+      font-size: 0.65rem;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .time-value {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .duration-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--primary);
+      background: rgba(48, 124, 145, 0.1);
+      padding: 4px 10px;
+      border-radius: 20px;
+      margin-top: 5px;
+      display: inline-block;
+    }
+
+    .warning-text {
+      color: var(--warning);
+      font-size: 0.7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      grid-column: span 2;
+    }
+
+    .actions {
+      margin-top: 10px;
+    }
+
+    button {
+      width: 100%;
+      border: none;
+      border-radius: var(--radius);
+      padding: 16px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .btn-secondary {
+      background: #fff;
+      color: var(--text-sub);
+      border: 1px solid #e2e8f0;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="greeting" id="userName">Agus</div>
+      <div class="employee-meta" id="userMeta">582744 | JKTTCP-9 | Planner</div>
+    </header>
+
+    <div class="section-title">
+        <span>Log History</span>
+        <i class="fas fa-history" style="color: var(--primary);"></i>
+    </div>
+
+    <section class="history-container" id="historyList">
+        <!-- Data populated by Script -->
+    </section>
+
+    <section class="actions">
+      <button class="btn-secondary" onclick="window.history.back()">
+        <i class="fas fa-arrow-left"></i> Back to Home
+      </button>
+    </section>
+  </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    // 1. Log Data for Agus
+    const historyData = [
+      { date: '2026-02-08', in: '07:02', out: '16:05', duration: '09:03:00', accidental: false },
+      { date: '2026-02-07', in: '06:58', out: '16:00', duration: '09:02:00', accidental: false },
+      { date: '2026-02-06', in: '07:00', out: '16:10', duration: '09:10:00', accidental: false },
+      { date: '2026-02-05', in: '07:05', out: '16:00', duration: '08:55:00', accidental: false },
+      { date: '2026-02-04', in: '15:30', out: '--:--', duration: '--', accidental: true }, // Accidental entry
+      { date: '2026-02-04', in: '07:00', out: '15:10', duration: '08:10:00', accidental: false }
+    ];
+
+    const listContainer = document.getElementById("historyList");
+
+    // 2. Render Loop
+    historyData.forEach(item => {
+      const dateObj = new Date(item.date);
+      const day = dateObj.getDate().toString().padStart(2, '0');
+      const month = dateObj.toLocaleDateString('en-GB', { month: 'short' });
+
+      const card = document.createElement("div");
+      // Add 'warning-card' class if it's the accidental entry
+      card.className = `day-card ${item.accidental ? 'warning-card' : ''}`;
+      
+      card.innerHTML = `
+        <div class="date-box">
+          <span class="date-day">${day}</span>
+          <span class="date-month">${month}</span>
+        </div>
+        <div class="time-details">
+          ${item.accidental ? '<div class="warning-text"><i class="fas fa-exclamation-triangle"></i> Accidental Entry</div>' : ''}
+          <div class="time-slot">
+            <span class="time-label">Clock In</span>
+            <span class="time-value">${item.in}</span>
+          </div>
+          <div class="time-slot">
+            <span class="time-label">Clock Out</span>
+            <span class="time-value">${item.out}</span>
+          </div>
+          ${!item.accidental ? `
+          <div style="grid-column: span 2;">
+            <span class="duration-badge">
+                <i class="far fa-clock"></i> ${item.duration}
+            </span>
+          </div>` : ''}
+        </div>
+        <div class="status-icon">
+            ${item.accidental ? 
+                '<i class="fas fa-question-circle" style="color: var(--warning);"></i>' : 
+                '<i class="fas fa-check-circle" style="color: #2ecc71;"></i>'}
+        </div>
+      `;
+      listContainer.appendChild(card);
+    });
+  });
+</script>
+</body>
+</html>
