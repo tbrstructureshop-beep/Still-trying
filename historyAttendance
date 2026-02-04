@@ -5,259 +5,365 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Attendance History</title>
   <!-- Google Fonts and Icons -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <style>
     :root {
       --primary: #307c91;
-      --primary-dark: #245f6f;
+      --primary-dark: #1d4d5a;
       --primary-light: #e6f1f4;
-      --bg: #f0f4f7;
+      --bg: #f8fafc;
       --card: #ffffff;
-      --text-main: #0f2f36;
-      --text-sub: #5f7f88;
+      --text-main: #1e293b;
+      --text-sub: #64748b;
       --accent: #3fa2b8;
-      --warning: #f39c12;
-      --radius: 16px;
-      --shadow: 0 10px 25px -5px rgba(48, 124, 145, 0.1), 0 8px 10px -6px rgba(48, 124, 145, 0.1);
-      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --success: #10b981;
+      --radius-lg: 20px;
+      --radius-md: 12px;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 15px -3px rgba(0, 0, 0, 0.03);
+      --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: 'Inter', -apple-system, sans-serif;
+      font-family: 'Plus Jakarta Sans', sans-serif;
     }
 
     body {
       background-color: var(--bg);
       background-image: 
-        radial-gradient(at 0% 0%, rgba(48, 124, 145, 0.05) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(63, 162, 184, 0.05) 0px, transparent 50%);
+        radial-gradient(circle at 0% 0%, rgba(48, 124, 145, 0.08) 0, transparent 40%),
+        radial-gradient(circle at 100% 100%, rgba(63, 162, 184, 0.08) 0, transparent 40%);
       color: var(--text-main);
       min-height: 100vh;
       display: flex;
       justify-content: center;
-      padding: 20px;
+      padding: 20px 15px;
     }
 
     .app {
       width: 100%;
-      max-width: 500px;
+      max-width: 480px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
-      animation: fadeIn 0.6s ease-out;
+      gap: 24px;
+      animation: slideUp 0.5s ease-out;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
 
+    /* --- Header Section --- */
     header {
       background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      border-radius: var(--radius);
-      padding: 24px;
-      box-shadow: var(--shadow);
+      border-radius: var(--radius-lg);
+      padding: 30px 25px;
+      box-shadow: 0 20px 25px -5px rgba(48, 124, 145, 0.25);
       color: white;
       position: relative;
       overflow: hidden;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    header::after {
+      content: '';
+      position: absolute;
+      top: -20%;
+      right: -10%;
+      width: 150px;
+      height: 150px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 50%;
+    }
+
+    .user-avatar {
+      width: 55px;
+      height: 55px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      border: 2px solid rgba(255,255,255,0.3);
     }
 
     .greeting {
-      font-size: 1.4rem;
-      font-weight: 700;
-      margin-bottom: 4px;
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
     }
 
     .employee-meta {
       font-size: 0.85rem;
-      opacity: 0.9;
-      line-height: 1.4;
+      opacity: 0.85;
+      margin-top: 2px;
     }
 
-    .history-container {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .section-title {
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--text-main);
-      margin: 10px 0 4px 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .day-card {
-      background: var(--card);
-      border-radius: var(--radius);
-      padding: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      box-shadow: var(--shadow);
-      border: 1px solid rgba(255,255,255,0.8);
-      transition: var(--transition);
-    }
-
-    /* Accidental Entry Styling */
-    .day-card.warning-card {
-      border-left: 5px solid var(--warning);
-    }
-
-    .date-box {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      background: var(--primary-light);
-      padding: 10px;
-      border-radius: 12px;
-      min-width: 65px;
-    }
-
-    .warning-card .date-box {
-      background: #fff9f0;
-    }
-
-    .date-day {
-      font-size: 1.2rem;
-      font-weight: 800;
-      color: var(--primary);
-    }
-
-    .warning-card .date-day { color: var(--warning); }
-
-    .date-month {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      font-weight: 600;
-      color: var(--primary-dark);
-    }
-
-    .time-details {
-      flex: 1;
-      padding-left: 15px;
+    /* --- Summary Stats --- */
+    .stats-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      gap: 15px;
     }
 
-    .time-slot {
+    .stat-card {
+      background: var(--card);
+      padding: 15px;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow);
       display: flex;
       flex-direction: column;
+      gap: 5px;
+      border: 1px solid rgba(255,255,255,1);
     }
 
-    .time-label {
-      font-size: 0.65rem;
+    .stat-label {
+      font-size: 0.7rem;
       color: var(--text-sub);
       text-transform: uppercase;
       font-weight: 700;
       letter-spacing: 0.5px;
     }
 
-    .time-value {
-      font-size: 0.95rem;
-      font-weight: 600;
+    .stat-value {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    /* --- History List --- */
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 5px;
+    }
+
+    .section-title {
+      font-size: 1.1rem;
+      font-weight: 800;
       color: var(--text-main);
     }
 
-    .duration-badge {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: var(--primary);
-      background: rgba(48, 124, 145, 0.1);
-      padding: 4px 10px;
-      border-radius: 20px;
-      margin-top: 5px;
-      display: inline-block;
+    .history-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
     }
 
-    .warning-text {
-      color: var(--warning);
-      font-size: 0.7rem;
+    .day-card {
+      background: var(--card);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+      border: 1px solid transparent;
+      position: relative;
+    }
+
+    .day-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 20px -5px rgba(0,0,0,0.08);
+      border-color: var(--primary-light);
+    }
+
+    /* Calendar Box Style */
+    .date-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--primary-light);
+      min-width: 60px;
+      height: 65px;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(48, 124, 145, 0.1);
+    }
+
+    .date-day {
+      font-size: 1.3rem;
       font-weight: 800;
+      color: var(--primary);
+      line-height: 1;
+    }
+
+    .date-month {
+      font-size: 0.65rem;
       text-transform: uppercase;
-      grid-column: span 2;
+      font-weight: 700;
+      color: var(--text-sub);
+      margin-top: 2px;
+    }
+
+    .time-info {
+      flex: 1;
+    }
+
+    .time-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      margin-bottom: 8px;
+    }
+
+    .time-entry {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .label {
+      font-size: 0.65rem;
+      color: var(--text-sub);
+      font-weight: 600;
+    }
+
+    .val {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .badge-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .duration-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--primary);
+      background: var(--primary-light);
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* Accidental State */
+    .warning-card {
+      background: #fffcf5;
+      border: 1px dashed var(--warning);
+    }
+
+    .warning-card .date-box {
+      background: #fef3c7;
+    }
+
+    .warning-card .date-day {
+      color: var(--warning);
+    }
+
+    .flag-badge {
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: #92400e;
+      background: #fef3c7;
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .status-icon {
+      font-size: 1.2rem;
     }
 
     .actions {
       margin-top: 10px;
     }
 
-    button {
+    .btn-back {
       width: 100%;
-      border: none;
-      border-radius: var(--radius);
-      padding: 16px;
-      font-size: 1rem;
+      background: white;
+      border: 1px solid #e2e8f0;
+      padding: 14px;
+      border-radius: var(--radius-md);
       font-weight: 700;
+      color: var(--text-sub);
       cursor: pointer;
-      transition: var(--transition);
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
+      gap: 8px;
+      transition: var(--transition);
     }
 
-    .btn-secondary {
-      background: #fff;
-      color: var(--text-sub);
-      border: 1px solid #e2e8f0;
+    .btn-back:hover {
+      background: #f1f5f9;
+      color: var(--text-main);
     }
   </style>
 </head>
 <body>
   <div class="app">
     <header>
-      <div class="greeting" id="userName">Agus</div>
-      <div class="employee-meta" id="userMeta">582744 | JKTTCP-9 | Planner</div>
+      <div class="user-avatar">A</div>
+      <div>
+        <div class="greeting" id="userName">Agus Susanto</div>
+        <div class="employee-meta" id="userMeta">ID: 582744 • Planner • Team 9</div>
+      </div>
     </header>
 
-    <div class="section-title">
-        <span>Log History</span>
-        <i class="fas fa-history" style="color: var(--primary);"></i>
+    <div class="stats-row">
+      <div class="stat-card">
+        <span class="stat-label">Total Duration</span>
+        <span class="stat-value">44h 20m</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Days Logged</span>
+        <span class="stat-value">6 Days</span>
+      </div>
+    </div>
+
+    <div class="section-header">
+        <h2 class="section-title">Log History</h2>
+        <span style="font-size: 0.8rem; color: var(--primary); font-weight: 600;">Feb 2026 <i class="fas fa-chevron-down"></i></span>
     </div>
 
     <section class="history-container" id="historyList">
-        <!-- Data populated by Script -->
+        <!-- Rendered items -->
     </section>
 
     <section class="actions">
-      <button class="btn-secondary" onclick="window.history.back()">
-        <i class="fas fa-arrow-left"></i> Back to Home
+      <button class="btn-back" onclick="window.history.back()">
+        <i class="fas fa-chevron-left"></i> Return to Dashboard
       </button>
     </section>
   </div>
 
 <script>
   document.addEventListener("DOMContentLoaded", () => {
-    // 1. Log Data for Agus
     const historyData = [
-      { date: '2026-02-08', in: '07:02', out: '16:05', duration: '09:03:00', accidental: false },
-      { date: '2026-02-07', in: '06:58', out: '16:00', duration: '09:02:00', accidental: false },
-      { date: '2026-02-06', in: '07:00', out: '16:10', duration: '09:10:00', accidental: false },
-      { date: '2026-02-05', in: '07:05', out: '16:00', duration: '08:55:00', accidental: false },
-      { date: '2026-02-04', in: '15:30', out: '--:--', duration: '--', accidental: true }, // Accidental entry
-      { date: '2026-02-04', in: '07:00', out: '15:10', duration: '08:10:00', accidental: false }
+      { date: '2026-02-08', in: '07:02', out: '16:05', duration: '09h 03m', accidental: false },
+      { date: '2026-02-07', in: '06:58', out: '16:00', duration: '09h 02m', accidental: false },
+      { date: '2026-02-06', in: '07:00', out: '16:10', duration: '09h 10m', accidental: false },
+      { date: '2026-02-05', in: '07:05', out: '16:00', duration: '08h 55m', accidental: false },
+      { date: '2026-02-04', in: '15:30', out: '--:--', duration: '--', accidental: true },
+      { date: '2026-02-04', in: '07:00', out: '15:10', duration: '08h 10m', accidental: false }
     ];
 
     const listContainer = document.getElementById("historyList");
 
-    // 2. Render Loop
     historyData.forEach(item => {
       const dateObj = new Date(item.date);
       const day = dateObj.getDate().toString().padStart(2, '0');
       const month = dateObj.toLocaleDateString('en-GB', { month: 'short' });
 
       const card = document.createElement("div");
-      // Add 'warning-card' class if it's the accidental entry
       card.className = `day-card ${item.accidental ? 'warning-card' : ''}`;
       
       card.innerHTML = `
@@ -265,27 +371,28 @@
           <span class="date-day">${day}</span>
           <span class="date-month">${month}</span>
         </div>
-        <div class="time-details">
-          ${item.accidental ? '<div class="warning-text"><i class="fas fa-exclamation-triangle"></i> Accidental Entry</div>' : ''}
-          <div class="time-slot">
-            <span class="time-label">Clock In</span>
-            <span class="time-value">${item.in}</span>
+        <div class="time-info">
+          <div class="time-grid">
+            <div class="time-entry">
+              <span class="label">IN</span>
+              <span class="val">${item.in}</span>
+            </div>
+            <div class="time-entry">
+              <span class="label">OUT</span>
+              <span class="val">${item.out}</span>
+            </div>
           </div>
-          <div class="time-slot">
-            <span class="time-label">Clock Out</span>
-            <span class="time-value">${item.out}</span>
+          <div class="badge-row">
+            ${item.accidental ? 
+                `<span class="flag-badge"><i class="fas fa-flag"></i> Flagged Entry</span>` : 
+                `<span class="duration-badge"><i class="far fa-clock"></i> ${item.duration}</span>`
+            }
           </div>
-          ${!item.accidental ? `
-          <div style="grid-column: span 2;">
-            <span class="duration-badge">
-                <i class="far fa-clock"></i> ${item.duration}
-            </span>
-          </div>` : ''}
         </div>
         <div class="status-icon">
             ${item.accidental ? 
-                '<i class="fas fa-question-circle" style="color: var(--warning);"></i>' : 
-                '<i class="fas fa-check-circle" style="color: #2ecc71;"></i>'}
+                '<i class="fas fa-exclamation-circle" style="color: var(--warning);"></i>' : 
+                '<i class="fas fa-check-circle" style="color: var(--success);"></i>'}
         </div>
       `;
       listContainer.appendChild(card);
