@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Attendance</title>
+  <style>
+    :root {
+      --primary: #307c91;
+      --primary-dark: #245f6f;
+      --bg: #f4f8fa;
+      --card: #ffffff;
+      --text-main: #0f2f36;
+      --text-sub: #5f7f88;
+      --accent: #3fa2b8;
+      --radius: 14px;
+      --transition: all 0.25s ease;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .app {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    header {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.04);
+    }
+
+    .greeting {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .employee-meta {
+      font-size: 0.9rem;
+      color: var(--text-sub);
+      margin-bottom: 10px;
+    }
+
+    .date {
+      font-size: 0.95rem;
+      color: var(--primary-dark);
+      font-weight: 500;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    @media (min-width: 600px) {
+      .summary {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 18px;
+      text-align: center;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.04);
+      transition: var(--transition);
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+    }
+
+    .card-label {
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      margin-bottom: 8px;
+      letter-spacing: 0.3px;
+    }
+
+    .card-value {
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    @media (min-width: 600px) {
+      .actions {
+        flex-direction: row;
+      }
+    }
+
+    button {
+      border: none;
+      border-radius: var(--radius);
+      padding: 16px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .btn-primary {
+      flex: 1;
+      background: var(--primary);
+      color: #fff;
+    }
+
+    .btn-primary:active {
+      background: var(--primary-dark);
+      transform: scale(0.98);
+    }
+
+    .btn-secondary {
+      background: #e6f1f4;
+      color: var(--primary-dark);
+    }
+
+    .btn-secondary:active {
+      background: #d4e7ec;
+      transform: scale(0.98);
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="greeting" id="greeting"></div>
+      <div class="employee-meta" id="employeeMeta"></div>
+      <div class="date" id="todayDate"></div>
+    </header>
+
+    <section class="summary">
+      <div class="card">
+        <div class="card-label">Clock In</div>
+        <div class="card-value" id="clockIn">--:--</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Clock Out</div>
+        <div class="card-value" id="clockOut">--:--</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Work Duration</div>
+        <div class="card-value" id="duration">--:--</div>
+      </div>
+    </section>
+
+    <section class="actions">
+      <button class="btn-primary" id="clockButton">Clock In</button>
+      <button class="btn-secondary">Menu</button>
+    </section>
+  </div>
+
+  <script>
+    const employeeName = "Alex Morgan";
+    const employeeId = "EMP-10245";
+    const department = "Aircraft Maintenance";
+
+    let clockInTime = null;
+    let clockOutTime = null;
+    let isClockedIn = false;
+
+    const greetingEl = document.getElementById("greeting");
+    const metaEl = document.getElementById("employeeMeta");
+    const dateEl = document.getElementById("todayDate");
+    const clockInEl = document.getElementById("clockIn");
+    const clockOutEl = document.getElementById("clockOut");
+    const durationEl = document.getElementById("duration");
+    const clockButton = document.getElementById("clockButton");
+
+    function formatTime(date) {
+      return date.toLocaleTimeString("en-GB");
+    }
+
+    function formatDuration(ms) {
+      const totalSeconds = Math.floor(ms / 1000);
+      const h = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+      const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+      const s = String(totalSeconds % 60).padStart(2, "0");
+      return `${h}:${m}:${s}`;
+    }
+
+    function updateDuration() {
+      if (clockInTime && clockOutTime) {
+        durationEl.textContent = formatDuration(clockOutTime - clockInTime);
+      } else {
+        durationEl.textContent = "--:--";
+      }
+    }
+
+    clockButton.addEventListener("click", () => {
+      const now = new Date();
+      if (!isClockedIn) {
+        clockInTime = now;
+        clockOutTime = null;
+        clockInEl.textContent = formatTime(now);
+        clockOutEl.textContent = "--:--";
+        isClockedIn = true;
+        clockButton.textContent = "Clock Out";
+      } else {
+        clockOutTime = now;
+        clockOutEl.textContent = formatTime(now);
+        isClockedIn = false;
+        clockButton.textContent = "Clock In";
+      }
+      updateDuration();
+    });
+
+    function init() {
+      greetingEl.textContent = `Good Morning, ${employeeName}`;
+      metaEl.textContent = `${employeeId} | ${department}`;
+      const today = new Date();
+      dateEl.textContent = today.toLocaleDateString("en-GB", {
+        weekday: "long",
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>
