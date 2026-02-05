@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Task Card Creator</title>
+<style>
+:root{
+  --bg:#f4f6f8;
+  --card:#ffffff;
+  --text:#1f2933;
+  --muted:#6b7280;
+  --primary:#1f535c;
+  --accent:#e5eef0;
+  --danger:#c0392b;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+.container{
+  padding:16px;
+  padding-bottom:96px;
+  max-width:960px;
+  margin:auto;
+}
+.section{
+  background:var(--card);
+  border-radius:12px;
+  padding:16px;
+  margin-bottom:16px;
+  box-shadow:0 4px 12px rgba(0,0,0,.05);
+  transition:opacity .3s;
+}
+.section.locked{
+  opacity:.5;
+  pointer-events:none;
+}
+.info-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:12px;
+}
+.info-item small{
+  color:var(--muted);
+  display:block;
+  margin-bottom:4px;
+}
+h2{
+  font-size:16px;
+  margin:0 0 12px 0;
+}
+select,input,textarea,button{
+  width:100%;
+  font-family:inherit;
+  font-size:14px;
+}
+select,input,textarea{
+  padding:10px;
+  border-radius:8px;
+  border:1px solid #d1d5db;
+}
+textarea{
+  resize:none;
+  min-height:80px;
+}
+button{
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  font-weight:600;
+}
+.primary{
+  background:var(--primary);
+  color:#fff;
+}
+.secondary{
+  background:#e5e7eb;
+}
+.danger{
+  background:var(--danger);
+  color:#fff;
+}
+.finding-display{
+  margin-top:12px;
+  display:none;
+  animation:fade .3s ease;
+}
+.finding-display img{
+  width:100%;
+  border-radius:8px;
+  margin-bottom:8px;
+}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.task-card{
+  border:1px solid #e5e7eb;
+  border-radius:12px;
+  padding:16px;
+  margin-bottom:16px;
+}
+.task-header{
+  font-weight:700;
+  margin-bottom:12px;
+}
+.row{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:12px;
+  margin-bottom:12px;
+}
+.references,.notes{
+  margin-top:12px;
+}
+.ref-block{
+  border:1px dashed #d1d5db;
+  border-radius:8px;
+  padding:12px;
+  margin-bottom:8px;
+}
+.notes textarea{
+  margin-top:8px;
+}
+.notes.collapsed textarea{
+  display:none;
+}
+.fixed-actions{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:var(--card);
+  box-shadow:0 -4px 12px rgba(0,0,0,.1);
+  padding:12px;
+  display:flex;
+  gap:12px;
+}
+.confirm{
+  position:fixed;
+  inset:0;
+  background:rgba(31,83,92,.85);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#fff;
+  font-size:18px;
+  font-weight:600;
+  display:none;
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="section" id="info">
+  <h2>General Information</h2>
+  <div class="info-grid">
+    <div class="info-item"><small>W/O No.</small>WO-2026-0147</div>
+    <div class="info-item"><small>Customer</small>Garuda Indonesia</div>
+    <div class="info-item"><small>A/C Registration</small>PK-GMF</div>
+    <div class="info-item"><small>Part Description</small>Aft Pressure Bulkhead</div>
+    <div class="info-item"><small>Part Number</small>65-43210-001</div>
+    <div class="info-item"><small>Serial Number</small>SN-APB-7789</div>
+  </div>
+</div>
+
+<div class="section" id="finding">
+  <h2>Finding Selection</h2>
+  <select id="findingSelect">
+    <option value="">Select Finding No.</option>
+    <option value="F001">F001 – Corrosion</option>
+    <option value="F002">F002 – Crack Indication</option>
+    <option value="F003">F003 – Sealant Degradation</option>
+  </select>
+  <div class="finding-display" id="findingDisplay">
+    <img src="https://via.placeholder.com/600x300?text=Finding+Image">
+    <strong>Identification of Finding</strong>
+    <p id="fid"></p>
+    <strong>Action Given</strong>
+    <p id="faction"></p>
+  </div>
+</div>
+
+<div class="section">
+  <button class="primary" id="startBtn">Start Creating Task Card</button>
+</div>
+
+<div class="section" id="tasks" style="display:none">
+  <h2>Task Cards</h2>
+  <div id="taskContainer"></div>
+  <button class="secondary" id="addTask">+ Add Task Card</button>
+</div>
+
+</div>
+
+<div class="fixed-actions">
+  <button class="secondary" id="resetBtn">Reset</button>
+  <button class="primary" id="submitBtn">Submit</button>
+</div>
+
+<div class="confirm" id="confirmBox">Task Cards Submitted</div>
+
+<script>
+let taskCount=0
+const taskContainer=document.getElementById("taskContainer")
+
+function autoResize(t){
+  t.style.height="auto"
+  t.style.height=t.scrollHeight+"px"
+}
+
+function addTask(){
+  taskCount++
+  const no=String(taskCount).padStart(4,"0")
+  const card=document.createElement("div")
+  card.className="task-card"
+  card.innerHTML=`
+    <div class="task-header">Task No. ${no}</div>
+    <div class="row">
+      <select>
+        <option>Structure</option>
+        <option>Cabin</option>
+        <option>Special Process</option>
+      </select>
+      <select>
+        <option>Inspection</option>
+        <option>Remove / Install</option>
+        <option>Repair</option>
+        <option>General</option>
+      </select>
+    </div>
+    <textarea placeholder="Describe the task to be performed in accordance with approved maintenance data"></textarea>
+    <div class="references">
+      <button class="secondary addRef">+ Add Reference</button>
+    </div>
+    <div class="notes collapsed">
+      <button class="secondary toggleNote">+ Add Note</button>
+      <textarea placeholder="Optional engineer notes"></textarea>
+    </div>
+  `
+  taskContainer.appendChild(card)
+  const ta=card.querySelector("textarea")
+  autoResize(ta)
+  ta.addEventListener("input",()=>autoResize(ta))
+
+  card.querySelector(".addRef").onclick=()=>{
+    const ref=document.createElement("div")
+    ref.className="ref-block"
+    ref.innerHTML=`
+      <div class="row">
+        <select><option>AMM</option><option>CMM</option><option>SRM</option></select>
+        <input placeholder="Reference Title / Task">
+      </div>
+      <div class="row">
+        <input placeholder="Revision">
+        <input type="date">
+      </div>
+      <input type="file">
+    `
+    card.querySelector(".references").appendChild(ref)
+  }
+
+  const notes=card.querySelector(".notes")
+  card.querySelector(".toggleNote").onclick=()=>{
+    notes.classList.toggle("collapsed")
+  }
+}
+
+document.getElementById("addTask").onclick=addTask
+
+document.getElementById("startBtn").onclick=()=>{
+  document.getElementById("tasks").style.display="block"
+  document.getElementById("info").classList.add("locked")
+  document.getElementById("finding").classList.add("locked")
+  addTask()
+}
+
+document.getElementById("findingSelect").onchange=e=>{
+  const d=document.getElementById("findingDisplay")
+  if(!e.target.value){d.style.display="none";return}
+  d.style.display="block"
+  const map={
+    F001:["Surface corrosion detected on lower frame","Clean, inspect and treat corrosion"],
+    F002:["Crack indication at radius area","Stop drill and repair per SRM"],
+    F003:["Sealant deterioration observed","Remove and reapply sealant"]
+  }
+  document.getElementById("fid").innerText=map[e.target.value][0]
+  document.getElementById("faction").innerText=map[e.target.value][1]
+}
+
+document.getElementById("resetBtn").onclick=()=>{
+  location.reload()
+}
+
+document.getElementById("submitBtn").onclick=()=>{
+  const c=document.getElementById("confirmBox")
+  c.style.display="flex"
+  setTimeout(()=>c.style.display="none",1500)
+}
+</script>
+</body>
+</html>
