@@ -163,12 +163,26 @@ button{
 .notes.collapsed textarea { display:none; }
 
 .finding-content.collapsed { display: none; }
+/* IMAGE HANDLING (Maintains ratio but limits screen footprint) */
 .finding-content img {
-  width: 100%;        /* Allows image to fill the width of the card */
-  height: auto;       /* CRITICAL: Forces height to follow the original ratio */
-  object-fit: contain; /* Prevents stretching or cropping if max-height is hit */
+  display: block;
+  margin: 15px auto;
+  
+  /* 1. Keep original ratio */
+  width: auto;            /* Allow width to be smaller than the card for tall images */
+  height: auto;           /* Follow natural aspect ratio */
+  
+  /* 2. Set the "Danger Zone" limits */
+  max-width: 100%;        /* Never wider than the card */
+  max-height: 400px;      /* LIMIT: Never taller than 400px (prevents full-screen images) */
+  
+  /* 3. Professional look */
+  object-fit: contain;    /* Ensures no stretching/cropping inside the limits */
+  background: #f1f5f9;    /* Light grey backing if the image is narrow */
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
 }
-
 .fixed-actions{
   position:fixed; bottom:0; left:0; right:0;
   background:var(--card);
