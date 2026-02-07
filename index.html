@@ -191,16 +191,11 @@ button{
 <body>
 
 <div class="container">
-  <!-- General Info -->
+  <!-- General Info (Filled by fetch) -->
   <div class="section" id="info">
     <h2>General Information</h2>
-    <div class="info-grid">
-      <div class="info-item"><small>W/O No.</small>WO-2026-0147</div>
-      <div class="info-item"><small>Customer</small>Garuda Indonesia</div>
-      <div class="info-item"><small>A/C Registration</small>PK-GMF</div>
-      <div class="info-item"><small>Part Description</small>Aft Pressure Bulkhead</div>
-      <div class="info-item"><small>Part Number</small>65-43210-001</div>
-      <div class="info-item"><small>Serial Number</small>SN-APB-7789</div>
+    <div class="info-grid" id="infoGrid">
+      <div class="info-item"><small>Loading...</small></div>
     </div>
   </div>
 
@@ -211,14 +206,11 @@ button{
         <button onclick="toggleFindingDetails()" id="toggleFinding" style="display:none; background:none; color:var(--primary); font-size:12px; width:auto; text-decoration:underline;">Collapse Details</button>
     </h2>
     <select id="findingSelect" onchange="handleFindingChange(this)">
-      <option value="">Select Finding No.</option>
-      <option value="F001">F001 – Corrosion</option>
-      <option value="F002">F002 – Crack Indication</option>
-      <option value="F003">F003 – Sealant Degradation</option>
+      <option value="">Fetching Findings...</option>
     </select>
 
     <div class="finding-content collapsed" id="findingContent">
-        <img src="https://via.placeholder.com/800x300?text=Finding+Photo" id="fimg" style="margin-top:15px">
+        <img src="" id="fimg" style="margin-top:15px">
         <div class="row">
             <div>
                 <small>Identification</small>
@@ -250,7 +242,7 @@ button{
 </div>
 
 <div class="confirm" id="confirmBox">Task Cards Submitted Successfully</div>
-
+  
 <script>
 // REPLACE THIS WITH YOUR GOOGLE DEPLOYMENT URL
 const API_URL = "https://script.google.com/macros/s/AKfycbxVryoi5YzLOR-0AfgH458bfO6b5LP-ffBdGNAYILLQEfQC5U8gCLmRfCmZwCLukShbyg/exec";
