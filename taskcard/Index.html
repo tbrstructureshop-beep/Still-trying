@@ -252,21 +252,59 @@ button{
 <div class="confirm" id="confirmBox">Task Cards Submitted Successfully</div>
 
 <script>
+// REPLACE THIS WITH YOUR GOOGLE DEPLOYMENT URL
+const API_URL = "https://script.google.com/macros/s/AKfycbxVryoi5YzLOR-0AfgH458bfO6b5LP-ffBdGNAYILLQEfQC5U8gCLmRfCmZwCLukShbyg/exec";
+
+let CURRENT_WO = "";
+let FINDINGS_DATA = [];
+
 const taskContainer = document.getElementById("taskContainer");
 const findingContent = document.getElementById("findingContent");
 const toggleFindingBtn = document.getElementById("toggleFinding");
 
+// 1. LOAD DATA FROM GOOGLE SHEETS ON START
+window.onload = async () => {
+    try {
+        const resp = await fetch(`${API_URL}?action=getInitialData`);
+        const data = await resp.json();
+        
+        CURRENT_WO = data.info.woNo;
+        FINDINGS_DATA = data.findings;
+
+        // Update UI Info
+        const infoGrid = document.querySelector(".info-grid");
+        infoGrid.innerHTML = `
+            <div class="info-item"><small>W/O No.</small><strong>${data.info.woNo}</strong></div>
+            <div class="info-item"><small>Customer</small>${data.info.customer}</div>
+            <div class="info-item"><small>A/C Reg.</small>${data.info.acReg}</div>
+            <div class="info-item"><small>Part Desc.</small>${data.info.partDesc}</div>
+            <div class="info-item"><small>P/N</small>${data.info.pn}</div>
+            <div class="info-item"><small>S/N</small>${data.info.sn}</div>
+        `;
+
+        // Update Findings Dropdown
+        const select = document.getElementById("findingSelect");
+        select.innerHTML = '<option value="">Select Finding No.</option>';
+        data.findings.forEach(f => {
+            select.innerHTML += `<option value="${f.no}">${f.no} - ${f.identification.substring(0,25)}...</option>`;
+        });
+    } catch (e) {
+        alert("Error loading data from Google Sheets. Check API URL.");
+    }
+};
+
+// 2. CORE LOGIC (Numbering & UI)
 function updateAllNumbers() {
   const cards = taskContainer.querySelectorAll(".task-card");
   cards.forEach((card, cardIndex) => {
     const taskBaseNum = (cardIndex + 1) * 10;
     const taskString = String(taskBaseNum).padStart(4, '0');
-    card.querySelector(".task-no-label").innerText = `TASK NO. ${taskString}`;
+    card.querySelector(".task-no-label").innerText = `TASK NO. T${taskString}`;
 
     const refs = card.querySelectorAll(".ref-block");
     refs.forEach((ref, refIndex) => {
       const refSuffix = String(refIndex + 1).padStart(2, '0');
-      ref.querySelector(".ref-no-label").innerText = `Reference ${taskString}${refSuffix}`;
+      ref.querySelector(".ref-no-label").innerText = `Reference R${refSuffix}`;
     });
   });
 }
@@ -359,17 +397,15 @@ function addReference(btn) {
 
 // Modify your handleFindingChange to use real data
 function handleFindingChange(select) {
-    const finding = window.findingData.find(f => f.no == select.value);
+    const finding = FINDINGS_DATA.find(f => f.no == select.value);
     if(!finding) return;
-    
     document.getElementById("fid").innerText = finding.identification;
     document.getElementById("faction").innerText = finding.action;
     document.getElementById("fimg").src = finding.pic;
-    
     findingContent.classList.remove("collapsed");
     toggleFindingBtn.style.display = "inline";
 }
-
+  
 function toggleFindingDetails() {
     const isCollapsed = findingContent.classList.toggle("collapsed");
     toggleFindingBtn.innerText = isCollapsed ? "Show Details" : "Collapse Details";
@@ -393,23 +429,22 @@ function resetForm() {
   if(confirm("Discard all work?")) location.reload();
 }
 
-// --- SUBMISSION LOGIC ---
-
+// 3. SUBMIT TO GOOGLE DRIVE & SHEETS
 async function submitWork() {
-    const tasks = [];
-    const wo = "512211519";
+    const confirmBox = document.getElementById("confirmBox");
     const findingNo = document.getElementById("findingSelect").value;
-    
+    if(!findingNo) return alert("Select a finding");
+
+    const tasks = [];
     const cardElements = document.querySelectorAll(".task-card");
-    
+
     for (let card of cardElements) {
-        const taskNo = card.querySelector(".task-no-label").innerText.split(" ")[2];
+        const taskNo = card.querySelector(".task-no-label").innerText.split(". ")[1]; // e.g. T0010
         const refs = [];
-        
-        // Handle References in this task
         const refBlocks = card.querySelectorAll(".ref-block");
-        for (let [index, refBlock] of refBlocks.entries()) {
-            const refNo = `R${String(index + 1).padStart(3, '0')}`;
+
+        for (let refBlock of refBlocks) {
+            const refLabel = refBlock.querySelector(".ref-no-label").innerText.split(" ")[1]; // e.g. R01
             const fileInput = refBlock.querySelector('input[type="file"]');
             let fileData = null;
 
@@ -423,7 +458,7 @@ async function submitWork() {
             }
 
             refs.push({
-                id: findingNo + taskNo + refNo,
+                id: findingNo + taskNo + refLabel, // Strict format: 51221151901T0010R01
                 docType: refBlock.querySelectorAll("select")[0].value,
                 title: refBlock.querySelectorAll("input")[0].value,
                 rev: refBlock.querySelectorAll("input")[1].value,
@@ -433,8 +468,7 @@ async function submitWork() {
         }
 
         tasks.push({
-            findingNo: findingNo,
-            taskNo: taskNo,
+            findingNo, taskNo,
             category: card.querySelectorAll("select")[0].value,
             type: card.querySelectorAll("select")[1].value,
             mh: card.querySelector("input[type='number']").value,
@@ -443,12 +477,17 @@ async function submitWork() {
         });
     }
 
-    const payload = { action: "saveTaskCards", wo: wo, tasks: tasks };
+    const payload = { action: "saveTaskCards", wo: CURRENT_WO, tasks: tasks };
 
-    google.script.run.withSuccessHandler(() => {
-        document.getElementById("confirmBox").style.display = "flex";
-        setTimeout(() => location.reload(), 3000);
-    }).doPost(payload);
+    // POST TO GOOGLE APPS SCRIPT
+    const response = await fetch(API_URL, {
+        method: "POST",
+        mode: "no-cors", // Required for GAS redirects
+        body: JSON.stringify(payload)
+    });
+
+    confirmBox.style.display = "flex";
+    setTimeout(() => location.reload(), 3000);
 }
 
 const toBase64 = file => new Promise((resolve, reject) => {
