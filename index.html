@@ -164,11 +164,9 @@ button{
 
 .finding-content.collapsed { display: none; }
 .finding-content img {
-  width: 100%;
-  max-height: 250px;
-  object-fit: cover;
-  border-radius: 8px;
-  margin-bottom: 16px;
+  width: 100%;        /* Allows image to fill the width of the card */
+  height: auto;       /* CRITICAL: Forces height to follow the original ratio */
+  object-fit: contain; /* Prevents stretching or cropping if max-height is hit */
 }
 
 .fixed-actions{
