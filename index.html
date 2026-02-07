@@ -211,6 +211,8 @@ button{
     </div>
   </div>
 
+  
+
   <!-- Finding Section -->
   <div class="section" id="finding">
     <h2>
@@ -234,6 +236,12 @@ button{
             </div>
         </div>
     </div>
+  </div>
+  
+  <!-- Display Area for Submitted Work -->
+  <div id="historySection" style="display:none; margin-bottom: 30px;">
+    <h2 style="color:var(--success)">Generated Task Cards (Submitted)</h2>
+    <div id="historyContainer"></div>
   </div>
 
   <div id="startZone" style="text-align:center; padding: 20px;">
@@ -399,6 +407,64 @@ function addReference(btn) {
     updateAllNumbers();
 }
 
+async function loadExistingTasks(findingNo) {
+    const container = document.getElementById("historyContainer");
+    const section = document.getElementById("historySection");
+    container.innerHTML = "Loading submitted tasks...";
+    section.style.display = "block";
+
+    try {
+        const resp = await fetch(`${API_URL}?action=getExistingTasks&findingNo=${findingNo}`);
+        const tasks = await resp.json();
+
+        if (tasks.length === 0) {
+            section.style.display = "none";
+            return;
+        }
+
+        container.innerHTML = ""; // Clear loader
+        tasks.forEach(task => {
+            const card = document.createElement("div");
+            card.className = "task-card";
+            card.style.borderTop = "4px solid var(--success)";
+            
+            // Generate References HTML
+            let refHtml = task.references.map(ref => `
+                <div style="display:grid; grid-template-columns: 80px 1fr 100px; gap:10px; font-size:13px; margin-bottom:8px; align-items:center; background:#fff; padding:8px; border-radius:5px;">
+                    <span style="font-weight:bold; color:var(--primary)">${ref.docType}</span>
+                    <span>${ref.title} <small style="display:block; color:var(--muted)">Rev: ${ref.rev} (${ref.date})</small></span>
+                    <a href="${ref.link}" target="_blank" style="text-align:right">
+                        <button class="secondary" style="padding:4px 8px; width:auto; font-size:11px;">📂 View File</button>
+                    </a>
+                </div>
+            `).join("");
+
+            card.innerHTML = `
+                <div class="task-header">
+                    <span>${task.taskNo} | ${task.type} (${task.category})</span>
+                    <span style="font-size:12px">${task.mh} MH</span>
+                </div>
+                <div style="margin-bottom:15px; white-space: pre-wrap;"><strong>Work Description:</strong><br>${task.description}</div>
+                
+                <div style="background:var(--accent); padding:12px; border-radius:8px;">
+                    <div style="font-size:11px; font-weight:bold; margin-bottom:8px; color:var(--primary)">REFER TO:</div>
+                    ${refHtml || '<em style="font-size:12px">No references attached</em>'}
+                </div>
+
+                ${task.notes ? `
+                    <div style="margin-top:15px; padding-top:10px; border-top:1px dashed #ccc; font-size:13px; color:#444">
+                        <strong>Engineer Note:</strong><br><em>${task.notes}</em>
+                    </div>
+                ` : ''}
+            `;
+            container.appendChild(card);
+        });
+    } catch (e) {
+        console.error(e);
+        container.innerHTML = "Failed to load history.";
+    }
+}
+  
 // Modify your handleFindingChange to use real data
 function handleFindingChange(select) {
     const finding = FINDINGS_DATA.find(f => f.no == select.value);
@@ -413,6 +479,7 @@ function handleFindingChange(select) {
     
     findingContent.classList.remove("collapsed");
     toggleFindingBtn.style.display = "inline";
+    loadExistingTasks(select.value);
 }
   
 function toggleFindingDetails() {
@@ -477,12 +544,14 @@ async function submitWork() {
         }
 
         tasks.push({
-            findingNo, taskNo,
-            category: card.querySelectorAll("select")[0].value,
-            type: card.querySelectorAll("select")[1].value,
-            mh: card.querySelector("input[type='number']").value,
-            description: card.querySelector("textarea").value,
-            references: refs
+          findingNo, 
+          taskNo,
+          category: card.querySelectorAll("select")[0].value,
+          type: card.querySelectorAll("select")[1].value,
+          mh: card.querySelector("input[type='number']").value,
+          description: card.querySelector("textarea")[0].value, // First textarea
+          notes: card.querySelectorAll("textarea")[1].value,    // Second textarea (Notes)
+          references: refs
         });
     }
 
