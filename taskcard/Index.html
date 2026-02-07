@@ -357,24 +357,17 @@ function addReference(btn) {
     updateAllNumbers();
 }
 
-// Global UI Logic
+// Modify your handleFindingChange to use real data
 function handleFindingChange(select) {
-    const val = select.value;
-    if(!val) {
-        findingContent.classList.add("collapsed");
-        toggleFindingBtn.style.display = "none";
-        return;
-    }
-    const map = {
-        F001: ["Surface corrosion detected on lower frame", "Clean, inspect and treat corrosion"],
-        F002: ["Crack indication at radius area", "Stop drill and repair per SRM"],
-        F003: ["Sealant deterioration observed", "Remove and reapply sealant"]
-    };
-    document.getElementById("fid").innerText = map[val][0];
-    document.getElementById("faction").innerText = map[val][1];
+    const finding = window.findingData.find(f => f.no == select.value);
+    if(!finding) return;
+    
+    document.getElementById("fid").innerText = finding.identification;
+    document.getElementById("faction").innerText = finding.action;
+    document.getElementById("fimg").src = finding.pic;
+    
     findingContent.classList.remove("collapsed");
     toggleFindingBtn.style.display = "inline";
-    toggleFindingBtn.innerText = "Collapse Details";
 }
 
 function toggleFindingDetails() {
@@ -400,11 +393,74 @@ function resetForm() {
   if(confirm("Discard all work?")) location.reload();
 }
 
-function submitWork() {
-  const c = document.getElementById("confirmBox");
-  c.style.display = "flex";
-  setTimeout(() => c.style.display = "none", 2000);
+// --- SUBMISSION LOGIC ---
+
+async function submitWork() {
+    const tasks = [];
+    const wo = "512211519";
+    const findingNo = document.getElementById("findingSelect").value;
+    
+    const cardElements = document.querySelectorAll(".task-card");
+    
+    for (let card of cardElements) {
+        const taskNo = card.querySelector(".task-no-label").innerText.split(" ")[2];
+        const refs = [];
+        
+        // Handle References in this task
+        const refBlocks = card.querySelectorAll(".ref-block");
+        for (let [index, refBlock] of refBlocks.entries()) {
+            const refNo = `R${String(index + 1).padStart(3, '0')}`;
+            const fileInput = refBlock.querySelector('input[type="file"]');
+            let fileData = null;
+
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                fileData = {
+                    name: file.name,
+                    mimeType: file.type,
+                    base64: await toBase64(file)
+                };
+            }
+
+            refs.push({
+                id: findingNo + taskNo + refNo,
+                docType: refBlock.querySelectorAll("select")[0].value,
+                title: refBlock.querySelectorAll("input")[0].value,
+                rev: refBlock.querySelectorAll("input")[1].value,
+                date: refBlock.querySelectorAll("input")[2].value,
+                fileData: fileData
+            });
+        }
+
+        tasks.push({
+            findingNo: findingNo,
+            taskNo: taskNo,
+            category: card.querySelectorAll("select")[0].value,
+            type: card.querySelectorAll("select")[1].value,
+            mh: card.querySelector("input[type='number']").value,
+            description: card.querySelector("textarea").value,
+            references: refs
+        });
+    }
+
+    const payload = { action: "saveTaskCards", wo: wo, tasks: tasks };
+
+    google.script.run.withSuccessHandler(() => {
+        document.getElementById("confirmBox").style.display = "flex";
+        setTimeout(() => location.reload(), 3000);
+    }).doPost(payload);
 }
+
+const toBase64 = file => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = error => reject(error);
+});
+
+// Initialize on load
+window.onload = loadInitialData;
+  
 </script>
 
 </body>
