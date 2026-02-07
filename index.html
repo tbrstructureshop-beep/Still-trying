@@ -391,9 +391,14 @@ function addReference(btn) {
 function handleFindingChange(select) {
     const finding = FINDINGS_DATA.find(f => f.no == select.value);
     if(!finding) return;
+    
+    const img = document.getElementById("fimg");
+    img.src = ""; // Clear current image
+    
     document.getElementById("fid").innerText = finding.identification;
     document.getElementById("faction").innerText = finding.action;
-    document.getElementById("fimg").src = finding.pic;
+    img.src = finding.pic; // Set new thumbnail URL
+    
     findingContent.classList.remove("collapsed");
     toggleFindingBtn.style.display = "inline";
 }
