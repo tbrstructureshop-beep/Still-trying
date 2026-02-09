@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Card Manager PRO</title>
+    <title>Task Card Manager - Final PRO Edition</title>
     <style>
         :root {
             --bg: #f0f2f5;
@@ -14,6 +14,7 @@
             --accent: #e5eef0;
             --danger: #c0392b;
             --success: #27ae60;
+            --warning: #f39c12;
             --border: #d1d5db;
             --shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
@@ -21,16 +22,31 @@
         * { box-sizing: border-box; }
         body {
             margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background: var(--bg);
             color: var(--text);
             line-height: 1.5;
         }
 
+        /* LOADING SPINNER */
+        #spinner {
+            position: fixed; inset: 0;
+            background: rgba(255,255,255,0.7);
+            display: none; align-items: center; justify-content: center;
+            z-index: 9999; flex-direction: column;
+        }
+        .loader {
+            border: 5px solid var(--accent);
+            border-top: 5px solid var(--primary);
+            border-radius: 50%; width: 50px; height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
         .container {
             padding: 20px;
             padding-bottom: 160px; 
-            max-width: 950px;
+            max-width: 1000px;
             margin: auto;
         }
 
@@ -40,9 +56,12 @@
             padding: 24px;
             margin-bottom: 20px;
             box-shadow: var(--shadow);
+            position: relative;
         }
 
-        .section.locked { opacity: 0.7; pointer-events: none; }
+        /* Collapsing fix: allow details to toggle even when locked */
+        .section.locked { opacity: 0.8; border: 1px dashed var(--border); }
+        .section.locked select { pointer-events: none; background: #f9fafb; }
 
         h2 {
             font-size: 16px;
@@ -50,24 +69,33 @@
             color: var(--primary);
             border-bottom: 1px solid var(--accent);
             padding-bottom: 8px;
-            display: flex; justify-content: space-between; align-items: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        /* GRIDS & INPUTS */
-        .grid-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; }
-        .info-item small { color: var(--muted); display: block; text-transform: uppercase; font-size: 10px; font-weight: bold; }
-        
-        .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 12px; }
-        select, input, textarea { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: #fff; font-size: 14px; }
-        textarea { resize: none; min-height: 80px; }
+        /* FINDING DETAILS STYLE */
+        .finding-image-wrapper {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            background: #f8fafc;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid var(--border);
+        }
 
-        /* BUTTONS */
-        button { padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
-        .primary { background: var(--primary); color: #fff; }
-        .secondary { background: #e5e7eb; color: var(--text); }
-        .danger-link { color: var(--danger); background: none; width: auto; font-size: 12px; text-decoration: underline; padding: 0; }
-        .success-btn { background: var(--success); color: #fff; }
+        .finding-image-wrapper img {
+            max-width: 100%;
+            height: auto;
+            max-height: 300px;
+            object-fit: contain;
+            border-radius: 4px;
+        }
+
+        .data-label { font-weight: bold; color: var(--primary); display: block; margin-bottom: 4px; font-size: 11px; text-transform: uppercase; }
+        .data-content { white-space: pre-wrap; font-weight: normal; color: var(--text); margin-bottom: 12px; }
 
         /* TASK CARD */
         .task-card {
@@ -78,113 +106,155 @@
             box-shadow: var(--shadow);
             border-top: 5px solid var(--primary);
         }
-        .history-card { border-top-color: var(--success); background: #f9fffb; }
 
-        .task-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .ref-block { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 15px; margin: 10px 0; }
-        .file-label { display: block; margin-top: 8px; font-size: 11px; color: var(--primary); font-weight: bold; }
+        .history-card { border-top-color: var(--success); }
 
-        /* FINDING DETAILS STYLE */
-        .finding-label { font-weight: bold; color: var(--primary); display: block; margin-bottom: 4px; }
-        .finding-data { white-space: pre-wrap; font-weight: normal; margin: 0; color: var(--text); }
+        .result-entry-zone {
+            background: #fff9e6;
+            border: 1px solid #fce8a8;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
 
-        /* FIXED ACTIONS FOOTER */
-        .fixed-actions {
-            position: fixed; bottom: 0; left: 0; right: 0;
+        .row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        select, input, textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: #fff;
+            font-size: 14px;
+        }
+
+        /* FOOTER STATS */
+        .fixed-footer {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
             background: var(--card);
             box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
-            padding: 15px 20px;
-            display: grid; grid-template-columns: 1fr auto 1fr;
-            align-items: center; gap: 15px; z-index: 1000;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
         }
 
-        .mh-total-badge {
-            background: var(--accent); padding: 8px 15px; border-radius: 20px;
-            font-weight: 800; color: var(--primary); text-align: center;
+        .mh-stats {
+            display: flex;
+            gap: 15px;
+            background: var(--accent);
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--primary);
         }
 
-        @media (max-width: 600px) {
-            .fixed-actions { grid-template-columns: 1fr 1fr; padding: 10px; }
-            .mh-total-badge { grid-column: span 2; order: -1; }
-            .container { padding-bottom: 220px; }
-        }
+        .grand-total { color: var(--danger); border-left: 2px solid var(--border); padding-left: 15px; }
 
-        .confirm-overlay {
-            position: fixed; inset: 0; background: rgba(31,83,92,0.98);
-            display: none; align-items: center; justify-content: center;
-            color: #fff; flex-direction: column; z-index: 2000;
-        }
+        button { padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: #e5e7eb; color: var(--text); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-danger { color: var(--danger); background: none; font-size: 12px; text-decoration: underline; }
 
-        /* IMAGE HANDLING: Keep ratio, limit footprint */
-        .finding-content img {
-            display: block; width: auto; height: auto;
-            max-width: 100%; max-height: 350px; 
-            object-fit: contain; border-radius: 8px; background: #eee; margin: 15px auto;
-        }
+        .hidden { display: none; }
 
-        .collapsed { display: none; }
+        @media (max-width: 768px) {
+            .fixed-footer { flex-direction: column; gap: 10px; padding: 10px; }
+            .fixed-footer button { width: 100%; }
+            .mh-stats { width: 100%; justify-content: space-around; }
+        }
     </style>
 </head>
 <body oninput="saveDraft()">
+
+<div id="spinner">
+    <div class="loader"></div>
+    <p style="margin-top:10px; font-weight:bold; color:var(--primary)">Syncing Data...</p>
+</div>
+
+<!-- Datalist for Document Suggestions -->
+<datalist id="docTypes">
+    <option value="AMM">
+    <option value="CMM">
+    <option value="SRM">
+    <option value="SB">
+    <option value="AD">
+    <option value="EM">
+</datalist>
 
 <div class="container">
     <!-- Header Info -->
     <div class="section" id="infoSection">
         <h2>General Information</h2>
-        <div class="grid-info" id="infoGrid">
-            <div class="info-item"><small>Status</small>Connecting to Google Sheets...</div>
+        <div id="infoGrid" class="row">
+            <div><small>Initializing...</small></div>
         </div>
     </div>
 
     <!-- Finding Selection -->
     <div class="section" id="findingSection">
-        <h2>Finding Selection</h2>
+        <h2>
+            Finding Selection
+            <button id="toggleFindingBtn" class="btn-secondary hidden" style="font-size:11px; padding:4px 8px;" onclick="toggleFinding()">Hide Details</button>
+        </h2>
         <select id="findingSelect" onchange="handleFindingChange(this)">
-            <option value="">Fetching Data...</option>
+            <option value="">Fetching Findings...</option>
         </select>
 
-        <div id="findingContent" class="collapsed" style="margin-top:20px">
-            <img src="" id="fimg">
+        <div id="findingContent" class="hidden">
+            <div class="finding-image-wrapper">
+                <img src="" id="fimg">
+            </div>
             <div class="row">
                 <div>
-                    <span class="finding-label">Identification</span>
-                    <p id="fid" class="finding-data">-</p>
+                    <span class="data-label">IDENTIFICATION</span>
+                    <div id="fid" class="data-content">-</div>
                 </div>
                 <div>
-                    <span class="finding-label">Action Given</span>
-                    <p id="faction" class="finding-data">-</p>
+                    <span class="data-label">ACTION GIVEN</span>
+                    <div id="faction" class="data-content">-</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- History -->
-    <div id="historySection" class="collapsed">
-        <h2 style="color:var(--success)">Previously Submitted Task Cards</h2>
+    <!-- Generated Task History -->
+    <div id="historySection" class="hidden">
+        <h2 style="color:var(--success)">Existing Task Cards (Submitted)</h2>
         <div id="historyContainer"></div>
     </div>
 
-    <!-- Creation Zone -->
-    <div id="startZone" style="text-align:center; padding: 30px;">
-        <button class="primary" onclick="startWork()" style="width: 280px;">+ Start Creating New Cards</button>
+    <!-- New Tasks Zone -->
+    <div id="startZone" style="text-align:center; padding: 40px;">
+        <button class="btn-primary" onclick="startWork()" style="width: 250px;">+ Create New Task Cards</button>
     </div>
 
-    <div id="taskWorkspace" class="collapsed">
+    <div id="taskWorkspace" class="hidden">
         <div id="taskContainer"></div>
-        <button class="secondary" onclick="addTask()" style="width:100%; margin-top:10px;">+ Add New Task Card</button>
+        <button class="btn-secondary" onclick="addTask()" style="width:100%; margin: 20px 0;">+ Add New Task Card</button>
     </div>
 </div>
 
-<div class="fixed-actions">
-    <button class="secondary" onclick="resetForm()">Reset</button>
-    <div class="mh-total-badge">Total Man-Hours: <span id="totalMH">0.0</span></div>
-    <button class="primary" id="submitBtn" onclick="submitWork()">Submit Task Cards</button>
-</div>
+<!-- Fixed Action Bar -->
+<div class="fixed-footer">
+    <button class="btn-secondary" onclick="resetForm()">Reset Session</button>
+    
+    <div class="mh-stats">
+        <span>Existing: <span id="existingMH">0.0</span> MH</span>
+        <span>Session: <span id="sessionMH">0.0</span> MH</span>
+        <span class="grand-total">Total: <span id="grandTotalMH">0.0</span> MH</span>
+    </div>
 
-<div class="confirm-overlay" id="confirmBox">
-    <h1>Submitted Successfully!</h1>
-    <p>All task cards have been saved to the database.</p>
-    <button class="secondary" onclick="location.reload()" style="margin-top:20px; width:200px">New Session</button>
+    <button class="btn-primary" id="submitBtn" onclick="submitWork()">Submit Task Cards</button>
 </div>
 
 <script>
@@ -192,9 +262,21 @@
     
     let FINDINGS_DATA = [];
     let CURRENT_WO = "";
-    let EXISTING_TASKS_COUNT = 0; // Tracks history to manage numbering
+    let START_TASK_NUM = 0;
+    let HISTORY_MH_SUM = 0;
+
+    function showSpinner(show) { document.getElementById("spinner").style.display = show ? "flex" : "none"; }
+
+    function formatNiceDate(dateStr) {
+        if (!dateStr) return "N/A";
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return dateStr;
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        return `${String(date.getDate()).padStart(2, '0')} ${months[date.getMonth()]} ${date.getFullYear()}`;
+    }
 
     window.onload = async () => {
+        showSpinner(true);
         try {
             const resp = await fetch(`${API_URL}?action=getInitialData`);
             const data = await resp.json();
@@ -202,10 +284,10 @@
             CURRENT_WO = data.info.woNo;
 
             document.getElementById("infoGrid").innerHTML = `
-                <div class="info-item"><small>W/O No.</small>${data.info.woNo}</div>
-                <div class="info-item"><small>Customer</small>${data.info.customer}</div>
-                <div class="info-item"><small>A/C Reg</small>${data.info.acReg}</div>
-                <div class="info-item"><small>P/N</small>${data.info.pn}</div>
+                <div><span class="data-label">W/O NO</span>${data.info.woNo}</div>
+                <div><span class="data-label">CUSTOMER</span>${data.info.customer}</div>
+                <div><span class="data-label">A/C REG</span>${data.info.acReg}</div>
+                <div><span class="data-label">PART DESC.</span>${data.info.pn}</div>
             `;
 
             const select = document.getElementById("findingSelect");
@@ -215,9 +297,8 @@
             });
 
             loadDraft();
-        } catch (e) {
-            alert("Connection Error. Please refresh.");
-        }
+        } catch (e) { alert("Initialization Fail: Check Connection."); }
+        showSpinner(false);
     };
 
     function handleFindingChange(el) {
@@ -227,296 +308,303 @@
         document.getElementById("fid").innerText = finding.identification;
         document.getElementById("faction").innerText = finding.action;
         document.getElementById("fimg").src = finding.pic;
-        document.getElementById("findingContent").classList.remove("collapsed");
-
+        
+        document.getElementById("findingContent").classList.remove("hidden");
+        document.getElementById("toggleFindingBtn").classList.remove("hidden");
+        
         loadHistory(el.value);
     }
 
+    function toggleFinding() {
+        const content = document.getElementById("findingContent");
+        const btn = document.getElementById("toggleFindingBtn");
+        const isHidden = content.classList.toggle("hidden");
+        btn.innerText = isHidden ? "Show Details" : "Hide Details";
+    }
+
     async function loadHistory(fNo) {
+        showSpinner(true);
         const container = document.getElementById("historyContainer");
         const section = document.getElementById("historySection");
-        container.innerHTML = "Fetching previous records...";
-        section.classList.remove("collapsed");
+        START_TASK_NUM = 0;
+        HISTORY_MH_SUM = 0;
 
         try {
             const resp = await fetch(`${API_URL}?action=getExistingTasks&findingNo=${fNo}`);
             const tasks = await resp.json();
-            EXISTING_TASKS_COUNT = tasks.length; // Crucial for numbering
 
-            if (tasks.length === 0) {
-                section.classList.add("collapsed");
-                updateNumbers();
+            if (!tasks || tasks.length === 0) {
+                section.classList.add("hidden");
+                updateMHDisplays();
+                showSpinner(false);
                 return;
             }
 
             container.innerHTML = "";
+            section.classList.remove("hidden");
+
             tasks.forEach(t => {
-                const div = document.createElement("div");
-                div.className = "task-card history-card";
+                const num = parseInt(t.taskNo.replace(/\D/g, ''));
+                if(num > START_TASK_NUM) START_TASK_NUM = num;
+                HISTORY_MH_SUM += parseFloat(t.mh || 0);
+
+                const card = document.createElement("div");
+                card.className = "task-card history-card";
                 
-                let refsHtml = t.references.map(r => `
-                    <div style="font-size:12px; margin-top:5px; padding:8px; background:#fff; border-radius:5px; display:flex; justify-content:space-between; align-items:center; border:1px solid #eee;">
-                        <span><b>${r.docType}:</b> ${r.title}</span>
-                        <a href="${r.link}" target="_blank" style="color:var(--primary); font-weight:bold; text-decoration:none;">📂 VIEW FILE</a>
+                const refsHtml = t.references.map(r => `
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:#fff; padding:8px; border-radius:6px; margin-top:5px; border:1px solid var(--border); font-size:12px;">
+                        <span><b>${r.docType}</b> - ${r.title} - Rev: ${r.rev || '0'} / ${formatNiceDate(r.date)}</span>
+                        <a href="${r.link}" target="_blank"><button class="btn-secondary" style="font-size:10px; padding:4px 8px;">View File 📂</button></a>
                     </div>
                 `).join("");
 
-                div.innerHTML = `
-                    <div class="task-header">
-                        <b style="color:var(--primary)">${t.taskNo} | ${t.type} (${t.category})</b>
-                        <span class="mh-total-badge" style="font-size:11px">${t.mh} MH</span>
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; font-weight:bold; color:var(--primary)">
+                        <span>${t.taskNo} | ${t.type}</span>
+                        <span>${t.mh} MH</span>
                     </div>
-                    <p style="font-size:13px; margin:10px 0; white-space:pre-wrap;">${t.description}</p>
-                    <div style="background:var(--accent); padding:12px; border-radius:8px;">
-                        <small><b>REFERENCES:</b></small>${refsHtml || '<br>No references provided.'}
+                    <div style="font-size:13px; margin:10px 0; white-space:pre-wrap;">${t.description}</div>
+                    
+                    <div style="background:var(--accent); padding:10px; border-radius:8px;">
+                        <small><b>REFERENCES:</b></small>
+                        ${refsHtml || '<div style="font-size:11px; margin-top:5px;">No instructions attached</div>'}
                     </div>
+
                     ${t.notes ? `
-                        <div style="margin-top:12px; border-top:1px dashed #ccc; padding-top:10px;">
-                            <small><b>ENGINEER NOTES:</b></small>
-                            <p style="font-size:12px; margin:5px 0; font-style:italic;">${t.notes}</p>
+                        <div style="margin-top:10px; border-top:1px dashed #ccc; padding-top:8px;">
+                            <span class="data-label">NOTE</span>
+                            <div class="data-content" style="font-size:13px; margin-bottom:0;">${t.notes}</div>
+                        </div>` : ''}
+
+                    ${t.type === "Inspection" ? `
+                        <div class="result-entry-zone">
+                            <span class="data-label" style="color:var(--warning)">RECORD INSPECTION RESULT</span>
+                            <textarea id="res-${t.taskNo}" placeholder="Type inspection findings here..."></textarea>
+                            <div class="row" style="margin-top:10px;">
+                                <input type="file" id="file-${t.taskNo}" style="border:none;">
+                                <button class="btn-success" onclick="saveResult('${t.taskNo}')">Upload & Save</button>
+                            </div>
                         </div>
                     ` : ''}
                 `;
-                container.appendChild(div);
+                container.appendChild(card);
             });
-            updateNumbers(); // Recalculate numbering based on new HISTORY_COUNT
-        } catch (e) { container.innerHTML = "Error loading history."; }
+            updateNumbers();
+            updateMHDisplays();
+        } catch (e) { alert("History Sync Error."); }
+        showSpinner(false);
+    }
+
+    async function saveResult(taskNo) {
+        const text = document.getElementById(`res-${taskNo}`).value;
+        if(!text) return alert("Result text required.");
+        showSpinner(true);
+        const fIn = document.getElementById(`file-${taskNo}`);
+        let fData = null;
+        if(fIn.files[0]) fData = { name: fIn.files[0].name, mimeType: fIn.files[0].type, base64: await toBase64(fIn.files[0]) };
+
+        try {
+            await fetch(API_URL, { method: "POST", body: JSON.stringify({ 
+                action: "updateTaskResult", 
+                findingNo: document.getElementById("findingSelect").value, 
+                taskNo, result: text, fileData: fData 
+            }) });
+            alert("Result Saved.");
+        } catch (e) { alert("Error."); }
+        showSpinner(false);
+    }
+
+    function updateMHDisplays() {
+        let sessionTotal = 0;
+        document.querySelectorAll(".field-mh").forEach(i => sessionTotal += parseFloat(i.value || 0));
+        document.getElementById("existingMH").innerText = HISTORY_MH_SUM.toFixed(1);
+        document.getElementById("sessionMH").innerText = sessionTotal.toFixed(1);
+        document.getElementById("grandTotalMH").innerText = (HISTORY_MH_SUM + sessionTotal).toFixed(1);
     }
 
     function addTask(data = null) {
         const card = document.createElement("div");
         card.className = "task-card";
         card.innerHTML = `
-            <div class="task-header">
-                <span class="task-no-label" style="font-weight:bold; color:var(--primary)">TASK T0000</span>
+            <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+                <b class="task-no-label" style="color:var(--primary)">TASK T0000</b>
                 <div style="display:flex; gap:10px;">
-                    <button class="secondary" style="font-size:11px; padding:5px 10px;" onclick="duplicateCard(this)">Duplicate</button>
-                    <button class="danger-link" onclick="removeCard(this)">Remove</button>
+                    <button class="btn-secondary" style="font-size:11px; padding:4px 8px;" onclick="duplicateTask(this)">Duplicate</button>
+                    <button class="btn-danger" onclick="removeCard(this)">Remove</button>
                 </div>
             </div>
             <div class="row">
-                <select><option>Structure</option><option>Cabin</option><option>Special Process</option></select>
-                <select><option>Inspection</option><option>Remove / Install</option><option>Repair</option><option>General</option></select>
-                <input type="number" step="0.1" placeholder="MH" class="mh-input" oninput="calculateTotalMH()">
+                <select class="field-cat"><option>Structure</option><option>Cabin</option><option>Special Process</option></select>
+                <select class="field-type"><option>Inspection</option><option>Remove / Install</option><option>Repair</option><option>General</option></select>
+                <input type="number" step="0.1" placeholder="MH" class="field-mh" oninput="updateMHDisplays()">
             </div>
-            <textarea placeholder="Describe the work performed..." oninput="autoResize(this)"></textarea>
-            
-            <div class="ref-list"></div>
-            <button class="secondary" style="width:auto; font-size:11px; padding:6px 15px;" onclick="addRef(this)">+ Add Reference</button>
-            
-            <div style="margin-top:15px; border-top:1px solid #eee; padding-top:12px;">
-                <small><b>Internal Note (Optional)</b></small>
-                <textarea placeholder="Add specific engineer notes..." style="font-size:12px; min-height:40px; margin-top:5px;"></textarea>
+            <textarea class="field-desc" placeholder="Instruction description..." oninput="autoResize(this)"></textarea>
+            <div class="ref-container"></div>
+            <button class="btn-secondary" style="font-size:11px; margin-top:10px;" onclick="addRef(this)">+ Add Reference</button>
+            <div style="margin-top:15px; border-top:1px solid #eee; padding-top:10px;">
+                <textarea class="field-note" placeholder="Internal private note..." style="font-size:12px; min-height:40px;"></textarea>
             </div>
         `;
         document.getElementById("taskContainer").appendChild(card);
-        if(data) fillCardData(card, data);
+        if(data) fillTaskData(card, data);
+        updateNumbers();
+    }
+
+    function fillTaskData(card, data) {
+        card.querySelector(".field-cat").value = data.cat; 
+        card.querySelector(".field-type").value = data.type;
+        card.querySelector(".field-mh").value = data.mh; 
+        card.querySelector(".field-desc").value = data.desc;
+        card.querySelector(".field-note").value = data.note;
+        if(data.refs) data.refs.forEach(r => addRef(card.querySelector(".btn-secondary"), r));
+    }
+
+    function addRef(btn, data = null) {
+        const div = document.createElement("div");
+        div.style = "background:#f9fafb; padding:12px; margin-top:10px; border:1px solid #ddd; border-radius:8px;";
+        div.innerHTML = `
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                <b class="ref-label">R01</b>
+                <button class="btn-danger" onclick="this.parentElement.parentElement.remove(); updateNumbers();">Remove</button>
+            </div>
+            <div class="row">
+                <input list="docTypes" class="r-doc" placeholder="Doc Type (AMM, SRM, etc.)">
+                <input class="r-title" placeholder="Chapter / Task">
+            </div>
+            <div class="row">
+                <input class="r-rev" placeholder="Rev No.">
+                <input class="r-date" type="date">
+            </div>
+            <input type="file" class="r-file" onchange="this.nextElementSibling.innerText=this.files[0] ? 'Attached: ' + this.files[0].name : ''" style="font-size:11px; border:none; padding:0;">
+            <div style="font-size:10px; color:var(--success); margin-top:4px;"></div>
+        `;
+        btn.previousElementSibling.appendChild(div);
+        if(data) { 
+            div.querySelector(".r-doc").value = data.docType; 
+            div.querySelector(".r-title").value = data.title; 
+            div.querySelector(".r-rev").value = data.rev; 
+            div.querySelector(".r-date").value = data.date; 
+        }
         updateNumbers();
     }
 
     function updateNumbers() {
-        const cards = document.querySelectorAll("#taskContainer .task-card");
-        cards.forEach((c, i) => {
-            // New numbering starts after existing tasks
-            const numberValue = (EXISTING_TASKS_COUNT + i + 1) * 10;
-            c.querySelector(".task-no-label").innerText = "TASK T" + String(numberValue).padStart(4, '0');
-            
-            c.querySelectorAll(".ref-label").forEach((r, ri) => {
-                r.innerText = "Reference R" + String(ri+1).padStart(2, '0');
-            });
+        document.querySelectorAll("#taskContainer .task-card").forEach((c, i) => {
+            const tNum = START_TASK_NUM + ((i + 1) * 10);
+            c.querySelector(".task-no-label").innerText = "TASK T" + String(tNum).padStart(4, '0');
+            c.querySelectorAll(".ref-label").forEach((r, ri) => r.innerText = "Reference R" + String(ri+1).padStart(2, '0'));
         });
-        calculateTotalMH();
+        updateMHDisplays();
     }
 
-    function fillCardData(card, data) {
-        const selects = card.querySelectorAll("select");
-        selects[0].value = data.cat;
-        selects[1].value = data.type;
-        card.querySelector(".mh-input").value = data.mh;
-        const textareas = card.querySelectorAll("textarea");
-        textareas[0].value = data.desc;
-        textareas[1].value = data.note;
-        if(data.refs) data.refs.forEach(r => addRef(card.querySelector("button"), r));
-    }
-
-    function addRef(btn, data = null) {
-        const list = btn.previousElementSibling;
-        const div = document.createElement("div");
-        div.className = "ref-block";
-        div.innerHTML = `
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <small class="ref-label" style="font-weight:bold; color:var(--primary)">Reference R01</small>
-                <button class="danger-link" onclick="this.parentElement.parentElement.remove(); updateNumbers();">Remove</button>
-            </div>
-            <div class="row" style="margin-top:10px">
-                <select><option>AMM</option><option>CMM</option><option>SRM</option></select>
-                <input placeholder="Task / Chapter Title">
-            </div>
-            <div class="row">
-                <input placeholder="Rev">
-                <input type="date">
-            </div>
-            <input type="file" onchange="updateFileName(this)" style="font-size:11px; border:none; padding:0;">
-            <span class="file-label"></span>
-        `;
-        list.appendChild(div);
-        if(data) {
-            div.querySelector("select").value = data.docType;
-            const ins = div.querySelectorAll("input");
-            ins[0].value = data.title; ins[1].value = data.rev; ins[2].value = data.date;
-        }
-        updateNumbers();
-    }
-
-    function updateFileName(input) {
-        const label = input.nextElementSibling;
-        label.innerText = input.files[0] ? "Attached: " + input.files[0].name : "";
-    }
-
-    function calculateTotalMH() {
-        let total = 0;
-        document.querySelectorAll(".mh-input").forEach(i => total += parseFloat(i.value || 0));
-        document.getElementById("totalMH").innerText = total.toFixed(1);
-    }
-
-    function duplicateCard(btn) {
-        const card = btn.closest(".task-card");
-        const data = {
-            cat: card.querySelectorAll("select")[0].value,
-            type: card.querySelectorAll("select")[1].value,
-            mh: card.querySelector(".mh-input").value,
-            desc: card.querySelectorAll("textarea")[0].value,
-            note: card.querySelectorAll("textarea")[1].value,
-            refs: Array.from(card.querySelectorAll(".ref-block")).map(r => ({
-                docType: r.querySelector("select").value,
-                title: r.querySelectorAll("input")[0].value,
-                rev: r.querySelectorAll("input")[1].value,
-                date: r.querySelectorAll("input")[2].value
-            }))
+    function duplicateTask(btn) {
+        const c = btn.closest(".task-card");
+        const data = { 
+            cat: c.querySelector(".field-cat").value, 
+            type: c.querySelector(".field-type").value, 
+            mh: c.querySelector(".field-mh").value, 
+            desc: c.querySelector(".field-desc").value, 
+            note: c.querySelector(".field-note").value, 
+            refs: Array.from(c.querySelectorAll(".ref-container > div")).map(r => ({ 
+                docType: r.querySelector(".r-doc").value, 
+                title: r.querySelector(".r-title").value, 
+                rev: r.querySelector(".r-rev").value, 
+                date: r.querySelector(".r-date").value 
+            })) 
         };
         addTask(data);
     }
 
-    function saveDraft() {
-        const draft = {
-            fNo: document.getElementById("findingSelect").value,
-            tasks: Array.from(document.querySelectorAll("#taskContainer .task-card")).map(c => ({
-                cat: c.querySelectorAll("select")[0].value,
-                type: c.querySelectorAll("select")[1].value,
-                mh: c.querySelector(".mh-input").value,
-                desc: c.querySelectorAll("textarea")[0].value,
-                note: c.querySelectorAll("textarea")[1].value,
-                refs: Array.from(c.querySelectorAll(".ref-block")).map(r => ({
-                    docType: r.querySelector("select").value,
-                    title: r.querySelectorAll("input")[0].value,
-                    rev: r.querySelectorAll("input")[1].value,
-                    date: r.querySelectorAll("input")[2].value
-                }))
-            }))
-        };
-        localStorage.setItem("tc_draft_v2", JSON.stringify(draft));
-    }
-
-    function loadDraft() {
-        const saved = localStorage.getItem("tc_draft_v2");
-        if(!saved) return;
-        const draft = JSON.parse(saved);
-        if(draft.fNo) {
-            document.getElementById("findingSelect").value = draft.fNo;
-            handleFindingChange(document.getElementById("findingSelect"));
-            if(draft.tasks.length > 0) {
-                startWork();
-                document.getElementById("taskContainer").innerHTML = "";
-                draft.tasks.forEach(t => addTask(t));
-            }
-        }
-    }
-
     async function submitWork() {
         const fNo = document.getElementById("findingSelect").value;
-        if(!fNo) return alert("Please select a Finding.");
+        if(!fNo) return alert("Select finding.");
+        const cards = document.querySelectorAll("#taskWorkspace .task-card");
+        if(cards.length === 0) return alert("Add task instructions.");
 
-        const cards = document.querySelectorAll("#taskContainer .task-card");
-        if(cards.length === 0) return alert("Please add at least one task.");
-
-        const btn = document.getElementById("submitBtn");
-        btn.disabled = true; btn.innerText = "Processing...";
-
-        const payloadTasks = [];
-        for (let card of cards) {
-            const desc = card.querySelectorAll("textarea")[0].value;
-            const mh = card.querySelector(".mh-input").value;
-            if(!desc || !mh) {
-                btn.disabled = false; btn.innerText = "Submit Task Cards";
-                return alert("Work Description and Man-Hours are required for all tasks.");
-            }
-
+        showSpinner(true);
+        const payload = [];
+        for (let c of cards) {
+            const desc = c.querySelector(".field-desc").value;
+            const mh = c.querySelector(".field-mh").value;
+            if(!desc || !mh) { showSpinner(false); return alert("Desc and MH required."); }
             const refs = [];
-            for (let rb of card.querySelectorAll(".ref-block")) {
-                const fileIn = rb.querySelector('input[type="file"]');
-                let fileData = null;
-                if(fileIn.files[0]) {
-                    fileData = { 
-                        name: fileIn.files[0].name, 
-                        mimeType: fileIn.files[0].type, 
-                        base64: await toBase64(fileIn.files[0]) 
-                    };
-                }
-                refs.push({
-                    docType: rb.querySelector("select").value,
-                    title: rb.querySelectorAll("input")[0].value,
-                    rev: rb.querySelectorAll("input")[1].value,
-                    date: rb.querySelectorAll("input")[2].value,
-                    fileData: fileData
+            for (let r of c.querySelectorAll(".ref-container > div")) {
+                const f = r.querySelector(".r-file").files[0];
+                refs.push({ 
+                    docType: r.querySelector(".r-doc").value, 
+                    title: r.querySelector(".r-title").value, 
+                    rev: r.querySelector(".r-rev").value, 
+                    date: r.querySelector(".r-date").value, 
+                    fileData: f ? { name: f.name, mimeType: f.type, base64: await toBase64(f) } : null 
                 });
             }
-
-            payloadTasks.push({
-                findingNo: fNo,
-                taskNo: card.querySelector(".task-no-label").innerText.split(" ")[1],
-                category: card.querySelectorAll("select")[0].value,
-                type: card.querySelectorAll("select")[1].value,
-                mh: mh,
-                description: desc,
-                notes: card.querySelectorAll("textarea")[1].value,
-                references: refs
+            payload.push({ 
+                findingNo: fNo, 
+                taskNo: c.querySelector(".task-no-label").innerText.split(" ")[1], 
+                category: c.querySelector(".field-cat").value, 
+                type: c.querySelector(".field-type").value, 
+                mh, description: desc, notes: c.querySelector(".field-note").value, references: refs 
             });
         }
 
         try {
-            const response = await fetch(API_URL, {
-                method: "POST",
-                body: JSON.stringify({ action: "saveTaskCards", wo: CURRENT_WO, tasks: payloadTasks })
-            });
-            const result = await response.json();
-            if(result.status === "success") {
-                localStorage.removeItem("tc_draft_v2");
-                document.getElementById("confirmBox").style.display = "flex";
+            await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "saveTaskCards", wo: CURRENT_WO, tasks: payload }) });
+            localStorage.removeItem("tc_draft");
+            alert("Upload Success!");
+            location.reload();
+        } catch (e) { alert("Submission Fail."); }
+        showSpinner(false);
+    }
+
+    function saveDraft() {
+        const d = { 
+            fNo: document.getElementById("findingSelect").value, 
+            tasks: Array.from(document.querySelectorAll("#taskContainer .task-card")).map(c => ({ 
+                cat: c.querySelector(".field-cat").value, 
+                type: c.querySelector(".field-type").value, 
+                mh: c.querySelector(".field-mh").value, 
+                desc: c.querySelector(".field-desc").value, 
+                note: c.querySelector(".field-note").value, 
+                refs: Array.from(c.querySelectorAll(".ref-container > div")).map(r => ({ 
+                    docType: r.querySelector(".r-doc").value, 
+                    title: r.querySelector(".r-title").value, 
+                    rev: r.querySelector(".r-rev").value, 
+                    date: r.querySelector(".r-date").value 
+                })) 
+            })) 
+        };
+        localStorage.setItem("tc_draft", JSON.stringify(d));
+    }
+
+    function loadDraft() {
+        const s = localStorage.getItem("tc_draft");
+        if(!s) return;
+        const d = JSON.parse(s);
+        if(d.fNo) {
+            document.getElementById("findingSelect").value = d.fNo;
+            handleFindingChange(document.getElementById("findingSelect"));
+            if(d.tasks.length > 0) {
+                startWork();
+                document.getElementById("taskContainer").innerHTML = "";
+                d.tasks.forEach(t => addTask(t));
             }
-        } catch (e) {
-            alert("Submission error. The data may have saved, check the sheet.");
-            btn.disabled = false; btn.innerText = "Submit Task Cards";
         }
     }
 
-    const toBase64 = file => new Promise((res, rej) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => res(reader.result.split(',')[1]);
-        reader.onerror = e => rej(e);
-    });
-
+    const toBase64 = f => new Promise((res, rej) => { const r = new FileReader(); r.readAsDataURL(f); r.onload = () => res(r.result.split(',')[1]); r.onerror = e => rej(e); });
     function autoResize(t) { t.style.height = "auto"; t.style.height = t.scrollHeight + "px"; }
+    
     function startWork() {
         if(!document.getElementById("findingSelect").value) return alert("Select a finding first.");
-        document.getElementById("startZone").style.display = "none";
-        document.getElementById("taskWorkspace").classList.remove("collapsed");
+        document.getElementById("startZone").classList.add("hidden");
+        document.getElementById("taskWorkspace").classList.remove("hidden");
         document.getElementById("infoSection").classList.add("locked");
         document.getElementById("findingSection").classList.add("locked");
         if(document.getElementById("taskContainer").children.length === 0) addTask();
     }
-    function removeCard(btn) { if(confirm("Delete this task card?")) { btn.closest(".task-card").remove(); updateNumbers(); }}
-    function resetForm() { if(confirm("Clear current work?")) { localStorage.removeItem("tc_draft_v2"); location.reload(); }}
+    
+    function removeCard(b) { if(confirm("Confirm Remove?")) { b.closest(".task-card").remove(); updateNumbers(); }}
+    function resetForm() { if(confirm("Discard work?")) { localStorage.removeItem("tc_draft"); location.reload(); }}
 </script>
 
 </body>
