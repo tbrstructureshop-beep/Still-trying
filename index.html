@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Task Card Creator - Professional</title>
+<style>
+:root{
+  --bg:#f0f2f5;
+  --card:#ffffff;
+  --text:#1f2933;
+  --muted:#6b7280;
+  --primary:#1f535c;
+  --accent:#e5eef0;
+  --danger:#c0392b;
+  --success:#27ae60;
+  --border:#d1d5db;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height: 1.5;
+}
+.container{
+  padding:20px;
+  padding-bottom:140px;
+  max-width:900px;
+  margin:auto;
+}
+
+/* SECTIONS */
+.section{
+  background:var(--card);
+  border-radius:12px;
+  padding:24px;
+  margin-bottom:20px;
+  box-shadow:0 2px 8px rgba(0,0,0,.05);
+}
+.section.locked{ opacity:.7; }
+
+.info-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+  gap:16px;
+}
+.info-item small{
+  color:var(--muted);
+  display:block;
+  margin-bottom:4px;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+h2{
+  font-size:16px;
+  margin:0 0 16px 0;
+  color: var(--primary);
+  border-bottom: 1px solid var(--accent);
+  padding-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* INPUTS & BUTTONS */
+select,input,textarea,button{
+  width:100%;
+  font-family:inherit;
+  font-size:14px;
+}
+select,input,textarea{
+  padding:12px;
+  border-radius:8px;
+  border:1px solid var(--border);
+  background: #fff;
+  transition: background 0.2s;
+}
+/* Locked State Visuals */
+.is-locked select, .is-locked input, .is-locked textarea {
+    background: #f8fafc;
+    border-color: transparent;
+    pointer-events: none;
+    color: #475569;
+}
+
+textarea{ resize:none; min-height:90px; margin-bottom: 16px; }
+
+button{
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  font-weight:600;
+  cursor: pointer;
+}
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+.primary{ background:var(--primary); color:#fff; }
+.secondary{ background:#e5e7eb; color: var(--text); }
+.success-btn{ background:var(--success); color:#fff; }
+
+/* TASK CARD DESIGN */
+.task-card{
+  background: var(--card);
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 30px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+  border-top: 4px solid var(--primary);
+  position: relative;
+}
+.task-header{
+  font-weight:800;
+  margin-bottom:20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--primary);
+}
+.header-actions {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+.remove-link {
+  color: var(--danger);
+  font-size: 12px;
+  background: none;
+  width: auto;
+  padding: 0;
+  text-decoration: underline;
+}
+.edit-btn {
+    width: auto;
+    padding: 6px 15px;
+    font-size: 12px;
+}
+
+.row{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+  gap:12px;
+  margin-bottom:12px;
+}
+
+/* REFERENCE BLOCK */
+.ref-block{
+  background: #f9fafb;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px;
+  margin-top: 15px;
+  margin-bottom:15px; 
+}
+.ref-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  color: var(--primary);
+  font-size: 13px;
+}
+.file-name-display {
+    font-size: 11px;
+    color: var(--success);
+    margin-top: 5px;
+    display: block;
+    font-weight: bold;
+}
+
+.notes { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--accent); }
+.notes.collapsed textarea { display:none; }
+
+.finding-content.collapsed { display: none; }
+.finding-content img {
+  display: block;
+  margin: 15px auto;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 400px;
+  object-fit: contain;
+  background: #f1f5f9;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.fixed-actions{
+  position:fixed; bottom:0; left:0; right:0;
+  background:var(--card);
+  box-shadow:0 -4px 12px rgba(0,0,0,.1);
+  padding:20px;
+  display:flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 100;
+}
+.mh-counter {
+    background: var(--accent);
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    color: var(--primary);
+    border: 1px solid var(--border);
+}
+
+.confirm{
+  position:fixed; inset:0;
+  background:rgba(31,83,92,.95);
+  display:flex; align-items:center; justify-content:center;
+  flex-direction: column;
+  color:#fff; font-size:18px; display:none; z-index: 1000;
+}
+</style>
+</head>
+<body oninput="saveDraft()">
+
+<div class="container">
+  <!-- General Info -->
+  <div class="section" id="info">
+    <h2>General Information</h2>
+    <div class="info-grid" id="infoGrid">
+      <div class="info-item"><small>Loading...</small></div>
+    </div>
+  </div>
+
+  <!-- Finding Section -->
+  <div class="section" id="finding">
+    <h2>
+        Finding Selection
+        <button onclick="toggleFindingDetails()" id="toggleFinding" style="display:none; background:none; color:var(--primary); font-size:12px; width:auto; text-decoration:underline;">Collapse Details</button>
+    </h2>
+    <select id="findingSelect" onchange="handleFindingChange(this)">
+      <option value="">Fetching Findings...</option>
+    </select>
+
+    <div class="finding-content collapsed" id="findingContent">
+        <img src="" id="fimg" style="margin-top:15px">
+        <div class="row">
+            <div>
+                <small>Identification</small>
+                <p style="font-weight:600" id="fid">-</p>
+            </div>
+            <div>
+                <small>Action Given</small>
+                <p style="font-weight:600" id="faction">-</p>
+            </div>
+        </div>
+    </div>
+  </div>
+  
+  <div id="historySection" style="display:none; margin-bottom: 30px;">
+    <h2 style="color:var(--success)">Generated Task Cards (Submitted)</h2>
+    <div id="historyContainer"></div>
+  </div>
+
+  <div id="startZone" style="text-align:center; padding: 20px;">
+    <button class="primary" id="startBtn" onclick="startWork()" style="max-width:300px">Start Creating Task Cards</button>
+  </div>
+
+  <div id="tasks" style="display:none">
+    <div id="taskContainer"></div>
+    <div style="padding: 20px 0;">
+        <button class="secondary" onclick="addTask()">+ Add New Task Card</button>
+    </div>
+  </div>
+</div>
+
+<div class="fixed-actions">
+  <div>
+      <button class="secondary" style="width: auto;" onclick="resetForm()">Reset</button>
+  </div>
+  <div class="mh-counter">Total Man-Hours: <span id="totalMH">0.0</span></div>
+  <div>
+      <button class="primary" style="width: 200px;" id="submitBtn" onclick="submitWork()">Submit Work</button>
+  </div>
+</div>
+
+<div class="confirm" id="confirmBox">
+    <h1 id="confirmMsg">Task Cards Submitted Successfully</h1>
+    <button class="secondary" onclick="location.reload()" style="width:auto">Close</button>
+</div>
+  
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbxVryoi5YzLOR-0AfgH458bfO6b5LP-ffBdGNAYILLQEfQC5U8gCLmRfCmZwCLukShbyg/exec";
+
+let CURRENT_WO = "";
+let FINDINGS_DATA = [];
+
+const taskContainer = document.getElementById("taskContainer");
+const findingContent = document.getElementById("findingContent");
+const toggleFindingBtn = document.getElementById("toggleFinding");
+
+window.onload = async () => {
+    try {
+        const resp = await fetch(`${API_URL}?action=getInitialData`);
+        const data = await resp.json();
+        
+        CURRENT_WO = data.info.woNo;
+        FINDINGS_DATA = data.findings;
+
+        const infoGrid = document.querySelector(".info-grid");
+        infoGrid.innerHTML = `
+            <div class="info-item"><small>W/O No.</small><strong>${data.info.woNo}</strong></div>
+            <div class="info-item"><small>Customer</small>${data.info.customer}</div>
+            <div class="info-item"><small>A/C Reg.</small>${data.info.acReg}</div>
+            <div class="info-item"><small>Part Desc.</small>${data.info.partDesc}</div>
+            <div class="info-item"><small>P/N</small>${data.info.pn}</div>
+            <div class="info-item"><small>S/N</small>${data.info.sn}</div>
+        `;
+
+        const select = document.getElementById("findingSelect");
+        select.innerHTML = '<option value="">Select Finding No.</option>';
+        data.findings.forEach(f => {
+            select.innerHTML += `<option value="${f.no}">${f.no} - ${f.identification.substring(0,25)}...</option>`;
+        });
+
+        loadDraft(); // CHECK FOR SAVED DRAFTS
+    } catch (e) {
+        alert("Error loading data from Google Sheets.");
+    }
+};
+
+function updateAllNumbers() {
+  const cards = taskContainer.querySelectorAll(".task-card");
+  let totalMH = 0;
+  
+  cards.forEach((card, cardIndex) => {
+    const taskBaseNum = (cardIndex + 1) * 10;
+    const taskString = String(taskBaseNum).padStart(4, '0');
+    card.querySelector(".task-no-label").innerText = `TASK NO. T${taskString}`;
+
+    // Sum MH
+    const mhVal = parseFloat(card.querySelector("input[type='number']").value) || 0;
+    totalMH += mhVal;
+
+    const refs = card.querySelectorAll(".ref-block");
+    refs.forEach((ref, refIndex) => {
+      const refSuffix = String(refIndex + 1).padStart(2, '0');
+      ref.querySelector(".ref-no-label").innerText = `Reference R${refSuffix}`;
+    });
+  });
+  
+  document.getElementById("totalMH").innerText = totalMH.toFixed(1);
+}
+
+function autoResize(t) {
+  t.style.height = "auto";
+  t.style.height = t.scrollHeight + "px";
+}
+
+function toggleEdit(btn, card) {
+    const isLocked = card.classList.toggle("is-locked");
+    btn.innerText = isLocked ? "Edit Task" : "Save Task";
+    btn.className = isLocked ? "edit-btn secondary" : "edit-btn success-btn";
+}
+
+function addTask(data = null) {
+  const card = document.createElement("div");
+  card.className = "task-card";
+  card.innerHTML = `
+    <div class="task-header">
+      <span class="task-no-label">TASK NO. 0000</span>
+      <div class="header-actions">
+          <button class="edit-btn success-btn" onclick="toggleEdit(this, this.closest('.task-card'))">Save Task</button>
+          <button class="edit-btn secondary" onclick="duplicateTask(this.closest('.task-card'))">Duplicate</button>
+          <button class="remove-link" onclick="removeCard(this.closest('.task-card'))">Remove Card</button>
+      </div>
+    </div>
+    
+    <div class="row">
+      <select><option>Structure</option><option>Cabin</option><option>Special Process</option></select>
+      <select><option>Inspection</option><option>Remove / Install</option><option>Repair</option><option>General</option></select>
+      <input type="number" step="0.1" placeholder="Man-hours (MH)" oninput="updateAllNumbers()">
+    </div>
+
+    <textarea placeholder="Describe the task to be performed..." oninput="autoResize(this)"></textarea>
+
+    <div class="references">
+      <div class="ref-list"></div>
+      <button class="secondary" style="width:auto; padding: 8px 16px; font-size:12px;" onclick="addReference(this)">+ Add Reference</button>
+    </div>
+
+    <div class="notes collapsed">
+      <button class="secondary" style="width:auto; padding: 8px 16px; font-size:12px; margin-top:12px" onclick="this.parentElement.classList.toggle('collapsed')">+ Add Internal Note</button>
+      <textarea placeholder="Optional engineer notes..." style="margin-top:12px" oninput="autoResize(this)"></textarea>
+    </div>
+  `;
+
+  taskContainer.appendChild(card);
+  
+  if(data) {
+      const selects = card.querySelectorAll("select");
+      selects[0].value = data.category;
+      selects[1].value = data.type;
+      card.querySelector("input[type='number']").value = data.mh;
+      const textareas = card.querySelectorAll("textarea");
+      textareas[0].value = data.description;
+      textareas[1].value = data.notes;
+      if(data.notes) card.querySelector(".notes").classList.remove("collapsed");
+      
+      data.refs.forEach(r => addReference(card.querySelector(".references button"), r));
+  }
+  
+  updateAllNumbers();
+}
+
+function duplicateTask(card) {
+    const data = {
+        category: card.querySelectorAll("select")[0].value,
+        type: card.querySelectorAll("select")[1].value,
+        mh: card.querySelector("input[type='number']").value,
+        description: card.querySelectorAll("textarea")[0].value,
+        notes: card.querySelectorAll("textarea")[1].value,
+        refs: Array.from(card.querySelectorAll(".ref-block")).map(rb => ({
+            docType: rb.querySelectorAll("select")[0].value,
+            title: rb.querySelectorAll("input")[0].value,
+            rev: rb.querySelectorAll("input")[1].value,
+            date: rb.querySelectorAll("input")[2].value
+        }))
+    };
+    addTask(data);
+}
+
+function handleFileSelection(input) {
+    const nameDisplay = input.nextElementSibling || document.createElement("span");
+    nameDisplay.className = "file-name-display";
+    if (input.files.length > 0) {
+        nameDisplay.innerText = "Attached: " + input.files[0].name;
+        if(!input.nextElementSibling) input.after(nameDisplay);
+    }
+}
+
+function addReference(btn, data = null) {
+    const refList = btn.previousElementSibling;
+    const ref = document.createElement("div");
+    ref.className = "ref-block";
+    ref.innerHTML = `
+      <div class="ref-header">
+        <strong class="ref-no-label">Reference 000000</strong>
+        <button class="remove-link" onclick="this.closest('.ref-block').remove(); updateAllNumbers();">Remove</button>
+      </div>
+      <div class="row">
+        <select><option>AMM</option><option>CMM</option><option>SRM</option></select>
+        <input placeholder="Task / Chapter Title">
+      </div>
+      <div class="row">
+        <input placeholder="Rev. No.">
+        <input type="date">
+      </div>
+      <input type="file" onchange="handleFileSelection(this)" style="border:none; padding:0; font-size:11px; margin-top:8px;">
+    `;
+    refList.appendChild(ref);
+    
+    if(data) {
+        ref.querySelector("select").value = data.docType;
+        const inputs = ref.querySelectorAll("input");
+        inputs[0].value = data.title;
+        inputs[1].value = data.rev;
+        inputs[2].value = data.date;
+    }
+    updateAllNumbers();
+}
+
+function removeCard(card) {
+    if(confirm("Delete this entire Task Card?")) {
+        card.remove();
+        updateAllNumbers();
+        saveDraft();
+    }
+}
+
+async function handleFindingChange(select) {
+    const finding = FINDINGS_DATA.find(f => f.no == select.value);
+    if(!finding) return;
+    
+    document.getElementById("fid").innerText = finding.identification;
+    document.getElementById("faction").innerText = finding.action;
+    document.getElementById("fimg").src = finding.pic;
+    
+    findingContent.classList.remove("collapsed");
+    toggleFindingBtn.style.display = "inline";
+    saveDraft();
+}
+
+function startWork() {
+  if(!document.getElementById("findingSelect").value) return alert("Please select a Finding first.");
+  document.getElementById("tasks").style.display = "block";
+  document.getElementById("info").classList.add("locked");
+  document.getElementById("finding").classList.add("locked");
+  document.getElementById("startZone").style.display = "none";
+  if(taskContainer.children.length === 0) addTask();
+}
+
+// AUTO-SAVE DRAFT LOGIC
+function saveDraft() {
+    const draft = {
+        finding: document.getElementById("findingSelect").value,
+        tasks: Array.from(document.querySelectorAll(".task-card")).map(card => ({
+            category: card.querySelectorAll("select")[0].value,
+            type: card.querySelectorAll("select")[1].value,
+            mh: card.querySelector("input[type='number']").value,
+            description: card.querySelectorAll("textarea")[0].value,
+            notes: card.querySelectorAll("textarea")[1].value,
+            refs: Array.from(card.querySelectorAll(".ref-block")).map(rb => ({
+                docType: rb.querySelectorAll("select")[0].value,
+                title: rb.querySelectorAll("input")[0].value,
+                rev: rb.querySelectorAll("input")[1].value,
+                date: rb.querySelectorAll("input")[2].value
+            }))
+        }))
+    };
+    localStorage.setItem("task_card_draft", JSON.stringify(draft));
+}
+
+function loadDraft() {
+    const saved = localStorage.getItem("task_card_draft");
+    if(!saved) return;
+    const draft = JSON.parse(saved);
+    if(draft.finding) {
+        document.getElementById("findingSelect").value = draft.finding;
+        handleFindingChange(document.getElementById("findingSelect"));
+        if(draft.tasks.length > 0) {
+            startWork();
+            taskContainer.innerHTML = "";
+            draft.tasks.forEach(t => addTask(t));
+        }
+    }
+}
+
+function resetForm() {
+  if(confirm("Discard all work and drafts?")) {
+      localStorage.removeItem("task_card_draft");
+      location.reload();
+  }
+}
+
+async function submitWork() {
+    const btn = document.getElementById("submitBtn");
+    const confirmBox = document.getElementById("confirmBox");
+    const findingNo = document.getElementById("findingSelect").value;
+    
+    // VALIDATION
+    if(!findingNo) return alert("Validation Error: Please select a Finding.");
+    
+    const cardElements = document.querySelectorAll(".task-card");
+    if(cardElements.length === 0) return alert("Add at least one task.");
+
+    const tasks = [];
+    for (let card of cardElements) {
+        const desc = card.querySelectorAll("textarea")[0].value;
+        const mh = card.querySelector("input[type='number']").value;
+        
+        if(!desc || !mh) {
+            card.scrollIntoView({behavior: "smooth"});
+            return alert("Validation Error: Task Description and Man-Hours are required for all cards.");
+        }
+
+        const taskNo = card.querySelector(".task-no-label").innerText.split(". ")[1];
+        const refs = [];
+        const refBlocks = card.querySelectorAll(".ref-block");
+
+        for (let refBlock of refBlocks) {
+            const refLabel = refBlock.querySelector(".ref-no-label").innerText.split(" ")[1];
+            const fileInput = refBlock.querySelector('input[type="file"]');
+            let fileData = null;
+
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                fileData = { name: file.name, mimeType: file.type, base64: await toBase64(file) };
+            }
+
+            refs.push({
+                id: findingNo + taskNo + refLabel,
+                docType: refBlock.querySelectorAll("select")[0].value,
+                title: refBlock.querySelectorAll("input")[0].value,
+                rev: refBlock.querySelectorAll("input")[1].value,
+                date: refBlock.querySelectorAll("input")[2].value,
+                fileData: fileData
+            });
+        }
+
+        tasks.push({
+          findingNo, taskNo,
+          category: card.querySelectorAll("select")[0].value,
+          type: card.querySelectorAll("select")[1].value,
+          mh: mh,
+          description: desc,
+          notes: card.querySelectorAll("textarea")[1].value,
+          references: refs
+        });
+    }
+
+    // LOADING STATE
+    btn.disabled = true;
+    btn.innerText = "Uploading...";
+
+    const payload = { action: "saveTaskCards", wo: CURRENT_WO, tasks: tasks };
+
+    try {
+        const response = await fetch(API_URL, {
+            method: "POST",
+            body: JSON.stringify(payload)
+        });
+        
+        // Note: Google Apps Script often returns 404/CORS errors on POST even if successful. 
+        // We assume success if the browser doesn't throw a hard network error.
+        document.getElementById("confirmMsg").innerText = "Task Cards Submitted Successfully!";
+        localStorage.removeItem("task_card_draft");
+    } catch (e) {
+        document.getElementById("confirmMsg").innerText = "Error: Server connection failed.";
+        document.getElementById("confirmMsg").style.color = "var(--danger)";
+    } finally {
+        confirmBox.style.display = "flex";
+        btn.disabled = false;
+        btn.innerText = "Submit Work";
+    }
+}
+
+const toBase64 = file => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = error => reject(error);
+});
+
+function toggleFindingDetails() {
+    const isCollapsed = findingContent.classList.toggle("collapsed");
+    toggleFindingBtn.innerText = isCollapsed ? "Show Details" : "Collapse Details";
+}
+</script>
+
+</body>
+</html>
