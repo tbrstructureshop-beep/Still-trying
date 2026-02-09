@@ -6,214 +6,201 @@
     <title>Task Card Manager PRO</title>
     <style>
         :root {
-            --primary: #1f535c;
-            --primary-dark: #163d44;
-            --accent: #e5eef0;
-            --bg: #f4f7f6;
+            --bg: #f0f2f5;
             --card: #ffffff;
-            --text: #2d3436;
-            --muted: #636e72;
-            --danger: #d63031;
+            --text: #1f2933;
+            --muted: #6b7280;
+            --primary: #1f535c;
+            --accent: #e5eef0;
+            --danger: #c0392b;
             --success: #27ae60;
-            --border: #dfe6e9;
-            --shadow: 0 4px 6px rgba(0,0,0,0.07);
+            --border: #d1d5db;
+            --shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
 
-        * { box-sizing: border-box; transition: all 0.2s ease; }
+        * { box-sizing: border-box; }
         
         body {
             margin: 0;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
             background: var(--bg);
             color: var(--text);
-            padding-bottom: 100px; /* Space for fixed footer */
+            line-height: 1.5;
         }
 
         .container {
-            max-width: 1000px;
-            margin: 0 auto;
             padding: 20px;
+            padding-bottom: 160px; /* Large space for fixed footer */
+            max-width: 950px;
+            margin: auto;
         }
 
-        /* TYPOGRAPHY & HEADERS */
+        /* SECTIONS */
+        .section {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .section.locked { opacity: 0.7; pointer-events: none; }
+
         h2 {
-            font-size: 1.1rem;
+            font-size: 16px;
+            margin: 0 0 16px 0;
             color: var(--primary);
-            border-bottom: 2px solid var(--accent);
-            padding-bottom: 10px;
-            margin-top: 0;
+            border-bottom: 1px solid var(--accent);
+            padding-bottom: 8px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
-        .section {
-            background: var(--card);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: var(--shadow);
-        }
-
-        .section.locked { opacity: 0.8; pointer-events: none; background: #fafafa; }
-
-        /* RESPONSIVE GRID */
-        .grid {
+        /* GRIDS */
+        .grid-info {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
             gap: 15px;
-            margin-bottom: 15px;
         }
 
         .info-item small {
+            color: var(--muted);
             display: block;
             text-transform: uppercase;
             font-size: 10px;
-            color: var(--muted);
-            letter-spacing: 0.5px;
+            font-weight: bold;
         }
 
-        .info-item span { font-weight: 600; font-size: 14px; }
+        .row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            margin-bottom: 12px;
+        }
 
-        /* FORM ELEMENTS */
+        /* INPUTS */
         select, input, textarea {
             width: 100%;
             padding: 12px;
+            border-radius: 8px;
             border: 1px solid var(--border);
-            border-radius: 8px;
+            background: #fff;
             font-size: 14px;
-            outline: none;
         }
 
-        select:focus, input:focus, textarea:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(31, 83, 92, 0.1);
-        }
+        textarea { resize: none; min-height: 80px; }
 
-        textarea { min-height: 100px; resize: vertical; }
-
+        /* BUTTONS */
         button {
-            padding: 12px 20px;
-            border-radius: 8px;
+            padding: 12px;
             border: none;
+            border-radius: 10px;
             font-weight: 600;
             cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            transition: opacity 0.2s;
         }
 
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-dark); }
-        .btn-secondary { background: var(--accent); color: var(--primary); }
-        .btn-outline-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); font-size: 12px; padding: 5px 10px; }
-        
-        button:disabled { background: #ccc; cursor: not-allowed; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .primary { background: var(--primary); color: #fff; }
+        .secondary { background: #e5e7eb; color: var(--text); }
+        .danger-link { color: var(--danger); background: none; width: auto; font-size: 12px; text-decoration: underline; padding: 0; }
+        .success-btn { background: var(--success); color: #fff; }
 
         /* TASK CARD */
         .task-card {
             background: var(--card);
-            border-left: 5px solid var(--primary);
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 25px;
-            box-shadow: 0 10px 15px rgba(0,0,0,0.05);
+            box-shadow: var(--shadow);
+            border-top: 5px solid var(--primary);
             position: relative;
         }
 
-        .task-card.is-locked { border-left-color: var(--muted); background: #fdfdfd; }
-        
+        .history-card { border-top-color: var(--success); background: #f9fffb; }
+
         .task-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px dashed var(--border);
         }
 
-        .task-no { font-weight: 800; color: var(--primary); }
-
-        /* REFERENCE BLOCK */
         .ref-block {
-            background: #f8f9fa;
+            background: #f8fafc;
             border: 1px solid var(--border);
             border-radius: 8px;
             padding: 15px;
-            margin-top: 10px;
+            margin: 10px 0;
         }
 
-        .file-status {
-            font-size: 11px;
-            color: var(--success);
-            margin-top: 5px;
+        .file-label {
             display: block;
-        }
-
-        /* HISTORY SECTION */
-        .history-card {
-            border-left: 5px solid var(--success);
-            background: #f0fff4;
-            font-size: 13px;
-        }
-
-        /* MOBILE OPTIMIZATIONS */
-        @media (max-width: 600px) {
-            .grid { grid-template-columns: 1fr; }
-            .fixed-footer { flex-direction: column; height: auto !important; padding: 15px !important; }
-            .fixed-footer button { width: 100%; }
-        }
-
-        /* FIXED FOOTER */
-        .fixed-footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--card);
-            padding: 15px 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 -4px 15px rgba(0,0,0,0.1);
-            z-index: 1000;
-        }
-
-        .total-mh-badge {
-            background: var(--primary);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 30px;
+            margin-top: 8px;
+            font-size: 11px;
+            color: var(--primary);
             font-weight: bold;
         }
 
-        /* LOADING OVERLAY */
-        .overlay {
+        /* FIXED ACTIONS FOOTER */
+        .fixed-actions {
             position: fixed;
-            inset: 0;
-            background: rgba(255,255,255,0.9);
-            display: none;
-            flex-direction: column;
+            bottom: 0; left: 0; right: 0;
+            background: var(--card);
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+            padding: 15px 20px;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
             align-items: center;
-            justify-content: center;
-            z-index: 2000;
+            gap: 15px;
+            z-index: 1000;
         }
+
+        .mh-total-badge {
+            background: var(--accent);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: 800;
+            color: var(--primary);
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        /* MOBILE FIXES */
+        @media (max-width: 600px) {
+            .fixed-actions {
+                grid-template-columns: 1fr 1fr;
+                padding: 10px;
+            }
+            .mh-total-badge { grid-column: span 2; order: -1; }
+            .container { padding-bottom: 200px; }
+        }
+
+        .confirm-overlay {
+            position: fixed; inset: 0;
+            background: rgba(31,83,92,0.98);
+            display: none; align-items: center; justify-content: center;
+            color: #fff; flex-direction: column; z-index: 2000;
+            text-align: center; padding: 20px;
+        }
+
+        .finding-content img {
+            width: 100%; max-height: 300px; object-fit: contain;
+            border-radius: 8px; background: #eee; margin: 10px 0;
+        }
+
+        .collapsed { display: none; }
     </style>
 </head>
 <body oninput="saveDraft()">
 
-<div class="overlay" id="loadingOverlay">
-    <div style="width: 40px; height: 40px; border: 4px solid var(--accent); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite;"></div>
-    <p id="overlayText" style="margin-top: 15px; font-weight: 600; color: var(--primary);">Processing...</p>
-</div>
-
 <div class="container">
-    <!-- General Info -->
+    <!-- Header Info -->
     <div class="section" id="infoSection">
         <h2>General Information</h2>
-        <div class="grid" id="infoGrid">
-            <div class="info-item"><small>Status</small><span>Loading Data...</span></div>
+        <div class="grid-info" id="infoGrid">
+            <div class="info-item"><small>Status</small>Loading...</div>
         </div>
     </div>
 
@@ -221,50 +208,56 @@
     <div class="section" id="findingSection">
         <h2>Finding Selection</h2>
         <select id="findingSelect" onchange="handleFindingChange(this)">
-            <option value="">Connecting to database...</option>
+            <option value="">Connecting to Sheet...</option>
         </select>
 
-        <div id="findingDetails" style="display:none; margin-top: 20px;">
-            <div class="grid">
-                <div><small>Identification</small><span id="fid">-</span></div>
-                <div><small>Action</small><span id="faction">-</span></div>
+        <div id="findingContent" class="collapsed">
+            <img src="" id="fimg">
+            <div class="row">
+                <div><small>Identification</small><p id="fid" style="font-weight:600">-</p></div>
+                <div><small>Action Given</small><p id="faction" style="font-weight:600">-</p></div>
             </div>
-            <img src="" id="fimg" style="max-width: 100%; border-radius: 8px; margin-top: 10px; max-height: 250px; object-fit: contain; background: #eee;">
         </div>
     </div>
 
-    <!-- HISTORY: Existing Tasks -->
-    <div id="historySection" style="display:none; margin-bottom: 30px;">
-        <h2 style="color:var(--success)">Previously Submitted Tasks</h2>
+    <!-- History -->
+    <div id="historySection" class="collapsed">
+        <h2 style="color:var(--success)">Existing Task Cards (Submitted)</h2>
         <div id="historyContainer"></div>
     </div>
 
-    <!-- WORK ZONE -->
-    <div id="startZone" style="text-align: center; padding: 40px;" >
-        <button class="btn-primary" onclick="startNewWork()">+ Create New Task Cards</button>
+    <!-- Creation Zone -->
+    <div id="startZone" style="text-align:center; padding: 30px;">
+        <button class="primary" onclick="startWork()" style="width: 250px;">+ Create New Task Cards</button>
     </div>
 
-    <div id="taskWorkspace" style="display:none;">
+    <div id="taskWorkspace" class="collapsed">
         <div id="taskContainer"></div>
-        <button class="btn-secondary" onclick="addTask()" style="width:100%; margin-top: 10px;">+ Add Another Task</button>
+        <button class="secondary" onclick="addTask()" style="width:100%">+ Add New Task Card</button>
     </div>
 </div>
 
-<!-- FIXED ACTIONS BAR -->
-<div class="fixed-footer">
-    <button class="btn-secondary" onclick="resetForm()">Reset All</button>
-    <div class="total-mh-badge">Total: <span id="totalMHDisplay">0.0</span> MH</div>
-    <button class="btn-primary" id="submitBtn" onclick="submitWork()">Submit Task Cards</button>
+<!-- Sticky Footer -->
+<div class="fixed-actions">
+    <button class="secondary" onclick="resetForm()">Reset</button>
+    <div class="mh-total-badge">Total: <span id="totalMH">0.0</span> MH</div>
+    <button class="primary" id="submitBtn" onclick="submitWork()">Submit All Cards</button>
+</div>
+
+<!-- Success Overlay -->
+<div class="confirm-overlay" id="confirmBox">
+    <h1 id="resMsg">Success!</h1>
+    <p>Data has been synced to the database.</p>
+    <button class="secondary" onclick="location.reload()" style="margin-top:20px">Create New Session</button>
 </div>
 
 <script>
-    // --- CONFIGURATION ---
     const API_URL = "https://script.google.com/macros/s/AKfycbxVryoi5YzLOR-0AfgH458bfO6b5LP-ffBdGNAYILLQEfQC5U8gCLmRfCmZwCLukShbyg/exec";
     
     let FINDINGS_DATA = [];
     let CURRENT_WO = "";
 
-    // --- INITIALIZATION ---
+    // 1. INITIAL LOAD
     window.onload = async () => {
         try {
             const resp = await fetch(`${API_URL}?action=getInitialData`);
@@ -273,58 +266,50 @@
             FINDINGS_DATA = data.findings;
             CURRENT_WO = data.info.woNo;
 
-            // Render Header
             document.getElementById("infoGrid").innerHTML = `
-                <div class="info-item"><small>W/O NO</small><span>${data.info.woNo}</span></div>
-                <div class="info-item"><small>A/C Reg</small><span>${data.info.acReg}</span></div>
-                <div class="info-item"><small>Customer</small><span>${data.info.customer}</span></div>
-                <div class="info-item"><small>Part</small><span>${data.info.pn} / ${data.info.sn}</span></div>
+                <div class="info-item"><small>W/O No.</small>${data.info.woNo}</div>
+                <div class="info-item"><small>Customer</small>${data.info.customer}</div>
+                <div class="info-item"><small>A/C Reg</small>${data.info.acReg}</div>
+                <div class="info-item"><small>P/N</small>${data.info.pn}</div>
             `;
 
-            // Render Select
             const select = document.getElementById("findingSelect");
-            select.innerHTML = '<option value="">-- Choose a Finding --</option>';
+            select.innerHTML = '<option value="">Select Finding No.</option>';
             data.findings.forEach(f => {
                 select.innerHTML += `<option value="${f.no}">${f.no} - ${f.identification.substring(0,30)}...</option>`;
             });
 
             loadDraft();
         } catch (e) {
-            alert("Connection Error. Please check your internet or API URL.");
+            alert("Error: Could not connect to Google Sheets.");
         }
     };
 
-    // --- CORE FUNCTIONS ---
-
+    // 2. CORE LOGIC
     function handleFindingChange(el) {
         const finding = FINDINGS_DATA.find(f => f.no == el.value);
-        const details = document.getElementById("findingDetails");
-        
-        if (!finding) {
-            details.style.display = "none";
-            return;
-        }
+        if(!finding) return;
 
         document.getElementById("fid").innerText = finding.identification;
         document.getElementById("faction").innerText = finding.action;
         document.getElementById("fimg").src = finding.pic;
-        details.style.display = "block";
+        document.getElementById("findingContent").classList.remove("collapsed");
 
-        loadExistingTasks(el.value);
+        loadHistory(el.value);
     }
 
-    async function loadExistingTasks(findingNo) {
+    async function loadHistory(fNo) {
         const container = document.getElementById("historyContainer");
         const section = document.getElementById("historySection");
-        container.innerHTML = "<p>Searching for existing records...</p>";
-        section.style.display = "block";
+        container.innerHTML = "Loading history...";
+        section.classList.remove("collapsed");
 
         try {
-            const resp = await fetch(`${API_URL}?action=getExistingTasks&findingNo=${findingNo}`);
+            const resp = await fetch(`${API_URL}?action=getExistingTasks&findingNo=${fNo}`);
             const tasks = await resp.json();
 
-            if (!tasks || tasks.length === 0) {
-                section.style.display = "none";
+            if (tasks.length === 0) {
+                section.classList.add("collapsed");
                 return;
             }
 
@@ -332,139 +317,130 @@
             tasks.forEach(t => {
                 const div = document.createElement("div");
                 div.className = "task-card history-card";
+                
+                let refsHtml = t.references.map(r => `
+                    <div style="font-size:12px; margin-top:5px; padding:5px; background:#fff; border-radius:4px; display:flex; justify-content:space-between;">
+                        <span><b>${r.docType}:</b> ${r.title}</span>
+                        <a href="${r.link}" target="_blank" style="color:var(--primary)">View 📂</a>
+                    </div>
+                `).join("");
+
                 div.innerHTML = `
                     <div class="task-header">
-                        <span class="task-no">${t.taskNo} | ${t.type}</span>
-                        <span class="total-mh-badge" style="background:var(--success); font-size:10px;">${t.mh} MH</span>
+                        <b>${t.taskNo} | ${t.type}</b>
+                        <span class="mh-total-badge">${t.mh} MH</span>
                     </div>
-                    <div style="font-size:12px; white-space:pre-wrap;">${t.description}</div>
+                    <p style="font-size:13px; margin:10px 0;">${t.description}</p>
+                    <div style="background:var(--accent); padding:10px; border-radius:8px;">
+                        <small><b>REFERENCES:</b></small>${refsHtml || '<br>None'}
+                    </div>
                 `;
                 container.appendChild(div);
             });
-        } catch (e) {
-            container.innerHTML = "<p>Could not load history.</p>";
-        }
-    }
-
-    function startNewWork() {
-        if (!document.getElementById("findingSelect").value) return alert("Select a Finding first!");
-        document.getElementById("startZone").style.display = "none";
-        document.getElementById("taskWorkspace").style.display = "block";
-        document.getElementById("infoSection").classList.add("locked");
-        document.getElementById("findingSection").classList.add("locked");
-        if (document.getElementById("taskContainer").children.length === 0) addTask();
+        } catch (e) { container.innerHTML = "Failed to load history."; }
     }
 
     function addTask(data = null) {
-        const id = Date.now();
         const card = document.createElement("div");
         card.className = "task-card";
-        card.id = `task-${id}`;
         card.innerHTML = `
             <div class="task-header">
-                <span class="task-no">TASK NO: ...</span>
+                <span class="task-no-label">TASK T0000</span>
                 <div style="display:flex; gap:10px;">
-                    <button class="btn-secondary" style="font-size:11px; padding:4px 8px;" onclick="duplicateTask('${id}')">Duplicate</button>
-                    <button class="btn-outline-danger" onclick="removeTask('${id}')">Remove</button>
+                    <button class="secondary" style="font-size:11px; padding:5px 10px;" onclick="duplicateCard(this)">Duplicate</button>
+                    <button class="danger-link" onclick="removeCard(this)">Remove</button>
                 </div>
             </div>
-            <div class="grid">
+            <div class="row">
                 <select><option>Structure</option><option>Cabin</option><option>Special Process</option></select>
                 <select><option>Inspection</option><option>Remove / Install</option><option>Repair</option><option>General</option></select>
-                <input type="number" step="0.1" placeholder="Man-Hours" class="mh-input" oninput="calculateTotalMH()">
+                <input type="number" step="0.1" placeholder="MH" class="mh-input" oninput="calculateTotalMH()">
             </div>
-            <textarea placeholder="Work description..."></textarea>
+            <textarea placeholder="Work Description..." oninput="autoResize(this)"></textarea>
             
-            <div class="ref-container"></div>
-            <button class="btn-secondary" style="font-size:11px; margin-top:10px;" onclick="addReference('${id}')">+ Add Reference</button>
+            <div class="ref-list"></div>
+            <button class="secondary" style="width:auto; font-size:12px; padding:5px 15px;" onclick="addRef(this)">+ Add Reference</button>
             
-            <div style="margin-top:15px; border-top: 1px solid var(--accent); padding-top:10px;">
-                <small style="cursor:pointer; color:var(--primary)" onclick="this.nextElementSibling.style.display='block'; this.remove()">+ Add Internal Notes</small>
-                <textarea style="display:none; margin-top:10px; background:#fdfdfd" placeholder="Internal engineer notes (Optional)"></textarea>
+            <div class="notes-section" style="margin-top:15px; border-top:1px solid #eee; padding-top:10px;">
+                <textarea placeholder="Internal Notes (Optional)" style="font-size:12px; min-height:40px;"></textarea>
             </div>
         `;
         document.getElementById("taskContainer").appendChild(card);
         
-        if (data) fillTaskData(card, data);
-        updateTaskNumbers();
+        if(data) fillCardData(card, data);
+        updateNumbers();
     }
 
-    function fillTaskData(card, data) {
+    function fillCardData(card, data) {
         const selects = card.querySelectorAll("select");
-        selects[0].value = data.category;
+        selects[0].value = data.cat;
         selects[1].value = data.type;
         card.querySelector(".mh-input").value = data.mh;
-        card.querySelectorAll("textarea")[0].value = data.description;
-        if(data.notes) {
-            const noteArea = card.querySelectorAll("textarea")[1];
-            noteArea.style.display = 'block';
-            noteArea.value = data.notes;
-        }
-        data.refs.forEach(r => addReference(card.id.split('-')[1], r));
+        const textareas = card.querySelectorAll("textarea");
+        textareas[0].value = data.desc;
+        textareas[1].value = data.note;
+        if(data.refs) data.refs.forEach(r => addRef(card.querySelector("button"), r));
     }
 
-    function addReference(taskId, data = null) {
-        const container = document.querySelector(`#task-${taskId} .ref-container`);
-        const ref = document.createElement("div");
-        ref.className = "ref-block";
-        ref.innerHTML = `
-            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                <small class="ref-no" style="font-weight:bold; color:var(--primary)">REF: ...</small>
-                <button class="btn-outline-danger" style="padding:2px 5px;" onclick="this.parentElement.parentElement.remove(); updateTaskNumbers();">Remove</button>
+    function addRef(btn, data = null) {
+        const list = btn.previousElementSibling;
+        const div = document.createElement("div");
+        div.className = "ref-block";
+        div.innerHTML = `
+            <div style="display:flex; justify-content:space-between">
+                <small class="ref-label">Reference R01</small>
+                <button class="danger-link" onclick="this.parentElement.parentElement.remove(); updateNumbers();">Remove</button>
             </div>
-            <div class="grid">
+            <div class="row">
                 <select><option>AMM</option><option>CMM</option><option>SRM</option></select>
-                <input placeholder="Chapter/Section">
-                <input placeholder="Rev.">
+                <input placeholder="Chapter / Title">
+            </div>
+            <div class="row">
+                <input placeholder="Rev">
                 <input type="date">
             </div>
-            <input type="file" onchange="updateFileName(this)" style="font-size:11px; border:none; padding:5px 0;">
-            <span class="file-status"></span>
+            <input type="file" onchange="updateFileName(this)" style="font-size:11px; border:none; padding:0;">
+            <span class="file-label"></span>
         `;
-        container.appendChild(ref);
-        if (data) {
-            ref.querySelector("select").value = data.docType;
-            const inputs = ref.querySelectorAll("input");
-            inputs[0].value = data.title;
-            inputs[1].value = data.rev;
-            inputs[2].value = data.date;
+        list.appendChild(div);
+        if(data) {
+            div.querySelector("select").value = data.docType;
+            const ins = div.querySelectorAll("input");
+            ins[0].value = data.title; ins[1].value = data.rev; ins[2].value = data.date;
         }
-        updateTaskNumbers();
+        updateNumbers();
     }
 
     function updateFileName(input) {
-        const status = input.nextElementSibling;
-        status.innerText = input.files[0] ? `✓ ${input.files[0].name}` : "";
+        const label = input.nextElementSibling;
+        label.innerText = input.files[0] ? "Attached: " + input.files[0].name : "";
     }
 
-    function updateTaskNumbers() {
-        document.querySelectorAll(".task-card").forEach((card, i) => {
-            const tNum = String((i + 1) * 10).padStart(4, '0');
-            card.querySelector(".task-no").innerText = `TASK NO: T${tNum}`;
-            card.querySelectorAll(".ref-block").forEach((ref, ri) => {
-                ref.querySelector(".ref-no").innerText = `REF: R${String(ri + 1).padStart(2, '0')}`;
+    function calculateTotalMH() {
+        let total = 0;
+        document.querySelectorAll(".mh-input").forEach(i => total += parseFloat(i.value || 0));
+        document.getElementById("totalMH").innerText = total.toFixed(1);
+    }
+
+    function updateNumbers() {
+        document.querySelectorAll(".task-card").forEach((c, i) => {
+            c.querySelector(".task-no-label").innerText = "TASK T" + String((i+1)*10).padStart(4, '0');
+            c.querySelectorAll(".ref-label").forEach((r, ri) => {
+                r.innerText = "Reference R" + String(ri+1).padStart(2, '0');
             });
         });
         calculateTotalMH();
     }
 
-    function calculateTotalMH() {
-        let total = 0;
-        document.querySelectorAll(".mh-input").forEach(input => {
-            total += parseFloat(input.value) || 0;
-        });
-        document.getElementById("totalMHDisplay").innerText = total.toFixed(1);
-    }
-
-    function duplicateTask(taskId) {
-        const original = document.getElementById(`task-${taskId}`);
+    function duplicateCard(btn) {
+        const card = btn.closest(".task-card");
         const data = {
-            category: original.querySelectorAll("select")[0].value,
-            type: original.querySelectorAll("select")[1].value,
-            mh: original.querySelector(".mh-input").value,
-            description: original.querySelectorAll("textarea")[0].value,
-            notes: original.querySelectorAll("textarea")[1].value,
-            refs: Array.from(original.querySelectorAll(".ref-block")).map(r => ({
+            cat: card.querySelectorAll("select")[0].value,
+            type: card.querySelectorAll("select")[1].value,
+            mh: card.querySelector(".mh-input").value,
+            desc: card.querySelectorAll("textarea")[0].value,
+            note: card.querySelectorAll("textarea")[1].value,
+            refs: Array.from(card.querySelectorAll(".ref-block")).map(r => ({
                 docType: r.querySelector("select").value,
                 title: r.querySelectorAll("input")[0].value,
                 rev: r.querySelectorAll("input")[1].value,
@@ -474,25 +450,17 @@
         addTask(data);
     }
 
-    function removeTask(id) {
-        if (confirm("Delete this card?")) {
-            document.getElementById(`task-${id}`).remove();
-            updateTaskNumbers();
-        }
-    }
-
-    // --- DRAFT & SUBMISSION ---
-
+    // 3. STORAGE & SUBMISSION
     function saveDraft() {
         const draft = {
-            finding: document.getElementById("findingSelect").value,
-            tasks: Array.from(document.querySelectorAll(".task-card:not(.history-card)")).map(card => ({
-                category: card.querySelectorAll("select")[0].value,
-                type: card.querySelectorAll("select")[1].value,
-                mh: card.querySelector(".mh-input").value,
-                description: card.querySelectorAll("textarea")[0].value,
-                notes: card.querySelectorAll("textarea")[1].value,
-                refs: Array.from(card.querySelectorAll(".ref-block")).map(r => ({
+            fNo: document.getElementById("findingSelect").value,
+            tasks: Array.from(document.querySelectorAll(".task-card")).map(c => ({
+                cat: c.querySelectorAll("select")[0].value,
+                type: c.querySelectorAll("select")[1].value,
+                mh: c.querySelector(".mh-input").value,
+                desc: c.querySelectorAll("textarea")[0].value,
+                note: c.querySelectorAll("textarea")[1].value,
+                refs: Array.from(c.querySelectorAll(".ref-block")).map(r => ({
                     docType: r.querySelector("select").value,
                     title: r.querySelectorAll("input")[0].value,
                     rev: r.querySelectorAll("input")[1].value,
@@ -505,13 +473,13 @@
 
     function loadDraft() {
         const saved = localStorage.getItem("tc_draft");
-        if (!saved) return;
+        if(!saved) return;
         const draft = JSON.parse(saved);
-        if (draft.finding) {
-            document.getElementById("findingSelect").value = draft.finding;
+        if(draft.fNo) {
+            document.getElementById("findingSelect").value = draft.fNo;
             handleFindingChange(document.getElementById("findingSelect"));
-            if (draft.tasks.length > 0) {
-                startNewWork();
+            if(draft.tasks.length > 0) {
+                startWork();
                 document.getElementById("taskContainer").innerHTML = "";
                 draft.tasks.forEach(t => addTask(t));
             }
@@ -520,39 +488,38 @@
 
     async function submitWork() {
         const fNo = document.getElementById("findingSelect").value;
-        if (!fNo) return alert("Please select a finding.");
+        if(!fNo) return alert("Validation Error: Please select a Finding No.");
 
-        const cards = document.querySelectorAll(".task-card:not(.history-card)");
-        if (cards.length === 0) return alert("Add at least one task.");
+        const cards = document.querySelectorAll(".task-card");
+        if(cards.length === 0) return alert("Add at least one task card.");
 
-        const tasks = [];
+        const payloadTasks = [];
         for (let card of cards) {
             const desc = card.querySelectorAll("textarea")[0].value;
             const mh = card.querySelector(".mh-input").value;
-
-            if (!desc || !mh) return alert("Missing Description or Man-Hours in a task card.");
+            if(!desc || !mh) return alert("Validation Error: Description and Man-Hours are required.");
 
             const refs = [];
-            for (let r of card.querySelectorAll(".ref-block")) {
-                const fileInput = r.querySelector('input[type="file"]');
+            for (let rb of card.querySelectorAll(".ref-block")) {
+                const fileIn = rb.querySelector('input[type="file"]');
                 let fileData = null;
-                if (fileInput.files[0]) {
-                    fileData = {
-                        name: fileInput.files[0].name,
-                        mimeType: fileInput.files[0].type,
-                        base64: await toBase64(fileInput.files[0])
+                if(fileIn.files[0]) {
+                    fileData = { 
+                        name: fileIn.files[0].name, 
+                        mimeType: fileIn.files[0].type, 
+                        base64: await toBase64(fileIn.files[0]) 
                     };
                 }
                 refs.push({
-                    docType: r.querySelector("select").value,
-                    title: r.querySelectorAll("input")[0].value,
-                    rev: r.querySelectorAll("input")[1].value,
-                    date: r.querySelectorAll("input")[2].value,
+                    docType: rb.querySelector("select").value,
+                    title: rb.querySelectorAll("input")[0].value,
+                    rev: rb.querySelectorAll("input")[1].value,
+                    date: rb.querySelectorAll("input")[2].value,
                     fileData: fileData
                 });
             }
 
-            tasks.push({
+            payloadTasks.push({
                 findingNo: fNo,
                 category: card.querySelectorAll("select")[0].value,
                 type: card.querySelectorAll("select")[1].value,
@@ -563,52 +530,48 @@
             });
         }
 
-        // UI Loading State
-        const overlay = document.getElementById("loadingOverlay");
+        // START UPLOAD
         const btn = document.getElementById("submitBtn");
-        overlay.style.display = "flex";
-        btn.disabled = true;
-        btn.innerText = "Uploading...";
+        btn.disabled = true; btn.innerText = "Uploading...";
 
         try {
             const response = await fetch(API_URL, {
                 method: "POST",
-                body: JSON.stringify({ action: "saveTaskCards", wo: CURRENT_WO, tasks: tasks })
+                body: JSON.stringify({ action: "saveTaskCards", wo: CURRENT_WO, tasks: payloadTasks })
             });
             const result = await response.json();
             
-            if (result.status === "success") {
-                alert("Task Cards Uploaded Successfully!");
+            if(result.status === "success") {
                 localStorage.removeItem("tc_draft");
-                location.reload();
+                document.getElementById("confirmBox").style.display = "flex";
             } else {
                 throw new Error(result.message);
             }
         } catch (e) {
-            alert("Success check: The server processed the request. If no error appeared in Sheet, records are saved.");
-            localStorage.removeItem("tc_draft");
-            location.reload();
+            alert("Submission error. Check your connection.");
+            btn.disabled = false; btn.innerText = "Submit All Cards";
         }
     }
 
-    const toBase64 = file => new Promise((resolve, reject) => {
+    // UTILS
+    const toBase64 = file => new Promise((res, rej) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.onerror = error => reject(error);
+        reader.onload = () => res(reader.result.split(',')[1]);
+        reader.onerror = e => rej(e);
     });
 
-    function resetForm() {
-        if (confirm("Reset everything? Current progress will be lost.")) {
-            localStorage.removeItem("tc_draft");
-            location.reload();
-        }
+    function autoResize(t) { t.style.height = "auto"; t.style.height = t.scrollHeight + "px"; }
+    function startWork() {
+        if(!document.getElementById("findingSelect").value) return alert("Select a finding first.");
+        document.getElementById("startZone").style.display = "none";
+        document.getElementById("taskWorkspace").classList.remove("collapsed");
+        document.getElementById("infoSection").classList.add("locked");
+        document.getElementById("findingSection").classList.add("locked");
+        if(document.getElementById("taskContainer").children.length === 0) addTask();
     }
-
-    // Animation for spinner
-    const style = document.createElement('style');
-    style.innerHTML = `@keyframes spin { to { transform: rotate(360deg); } }`;
-    document.head.appendChild(style);
+    function removeCard(btn) { if(confirm("Delete task?")) { btn.closest(".task-card").remove(); updateNumbers(); }}
+    function resetForm() { if(confirm("Clear all data?")) { localStorage.removeItem("tc_draft"); location.reload(); }}
 </script>
 
 </body>
