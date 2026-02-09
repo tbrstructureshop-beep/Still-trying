@@ -28,7 +28,7 @@
             line-height: 1.5;
         }
 
-        /* LOADING SPINNER */
+        /* GLOBAL SPINNER */
         #spinner {
             position: fixed; inset: 0;
             background: rgba(255,255,255,0.7);
@@ -59,7 +59,6 @@
             position: relative;
         }
 
-        /* Collapsing fix: allow details to toggle even when locked */
         .section.locked { opacity: 0.8; border: 1px dashed var(--border); }
         .section.locked select { pointer-events: none; background: #f9fafb; }
 
@@ -74,7 +73,7 @@
             align-items: center;
         }
 
-        /* FINDING DETAILS STYLE */
+        /* FINDING DETAILS */
         .finding-image-wrapper {
             width: 100%;
             display: flex;
@@ -107,7 +106,10 @@
             border-top: 5px solid var(--primary);
         }
 
+        /* HISTORY CARD SPECIFICS */
         .history-card { border-top-color: var(--success); }
+        .history-card .detail-zone { display: none; padding-top: 15px; margin-top: 15px; border-top: 1px dashed var(--border); }
+        .history-card.expanded .detail-zone { display: block; }
 
         .result-entry-zone {
             background: #fff9e6;
@@ -181,14 +183,10 @@
     <p style="margin-top:10px; font-weight:bold; color:var(--primary)">Syncing Data...</p>
 </div>
 
-<!-- Datalist for Document Suggestions -->
 <datalist id="docTypes">
     <option value="AMM">
     <option value="CMM">
     <option value="SRM">
-    <option value="SB">
-    <option value="AD">
-    <option value="EM">
 </datalist>
 
 <div class="container">
@@ -204,7 +202,7 @@
     <div class="section" id="findingSection">
         <h2>
             Finding Selection
-            <button id="toggleFindingBtn" class="btn-secondary hidden" style="font-size:11px; padding:4px 8px;" onclick="toggleFinding()">Hide Details</button>
+            <button id="toggleFindingBtn" class="btn-secondary hidden" style="font-size:11px; padding:4px 8px;" onclick="toggleVisibility('findingContent', this)">Show Details</button>
         </h2>
         <select id="findingSelect" onchange="handleFindingChange(this)">
             <option value="">Fetching Findings...</option>
@@ -227,13 +225,16 @@
         </div>
     </div>
 
-    <!-- Generated Task History -->
-    <div id="historySection" class="hidden">
-        <h2 style="color:var(--success)">Existing Task Cards (Submitted)</h2>
+    <!-- Collapsible History -->
+    <div id="historySection" class="section hidden">
+        <h2 style="color:var(--success)">
+            Existing Task Cards (Submitted)
+            <button id="toggleHistoryBtn" class="btn-secondary" style="font-size:11px; padding:4px 8px;" onclick="toggleVisibility('historyContainer', this)">Hide List</button>
+        </h2>
         <div id="historyContainer"></div>
     </div>
 
-    <!-- New Tasks Zone -->
+    <!-- Workspace -->
     <div id="startZone" style="text-align:center; padding: 40px;">
         <button class="btn-primary" onclick="startWork()" style="width: 250px;">+ Create New Task Cards</button>
     </div>
@@ -244,16 +245,14 @@
     </div>
 </div>
 
-<!-- Fixed Action Bar -->
+<!-- Footer Actions -->
 <div class="fixed-footer">
     <button class="btn-secondary" onclick="resetForm()">Reset Session</button>
-    
     <div class="mh-stats">
         <span>Existing: <span id="existingMH">0.0</span> MH</span>
         <span>Session: <span id="sessionMH">0.0</span> MH</span>
         <span class="grand-total">Total: <span id="grandTotalMH">0.0</span> MH</span>
     </div>
-
     <button class="btn-primary" id="submitBtn" onclick="submitWork()">Submit Task Cards</button>
 </div>
 
@@ -273,6 +272,13 @@
         if (isNaN(date.getTime())) return dateStr;
         const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         return `${String(date.getDate()).padStart(2, '0')} ${months[date.getMonth()]} ${date.getFullYear()}`;
+    }
+
+    function toggleVisibility(id, btn) {
+        const el = document.getElementById(id);
+        const isHidden = el.classList.toggle("hidden");
+        const baseText = id === "historyContainer" ? "List" : "Details";
+        btn.innerText = isHidden ? `Show ${baseText}` : `Hide ${baseText}`;
     }
 
     window.onload = async () => {
@@ -297,7 +303,7 @@
             });
 
             loadDraft();
-        } catch (e) { alert("Initialization Fail: Check Connection."); }
+        } catch (e) { alert("Initialization Fail."); }
         showSpinner(false);
     };
 
@@ -311,15 +317,9 @@
         
         document.getElementById("findingContent").classList.remove("hidden");
         document.getElementById("toggleFindingBtn").classList.remove("hidden");
+        document.getElementById("toggleFindingBtn").innerText = "Hide Details";
         
         loadHistory(el.value);
-    }
-
-    function toggleFinding() {
-        const content = document.getElementById("findingContent");
-        const btn = document.getElementById("toggleFindingBtn");
-        const isHidden = content.classList.toggle("hidden");
-        btn.innerText = isHidden ? "Show Details" : "Hide Details";
     }
 
     async function loadHistory(fNo) {
@@ -352,40 +352,43 @@
                 card.className = "task-card history-card";
                 
                 const refsHtml = t.references.map(r => `
-                    <div style="display:flex; justify-content:space-between; align-items:center; background:#fff; padding:8px; border-radius:6px; margin-top:5px; border:1px solid var(--border); font-size:12px;">
+                    <div style="background:#fff; padding:6px 12px; border-radius:6px; margin-top:5px; border:1px solid var(--border); font-size:11px; display:flex; justify-content:space-between; align-items:center;">
                         <span><b>${r.docType}</b> - ${r.title} - Rev: ${r.rev || '0'} / ${formatNiceDate(r.date)}</span>
-                        <a href="${r.link}" target="_blank"><button class="btn-secondary" style="font-size:10px; padding:4px 8px;">View File 📂</button></a>
+                        <a href="${r.link}" target="_blank"><button class="btn-secondary" style="font-size:10px; padding:3px 6px;">View 📂</button></a>
                     </div>
                 `).join("");
 
                 card.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; font-weight:bold; color:var(--primary)">
-                        <span>${t.taskNo} | ${t.type}</span>
-                        <span>${t.mh} MH</span>
-                    </div>
-                    <div style="font-size:13px; margin:10px 0; white-space:pre-wrap;">${t.description}</div>
-                    
-                    <div style="background:var(--accent); padding:10px; border-radius:8px;">
-                        <small><b>REFERENCES:</b></small>
-                        ${refsHtml || '<div style="font-size:11px; margin-top:5px;">No instructions attached</div>'}
-                    </div>
-
-                    ${t.notes ? `
-                        <div style="margin-top:10px; border-top:1px dashed #ccc; padding-top:8px;">
-                            <span class="data-label">NOTE</span>
-                            <div class="data-content" style="font-size:13px; margin-bottom:0;">${t.notes}</div>
-                        </div>` : ''}
-
-                    ${t.type === "Inspection" ? `
-                        <div class="result-entry-zone">
-                            <span class="data-label" style="color:var(--warning)">RECORD INSPECTION RESULT</span>
-                            <textarea id="res-${t.taskNo}" placeholder="Type inspection findings here..."></textarea>
-                            <div class="row" style="margin-top:10px;">
-                                <input type="file" id="file-${t.taskNo}" style="border:none;">
-                                <button class="btn-success" onclick="saveResult('${t.taskNo}')">Upload & Save</button>
-                            </div>
+                    <div style="display:flex; justify-content:space-between; font-weight:bold; color:var(--primary); align-items:center;">
+                        <span>${t.taskNo} | ${t.type} (${t.category})</span>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span style="font-size:12px; color:var(--muted)">${t.mh} MH</span>
+                            <button class="btn-secondary" style="font-size:10px; padding:4px 8px;" onclick="this.closest('.history-card').classList.toggle('expanded'); this.innerText = this.closest('.history-card').classList.contains('expanded') ? 'Hide Detail' : 'See Detail Task'">See Detail Task</button>
                         </div>
-                    ` : ''}
+                    </div>
+                    
+                    <div style="background:var(--accent); padding:8px; border-radius:8px; margin-top:10px;">
+                        <small><b>REFERENCES:</b></small>
+                        ${refsHtml || '<div style="font-size:11px;">No references.</div>'}
+                    </div>
+
+                    <div class="detail-zone">
+                        <span class="data-label">Work Description</span>
+                        <div class="data-content" style="font-size:13px;">${t.description}</div>
+
+                        ${t.notes ? `<span class="data-label">Note</span><div class="data-content" style="font-size:13px;">${t.notes}</div>` : ''}
+
+                        ${t.type === "Inspection" ? `
+                            <div class="result-entry-zone">
+                                <span class="data-label" style="color:var(--warning)">Record Inspection Result</span>
+                                <textarea id="res-${t.taskNo}" placeholder="Type actual findings..."></textarea>
+                                <div class="row" style="margin-top:10px;">
+                                    <input type="file" id="file-${t.taskNo}" style="border:none;">
+                                    <button class="btn-success" onclick="saveResult('${t.taskNo}')">Upload & Save Result</button>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
                 `;
                 container.appendChild(card);
             });
@@ -397,7 +400,7 @@
 
     async function saveResult(taskNo) {
         const text = document.getElementById(`res-${taskNo}`).value;
-        if(!text) return alert("Result text required.");
+        if(!text) return alert("Result is empty.");
         showSpinner(true);
         const fIn = document.getElementById(`file-${taskNo}`);
         let fData = null;
@@ -409,7 +412,7 @@
                 findingNo: document.getElementById("findingSelect").value, 
                 taskNo, result: text, fileData: fData 
             }) });
-            alert("Result Saved.");
+            alert("Result Saved Successfully.");
         } catch (e) { alert("Error."); }
         showSpinner(false);
     }
@@ -438,11 +441,11 @@
                 <select class="field-type"><option>Inspection</option><option>Remove / Install</option><option>Repair</option><option>General</option></select>
                 <input type="number" step="0.1" placeholder="MH" class="field-mh" oninput="updateMHDisplays()">
             </div>
-            <textarea class="field-desc" placeholder="Instruction description..." oninput="autoResize(this)"></textarea>
+            <textarea class="field-desc" placeholder="Work Instruction..." oninput="autoResize(this)"></textarea>
             <div class="ref-container"></div>
             <button class="btn-secondary" style="font-size:11px; margin-top:10px;" onclick="addRef(this)">+ Add Reference</button>
             <div style="margin-top:15px; border-top:1px solid #eee; padding-top:10px;">
-                <textarea class="field-note" placeholder="Internal private note..." style="font-size:12px; min-height:40px;"></textarea>
+                <textarea class="field-note" placeholder="Internal Engineer Note..." style="font-size:12px; min-height:40px;"></textarea>
             </div>
         `;
         document.getElementById("taskContainer").appendChild(card);
@@ -451,9 +454,9 @@
     }
 
     function fillTaskData(card, data) {
-        card.querySelector(".field-cat").value = data.cat; 
+        card.querySelector(".field-cat").value = data.cat;
         card.querySelector(".field-type").value = data.type;
-        card.querySelector(".field-mh").value = data.mh; 
+        card.querySelector(".field-mh").value = data.mh;
         card.querySelector(".field-desc").value = data.desc;
         card.querySelector(".field-note").value = data.note;
         if(data.refs) data.refs.forEach(r => addRef(card.querySelector(".btn-secondary"), r));
@@ -468,7 +471,7 @@
                 <button class="btn-danger" onclick="this.parentElement.parentElement.remove(); updateNumbers();">Remove</button>
             </div>
             <div class="row">
-                <input list="docTypes" class="r-doc" placeholder="Doc Type (AMM, SRM, etc.)">
+                <input list="docTypes" class="r-doc" placeholder="Doc Type">
                 <input class="r-title" placeholder="Chapter / Task">
             </div>
             <div class="row">
@@ -476,14 +479,14 @@
                 <input class="r-date" type="date">
             </div>
             <input type="file" class="r-file" onchange="this.nextElementSibling.innerText=this.files[0] ? 'Attached: ' + this.files[0].name : ''" style="font-size:11px; border:none; padding:0;">
-            <div style="font-size:10px; color:var(--success); margin-top:4px;"></div>
+            <div style="font-size:10px; color:var(--success)"></div>
         `;
         btn.previousElementSibling.appendChild(div);
-        if(data) { 
-            div.querySelector(".r-doc").value = data.docType; 
-            div.querySelector(".r-title").value = data.title; 
-            div.querySelector(".r-rev").value = data.rev; 
-            div.querySelector(".r-date").value = data.date; 
+        if(data) {
+            div.querySelector(".r-doc").value = data.docType;
+            div.querySelector(".r-title").value = data.title;
+            div.querySelector(".r-rev").value = data.rev;
+            div.querySelector(".r-date").value = data.date;
         }
         updateNumbers();
     }
@@ -500,16 +503,12 @@
     function duplicateTask(btn) {
         const c = btn.closest(".task-card");
         const data = { 
-            cat: c.querySelector(".field-cat").value, 
-            type: c.querySelector(".field-type").value, 
-            mh: c.querySelector(".field-mh").value, 
-            desc: c.querySelector(".field-desc").value, 
+            cat: c.querySelector(".field-cat").value, type: c.querySelector(".field-type").value, 
+            mh: c.querySelector(".field-mh").value, desc: c.querySelector(".field-desc").value, 
             note: c.querySelector(".field-note").value, 
             refs: Array.from(c.querySelectorAll(".ref-container > div")).map(r => ({ 
-                docType: r.querySelector(".r-doc").value, 
-                title: r.querySelector(".r-title").value, 
-                rev: r.querySelector(".r-rev").value, 
-                date: r.querySelector(".r-date").value 
+                docType: r.querySelector(".r-doc").value, title: r.querySelector(".r-title").value, 
+                rev: r.querySelector(".r-rev").value, date: r.querySelector(".r-date").value 
             })) 
         };
         addTask(data);
@@ -519,7 +518,7 @@
         const fNo = document.getElementById("findingSelect").value;
         if(!fNo) return alert("Select finding.");
         const cards = document.querySelectorAll("#taskWorkspace .task-card");
-        if(cards.length === 0) return alert("Add task instructions.");
+        if(cards.length === 0) return alert("Add task.");
 
         showSpinner(true);
         const payload = [];
@@ -531,18 +530,14 @@
             for (let r of c.querySelectorAll(".ref-container > div")) {
                 const f = r.querySelector(".r-file").files[0];
                 refs.push({ 
-                    docType: r.querySelector(".r-doc").value, 
-                    title: r.querySelector(".r-title").value, 
-                    rev: r.querySelector(".r-rev").value, 
-                    date: r.querySelector(".r-date").value, 
+                    docType: r.querySelector(".r-doc").value, title: r.querySelector(".r-title").value, 
+                    rev: r.querySelector(".r-rev").value, date: r.querySelector(".r-date").value, 
                     fileData: f ? { name: f.name, mimeType: f.type, base64: await toBase64(f) } : null 
                 });
             }
             payload.push({ 
-                findingNo: fNo, 
-                taskNo: c.querySelector(".task-no-label").innerText.split(" ")[1], 
-                category: c.querySelector(".field-cat").value, 
-                type: c.querySelector(".field-type").value, 
+                findingNo: fNo, taskNo: c.querySelector(".task-no-label").innerText.split(" ")[1], 
+                category: c.querySelector(".field-cat").value, type: c.querySelector(".field-type").value, 
                 mh, description: desc, notes: c.querySelector(".field-note").value, references: refs 
             });
         }
@@ -550,9 +545,9 @@
         try {
             await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "saveTaskCards", wo: CURRENT_WO, tasks: payload }) });
             localStorage.removeItem("tc_draft");
-            alert("Upload Success!");
+            alert("Submission Success!");
             location.reload();
-        } catch (e) { alert("Submission Fail."); }
+        } catch (e) { alert("Error."); }
         showSpinner(false);
     }
 
@@ -560,16 +555,12 @@
         const d = { 
             fNo: document.getElementById("findingSelect").value, 
             tasks: Array.from(document.querySelectorAll("#taskContainer .task-card")).map(c => ({ 
-                cat: c.querySelector(".field-cat").value, 
-                type: c.querySelector(".field-type").value, 
-                mh: c.querySelector(".field-mh").value, 
-                desc: c.querySelector(".field-desc").value, 
+                cat: c.querySelector(".field-cat").value, type: c.querySelector(".field-type").value, 
+                mh: c.querySelector(".field-mh").value, desc: c.querySelector(".field-desc").value, 
                 note: c.querySelector(".field-note").value, 
                 refs: Array.from(c.querySelectorAll(".ref-container > div")).map(r => ({ 
-                    docType: r.querySelector(".r-doc").value, 
-                    title: r.querySelector(".r-title").value, 
-                    rev: r.querySelector(".r-rev").value, 
-                    date: r.querySelector(".r-date").value 
+                    docType: r.querySelector(".r-doc").value, title: r.querySelector(".r-title").value, 
+                    rev: r.querySelector(".r-rev").value, date: r.querySelector(".r-date").value 
                 })) 
             })) 
         };
@@ -593,18 +584,16 @@
 
     const toBase64 = f => new Promise((res, rej) => { const r = new FileReader(); r.readAsDataURL(f); r.onload = () => res(r.result.split(',')[1]); r.onerror = e => rej(e); });
     function autoResize(t) { t.style.height = "auto"; t.style.height = t.scrollHeight + "px"; }
-    
     function startWork() {
-        if(!document.getElementById("findingSelect").value) return alert("Select a finding first.");
+        if(!document.getElementById("findingSelect").value) return alert("Select finding.");
         document.getElementById("startZone").classList.add("hidden");
         document.getElementById("taskWorkspace").classList.remove("hidden");
         document.getElementById("infoSection").classList.add("locked");
         document.getElementById("findingSection").classList.add("locked");
         if(document.getElementById("taskContainer").children.length === 0) addTask();
     }
-    
-    function removeCard(b) { if(confirm("Confirm Remove?")) { b.closest(".task-card").remove(); updateNumbers(); }}
-    function resetForm() { if(confirm("Discard work?")) { localStorage.removeItem("tc_draft"); location.reload(); }}
+    function removeCard(b) { if(confirm("Remove?")) { b.closest(".task-card").remove(); updateNumbers(); }}
+    function resetForm() { if(confirm("Discard?")) { localStorage.removeItem("tc_draft"); location.reload(); }}
 </script>
 
 </body>
