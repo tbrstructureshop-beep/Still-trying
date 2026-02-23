@@ -3,562 +3,406 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Card Manager - PRO Unified</title>
+    <title>AeroLog Pro | Aviation Maintenance Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #f0f2f5;
-            --card: #ffffff;
-            --text: #1f2933;
-            --muted: #6b7280;
-            --primary: #1f535c;
-            --accent: #e5eef0;
-            --danger: #c0392b;
-            --success: #27ae60;
-            --warning: #f39c12;
-            --border: #d1d5db;
-            --shadow: 0 4px 12px rgba(0,0,0,0.08);
+            --primary: #318b91;
+            --primary-dark: #266d72;
+            --bg-body: #f8fafc;
+            --bg-card: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --radius: 12px;
+            --transition: all 0.2s ease;
         }
 
-        * { box-sizing: border-box; }
-        body {
-            margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.5;
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-body); color: var(--text-main); line-height: 1.5; overflow-x: hidden; }
+
+        /* Header & Search */
+        header {
+            background: var(--bg-card);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border);
+            box-shadow: var(--shadow);
         }
 
-        /* GLOBAL SPINNER */
-        #spinner {
-            position: fixed; inset: 0;
-            background: rgba(255,255,255,0.7);
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .nav-top { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-weight: 700; font-size: 1.25rem; color: var(--primary); letter-spacing: -0.025em; }
+        
+        .search-wrapper { position: relative; width: 100%; }
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.75rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 0.95rem;
+            transition: var(--transition);
+            background: #f1f5f9;
+        }
+        .search-input:focus { outline: none; border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(49, 139, 145, 0.15); }
+        .search-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+
+        /* Card Layout */
+        main { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .record-card {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .record-card:hover { transform: translateY(-4px); border-color: var(--primary); }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .card-no { font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; }
+        .card-date { font-weight: 600; font-size: 1.1rem; }
+        .card-ref { font-size: 0.85rem; color: var(--text-muted); background: #f1f5f9; padding: 0.25rem 0.5rem; border-radius: 4px; display: inline-block; }
+        .card-tags { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: auto; }
+        .tag { font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 100px; background: #e2e8f0; font-weight: 600; }
+
+        /* Modal Editor */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
             display: none; align-items: center; justify-content: center;
-            z-index: 9999; flex-direction: column;
+            z-index: 1000; backdrop-filter: blur(4px); padding: 1rem;
         }
-        .loader {
-            border: 5px solid var(--accent);
-            border-top: 5px solid var(--primary);
-            border-radius: 50%; width: 50px; height: 50px;
-            animation: spin 1s linear infinite;
+        .modal {
+            background: #fff; width: 100%; max-width: 800px; max-height: 90vh;
+            border-radius: var(--radius); overflow-y: auto; position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+        }
+        .modal-header {
+            padding: 1.5rem; border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; background: #fff; z-index: 10;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-body { padding: 1.5rem; display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; }
+        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
+        .form-group.full { grid-column: span 2; }
+        label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
+        input, select, textarea {
+            padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem;
+        }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); }
+        .modal-footer {
+            padding: 1.5rem; border-top: 1px solid var(--border);
+            display: flex; justify-content: flex-end; gap: 1rem;
+        }
+        button {
+            padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: var(--transition); border: none;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-ghost { background: transparent; color: var(--text-muted); }
+
+        /* Loading & Toasts */
+        #loader {
+            position: fixed; inset: 0; background: rgba(255,255,255,0.8);
+            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 2000;
+        }
+        .spinner {
+            width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary);
+            border-radius: 50%; animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .container {
-            padding: 20px;
-            padding-bottom: 160px; 
-            max-width: 1000px;
-            margin: auto;
+        .toast {
+            position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem;
+            background: #1e293b; color: white; border-radius: 8px;
+            box-shadow: var(--shadow); display: none; z-index: 3000; animation: slideUp 0.3s ease;
         }
 
-        .section {
-            background: var(--card);
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 20px;
-            box-shadow: var(--shadow);
-            position: relative;
-        }
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        .section.locked { opacity: 0.8; border: 1px dashed var(--border); }
-        .section.locked select { pointer-events: none; background: #f9fafb; }
-
-        h2 {
-            font-size: 16px;
-            margin: 0 0 16px 0;
-            color: var(--primary);
-            border-bottom: 1px solid var(--accent);
-            padding-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        /* DATA LABELS (BOLD as requested) */
-        .data-label { font-weight: bold; color: var(--primary); display: block; margin-bottom: 4px; font-size: 11px; text-transform: uppercase; }
-        .data-content { white-space: pre-wrap; font-weight: normal; color: var(--text); margin-bottom: 12px; }
-
-        /* FINDING IMAGE */
-        .finding-image-wrapper {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            background: #f8fafc;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            padding: 10px;
-            border: 1px solid var(--border);
-        }
-        .finding-image-wrapper img { max-width: 100%; height: auto; max-height: 300px; object-fit: contain; border-radius: 4px; }
-
-        /* TASK CARD */
-        .task-card {
-            background: var(--card);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 25px;
-            box-shadow: var(--shadow);
-            border-top: 5px solid var(--primary);
-        }
-
-        .history-card { border-top-color: var(--success); }
-        .detail-zone { display: none; padding-top: 15px; margin-top: 15px; border-top: 1px dashed var(--border); }
-        .expanded .detail-zone { display: block; }
-
-        .row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-
-        select, input, textarea {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: #fff;
-            font-size: 14px;
-        }
-
-        /* FOOTER STATS */
-        .fixed-footer {
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            background: var(--card);
-            box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
-            padding: 15px 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .mh-stats {
-            display: flex;
-            gap: 15px;
-            background: var(--accent);
-            padding: 8px 20px;
-            border-radius: 30px;
-            font-size: 11px;
-            font-weight: bold;
-            color: var(--primary);
-        }
-
-        .grand-total { color: var(--danger); border-left: 2px solid var(--border); padding-left: 15px; }
-
-        button { padding: 8px 16px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-secondary { background: #e5e7eb; color: var(--text); }
-        .btn-success { background: var(--success); color: white; }
-        .btn-danger { color: var(--danger); background: none; font-size: 11px; text-decoration: underline; }
-
-        .hidden { display: none; }
         @media (max-width: 768px) {
-            .fixed-footer { flex-direction: column; gap: 10px; padding: 10px; }
-            .fixed-footer button { width: 100%; }
-            .mh-stats { width: 100%; justify-content: space-around; }
+            .modal-body { grid-template-columns: 1fr; }
+            .form-group.full { grid-column: span 1; }
+            .card-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
-<body oninput="saveDraft()">
+<body>
 
-<div id="spinner">
-    <div class="loader"></div>
-    <p style="margin-top:10px; font-weight:bold; color:var(--primary)">Syncing Database...</p>
-</div>
-
-<!-- Manual Doc Type Suggestions -->
-<datalist id="docTypes">
-    <option value="AMM"><option value="CMM"><option value="SRM"><option value="SB"><option value="AD">
-</datalist>
-
-<div class="container">
-    <div class="section" id="infoSection">
-        <h2>General Information</h2>
-        <div id="infoGrid" class="row"><div><small>Loading...</small></div></div>
+    <div id="loader">
+        <div class="spinner"></div>
+        <p style="margin-top: 1rem; font-weight: 500;">Processing...</p>
     </div>
 
-    <div class="section" id="findingSection">
-        <h2>
-            Finding Selection
-            <button id="toggleFindingBtn" class="btn-secondary hidden" style="font-size:11px; padding:4px 8px;" onclick="toggleVisibility('findingContent', this)">Show Details</button>
-        </h2>
-        <select id="findingSelect" onchange="handleFindingChange(this)">
-            <option value="">Fetching Findings...</option>
-        </select>
-        <div id="findingContent" class="hidden">
-            <div class="finding-image-wrapper"><img src="" id="fimg"></div>
-            <div class="row">
-                <div><span class="data-label">IDENTIFICATION</span><div id="fid" class="data-content">-</div></div>
-                <div><span class="data-label">ACTION GIVEN</span><div id="faction" class="data-content">-</div></div>
+    <div id="toast" class="toast"></div>
+
+    <header>
+        <div class="header-container">
+            <div class="nav-top">
+                <div class="logo">AEROLOG PRO</div>
+                <div class="card-no" id="record-count">0 RECORDS</div>
             </div>
+            <div class="search-wrapper">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchBox" class="search-input" placeholder="Search by Date, Location, AC Type, Reg, Ref...">
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div id="cardContainer" class="card-grid">
+            <!-- Cards injected here -->
+        </div>
+    </main>
+
+    <!-- Editor Modal -->
+    <div id="editorModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="modalTitle">Edit Record</h2>
+                <button class="btn-ghost" onclick="closeModal()">✕</button>
+            </div>
+            <form id="logForm">
+                <input type="hidden" id="edit-index">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text" id="field-location">
+                    </div>
+                    <div class="form-group">
+                        <label>A/C or Comp. Type</label>
+                        <input type="text" id="field-ac-type">
+                    </div>
+                    <div class="form-group">
+                        <label>A/C Reg or S/N</label>
+                        <input type="text" id="field-reg">
+                    </div>
+                    <div class="form-group">
+                        <label>Maintenance Rating</label>
+                        <input type="text" id="field-rating">
+                    </div>
+                    <div class="form-group">
+                        <label>Privilege Used</label>
+                        <input type="text" id="field-privilege">
+                    </div>
+                    <div class="form-group">
+                        <label>ATA</label>
+                        <input type="text" id="field-ata">
+                    </div>
+                    <div class="form-group">
+                        <label>Task Type</label>
+                        <select id="field-task-type">
+                            <option value="FOT">FOT</option>
+                            <option value="SGH">SGH</option>
+                            <option value="R/I">R/I</option>
+                            <option value="TS">TS</option>
+                            <option value="MOD">MOD</option>
+                            <option value="REP">REP</option>
+                            <option value="INSP">INSP</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Type of Activity</label>
+                        <select id="field-activity-type">
+                            <option value="Training">Training</option>
+                            <option value="Perform">Perform</option>
+                            <option value="Supervise">Supervise</option>
+                            <option value="CRS">CRS</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Duration</label>
+                        <input type="text" id="field-duration">
+                    </div>
+                    <div class="form-group">
+                        <label>Maint. Record Ref</label>
+                        <input type="text" id="field-ref">
+                    </div>
+                    <div class="form-group full">
+                        <label>Operation Performed</label>
+                        <textarea id="field-operation" rows="3"></textarea>
+                    </div>
+                    <div class="form-group full">
+                        <label>Remarks</label>
+                        <textarea id="field-remarks" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-ghost" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- History Section -->
-    <div id="historySection" class="section hidden">
-        <h2 style="color:var(--success)">
-            Existing Task Cards (Generated)
-            <button id="toggleHistoryBtn" class="btn-secondary" style="font-size:11px; padding:4px 8px;" onclick="toggleVisibility('historyContainer', this)">Show List</button>
-        </h2>
-        <div id="historyContainer" class="hidden"></div>
-    </div>
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxqWrXeBN_SXsRUGX-bwCT6QxHvbj85BZpHH2VLUbdm9JHZYdNIyhDk4TXhrYGk6Ssk5A/exec';
+        let allData = [];
 
-    <!-- Workspace -->
-    <div id="startZone" style="text-align:center; padding: 40px;">
-        <button class="btn-primary" onclick="startWork()" style="width: 250px;">+ Create New Task Cards</button>
-    </div>
+        // DOM Elements
+        const cardContainer = document.getElementById('cardContainer');
+        const searchBox = document.getElementById('searchBox');
+        const loader = document.getElementById('loader');
+        const modal = document.getElementById('editorModal');
+        const logForm = document.getElementById('logForm');
 
-    <div id="taskWorkspace" class="hidden">
-        <div id="taskContainer"></div>
-        <button class="btn-secondary" onclick="addTask()" style="width:100%; margin: 20px 0;">+ Add New Task Card</button>
-    </div>
-</div>
+        // Initial Load
+        window.addEventListener('load', fetchData);
 
-<div class="fixed-footer">
-    <button class="btn-secondary" onclick="resetForm()">Reset Session</button>
-    <div class="mh-stats">
-        <span>Existing: <span id="existingMH">0.0</span> MH</span>
-        <span>Session: <span id="sessionMH">0.0</span> MH</span>
-        <span class="grand-total">Total: <span id="grandTotalMH">0.0</span> MH</span>
-    </div>
-    <button class="btn-primary" id="submitBtn" onclick="submitWork()">Submit Task Cards</button>
-</div>
-
-<script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbxVryoi5YzLOR-0AfgH458bfO6b5LP-ffBdGNAYILLQEfQC5U8gCLmRfCmZwCLukShbyg/exec";
-    let FINDINGS_DATA = [], CURRENT_WO = "", START_TASK_NUM = 0, HISTORY_MH_SUM = 0, HISTORY_CACHE = [];
-
-    function showSpinner(show) { document.getElementById("spinner").style.display = show ? "flex" : "none"; }
-
-    function formatNiceDate(dateStr) {
-        if (!dateStr) return "N/A";
-        const date = new Date(dateStr);
-        if (isNaN(date.getTime())) return dateStr;
-        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        return `${String(date.getDate()).padStart(2, '0')} ${months[date.getMonth()]} ${date.getFullYear()}`;
-    }
-
-    function toggleVisibility(id, btn) {
-        const el = document.getElementById(id);
-        const isHidden = el.classList.toggle("hidden");
-        btn.innerText = isHidden ? `Show ${id.includes('History') ? 'List' : 'Details'}` : `Hide ${id.includes('History') ? 'List' : 'Details'}`;
-    }
-
-    window.onload = async () => {
-        showSpinner(true);
-        try {
-            const resp = await fetch(`${API_URL}?action=getInitialData`);
-            const data = await resp.json();
-            FINDINGS_DATA = data.findings; CURRENT_WO = data.info.woNo;
-            document.getElementById("infoGrid").innerHTML = `
-                <div><span class="data-label">W/O NO</span>${data.info.woNo}</div>
-                <div><span class="data-label">CUSTOMER</span>${data.info.customer}</div>
-                <div><span class="data-label">A/C REG</span>${data.info.acReg}</div>
-                <div><span class="data-label">PART DESC.</span>${data.info.pn}</div>
-            `;
-            const select = document.getElementById("findingSelect");
-            select.innerHTML = '<option value="">Select Finding No.</option>';
-            data.findings.forEach(f => select.innerHTML += `<option value="${f.no}">${f.no} - ${f.identification.substring(0,30)}...</option>`);
-            loadDraft();
-        } catch (e) { alert("Server Error."); }
-        showSpinner(false);
-    };
-
-    function handleFindingChange(el) {
-        const finding = FINDINGS_DATA.find(f => f.no == el.value);
-        if(!finding) return;
-        document.getElementById("fid").innerText = finding.identification;
-        document.getElementById("faction").innerText = finding.action;
-        document.getElementById("fimg").src = finding.pic;
-        document.getElementById("findingContent").classList.remove("hidden");
-        document.getElementById("toggleFindingBtn").classList.remove("hidden");
-        loadHistory(el.value);
-    }
-
-    async function loadHistory(fNo) {
-        showSpinner(true);
-        const container = document.getElementById("historyContainer");
-        const section = document.getElementById("historySection");
-        START_TASK_NUM = 0; HISTORY_MH_SUM = 0;
-        try {
-            const resp = await fetch(`${API_URL}?action=getExistingTasks&findingNo=${fNo}`);
-            HISTORY_CACHE = await resp.json();
-            if (!HISTORY_CACHE || HISTORY_CACHE.length === 0) {
-                section.classList.add("hidden"); updateMHDisplays(); showSpinner(false); return;
+        async function fetchData() {
+            toggleLoader(true);
+            try {
+                const response = await fetch(API_URL);
+                const result = await response.json();
+                allData = result.data;
+                renderCards(allData);
+            } catch (err) {
+                showToast('Error loading data', 'error');
+            } finally {
+                toggleLoader(false);
             }
-            container.innerHTML = ""; section.classList.remove("hidden");
-            HISTORY_CACHE.forEach(t => {
-                const num = parseInt(t.taskNo.replace(/\D/g, ''));
-                if(num > START_TASK_NUM) START_TASK_NUM = num;
-                HISTORY_MH_SUM += parseFloat(t.mh || 0);
-                const card = document.createElement("div");
-                card.className = "task-card history-card";
-                card.id = `history-card-${t.taskNo}`;
-                const refsHtml = t.references.map(r => `
-                    <div style="background:#fff; padding:6px 12px; border-radius:6px; margin-top:5px; border:1px solid var(--border); font-size:11px; display:flex; justify-content:space-between; align-items:center;">
-                        <span><b>${r.docType}</b> - ${r.title} - Rev: ${r.rev || '0'} / ${formatNiceDate(r.date)}</span>
-                        <a href="${r.link}" target="_blank"><button class="btn-secondary" style="font-size:10px; padding:3px 6px;">View File 📂</button></a>
-                    </div>
-                `).join("");
+        }
+
+        function renderCards(data) {
+            cardContainer.innerHTML = '';
+            document.getElementById('record-count').innerText = `${data.length} RECORDS`;
+            
+            data.forEach((row, index) => {
+                const card = document.createElement('div');
+                card.className = 'record-card';
+                card.onclick = () => openModal(row, index);
+                
                 card.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; font-weight:bold; color:var(--primary); align-items:center;">
-                        <span>${t.taskNo} | ${t.type} (${t.category})</span>
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <span style="font-size:11px; color:var(--muted); margin-right:5px;">${t.mh} MH</span>
-                            <button class="btn-secondary" style="font-size:10px; padding:4px 8px;" onclick="modifyHistoryTask('${t.taskNo}')">Modify Instruction</button>
-                            <button class="btn-secondary" style="font-size:10px; padding:4px 8px;" onclick="toggleCardDetail(this)">See Detail Task</button>
-                        </div>
+                    <div class="card-header">
+                        <span class="card-no">No. ${row.no}</span>
+                        <span class="card-ref">${row.maintRef || 'No Ref'}</span>
                     </div>
-                    <div style="background:var(--accent); padding:8px; border-radius:8px; margin-top:10px;">
-                        <small><b>REFERENCES:</b></small>
-                        ${refsHtml || '<div style="font-size:11px;">No references.</div>'}
-                    </div>
-                    <div class="detail-zone">
-                        <span class="data-label">Work Description</span>
-                        <div class="data-content" style="font-size:13px;">${t.description}</div>
-                        ${t.notes ? `<span class="data-label">Note</span><div class="data-content" style="font-size:13px;">${t.notes}</div>` : ''}
-                        ${t.type === "Inspection" ? `
-                            <div style="margin-top:10px;">
-                                <button class="btn-primary" style="font-size:10px; width:100%;" onclick="toggleVisibility('res-z-${t.taskNo}', this)">Record Result</button>
-                                <div id="res-z-${t.taskNo}" class="hidden" style="background:#fff9e6; border:1px solid #fce8a8; padding:10px; border-radius:8px; margin-top:10px;">
-                                    <textarea id="res-i-${t.taskNo}" placeholder="Type inspection findings..."></textarea>
-                                    <input type="file" id="res-f-${t.taskNo}" style="border:none; margin:10px 0;">
-                                    <button class="btn-success" style="width:100%" onclick="saveResult('${t.taskNo}')">Save</button>
-                                </div>
-                            </div>
-                        ` : ''}
+                    <div class="card-date">${row.date || 'No Date'}</div>
+                    <div style="font-size: 0.9rem; font-weight: 500;">${row.acType || ''} | ${row.acReg || ''}</div>
+                    <div style="font-size: 0.85rem; color: var(--text-muted);">${row.operation?.substring(0, 60)}...</div>
+                    <div class="card-tags">
+                        <span class="tag" style="background: #dcfce7; color: #166534;">${row.location || 'N/A'}</span>
+                        <span class="tag">${row.taskType || 'N/A'}</span>
                     </div>
                 `;
-                container.appendChild(card);
-            });
-            updateNumbers(); updateMHDisplays();
-        } catch (e) { alert("Error loading history."); }
-        showSpinner(false);
-    }
-
-    function toggleCardDetail(btn) {
-        const card = btn.closest('.history-card');
-        const isExp = card.classList.toggle('expanded');
-        btn.innerText = isExp ? "Hide Detail" : "See Detail Task";
-    }
-
-    async function saveResult(taskNo) {
-        const txt = document.getElementById(`res-i-${taskNo}`).value;
-        if(!txt) return alert("Result empty.");
-        showSpinner(true);
-        const fIn = document.getElementById(`res-f-${taskNo}`);
-        let fData = null;
-        if(fIn.files[0]) fData = { name: fIn.files[0].name, mimeType: fIn.files[0].type, base64: await toBase64(fIn.files[0]) };
-        try {
-            await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "updateTaskResult", findingNo: document.getElementById("findingSelect").value, taskNo, result: txt, fileData: fData }) });
-            alert("Result Saved.");
-        } catch (e) { alert("Error."); }
-        showSpinner(false);
-    }
-
-    // --- MODIFY HISTORY TASK (Unified Layout) ---
-    function modifyHistoryTask(taskNo) {
-        const t = HISTORY_CACHE.find(item => item.taskNo === taskNo);
-        const card = document.getElementById(`history-card-${taskNo}`);
-        
-        card.innerHTML = `
-            <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
-                <b style="color:var(--primary)">MODIFYING ${taskNo}</b>
-                <button class="btn-danger" onclick="location.reload()">Cancel</button>
-            </div>
-            <div class="row">
-                <select class="field-cat"><option ${t.category=='Structure'?'selected':''}>Structure</option><option ${t.category=='Cabin'?'selected':''}>Cabin</option><option ${t.category=='Special Process'?'selected':''}>Special Process</option></select>
-                <select class="field-type"><option ${t.type=='Inspection'?'selected':''}>Inspection</option><option ${t.type=='Remove / Install'?'selected':''}>Remove / Install</option><option ${t.type=='Repair'?'selected':''}>Repair</option><option ${t.type=='General'?'selected':''}>General</option></select>
-                <input type="number" step="0.1" placeholder="MH" class="field-mh" value="${t.mh}" oninput="updateMHDisplays()">
-            </div>
-            <textarea class="field-desc" placeholder="Instruction description..." oninput="autoResize(this)">${t.description}</textarea>
-            <div class="ref-container"></div>
-            <button class="btn-secondary" style="font-size:11px; margin-top:10px;" onclick="addRef(this)">+ Add Reference</button>
-            <div style="margin-top:15px; border-top:1px solid #eee; padding-top:10px;">
-                <textarea class="field-note" placeholder="Note..." style="font-size:12px; min-height:40px;">${t.notes || ''}</textarea>
-            </div>
-            <button class="btn-primary" style="width:100%; margin-top:15px;" onclick="submitModTask('${taskNo}')">Update Database Record</button>
-        `;
-
-        // Pre-fill existing references
-        const refBtn = card.querySelector(".btn-secondary");
-        t.references.forEach(r => {
-            // Convert date format for HTML input (YYYY-MM-DD)
-            let rawDate = "";
-            if (r.date) {
-                const d = new Date(r.date);
-                if (!isNaN(d)) rawDate = d.toISOString().split('T')[0];
-            }
-            addRef(refBtn, { docType: r.docType, title: r.title, rev: r.rev, date: rawDate });
-        });
-        updateMHDisplays();
-    }
-
-    async function submitModTask(taskNo) {
-        const card = document.getElementById(`history-card-${taskNo}`);
-        const desc = card.querySelector(".field-desc").value;
-        const mh = card.querySelector(".field-mh").value;
-        if(!desc || !mh) return alert("Required fields missing.");
-
-        showSpinner(true);
-        const refs = [];
-        for (let r of card.querySelectorAll(".ref-container > div")) {
-            const f = r.querySelector(".r-file").files[0];
-            refs.push({ 
-                docType: r.querySelector(".r-doc").value, title: r.querySelector(".r-title").value, 
-                rev: r.querySelector(".r-rev").value, date: r.querySelector(".r-date").value, 
-                fileData: f ? { name: f.name, mimeType: f.type, base64: await toBase64(f) } : null 
+                cardContainer.appendChild(card);
             });
         }
 
-        try {
-            await fetch(API_URL, { method: "POST", body: JSON.stringify({ 
-                action: "saveTaskCards", wo: CURRENT_WO, 
-                tasks: [{
-                    findingNo: document.getElementById("findingSelect").value, taskNo: taskNo,
-                    category: card.querySelector(".field-cat").value, type: card.querySelector(".field-type").value,
-                    mh: mh, description: desc, notes: card.querySelector(".field-note").value, references: refs
-                }]
-            })});
-            alert("Database Updated."); location.reload();
-        } catch (e) { alert("Fail."); showSpinner(false); }
-    }
-
-    // --- NEW SESSION LOGIC ---
-    function updateMHDisplays() {
-        let sessionTotal = 0;
-        document.querySelectorAll("#taskWorkspace .field-mh").forEach(i => sessionTotal += parseFloat(i.value || 0));
-        let historyTotal = 0;
-        // Check for modified history cards first
-        document.querySelectorAll(".history-card").forEach((c, idx) => {
-            const modMH = c.querySelector(".field-mh");
-            if (modMH) historyTotal += parseFloat(modMH.value || 0);
-            else historyTotal += parseFloat(HISTORY_CACHE[idx]?.mh || 0);
+        // Search Logic
+        searchBox.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = allData.filter(item => {
+                return (
+                    item.date?.toLowerCase().includes(term) ||
+                    item.location?.toLowerCase().includes(term) ||
+                    item.acType?.toLowerCase().includes(term) ||
+                    item.acReg?.toLowerCase().includes(term) ||
+                    item.operation?.toLowerCase().includes(term) ||
+                    item.maintRef?.toLowerCase().includes(term)
+                );
+            });
+            renderCards(filtered);
         });
-        document.getElementById("existingMH").innerText = historyTotal.toFixed(1);
-        document.getElementById("sessionMH").innerText = sessionTotal.toFixed(1);
-        document.getElementById("grandTotalMH").innerText = (historyTotal + sessionTotal).toFixed(1);
-    }
 
-    function addTask(data = null) {
-        const card = document.createElement("div");
-        card.className = "task-card";
-        card.innerHTML = `
-            <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
-                <b class="task-no-label" style="color:var(--primary)">TASK T0000</b>
-                <div style="display:flex; gap:10px;">
-                    <button class="btn-secondary" style="font-size:11px; padding:4px 8px;" onclick="duplicateTask(this)">Duplicate</button>
-                    <button class="btn-danger" onclick="removeCard(this)">Remove</button>
-                </div>
-            </div>
-            <div class="row">
-                <select class="field-cat"><option>Structure</option><option>Cabin</option><option>Special Process</option></select>
-                <select class="field-type"><option>Inspection</option><option>Remove / Install</option><option>Repair</option><option>General</option></select>
-                <input type="number" step="0.1" placeholder="MH" class="field-mh" oninput="updateMHDisplays()">
-            </div>
-            <textarea class="field-desc" placeholder="Instruction description..." oninput="autoResize(this)"></textarea>
-            <div class="ref-container"></div>
-            <button class="btn-secondary" style="font-size:11px; margin-top:10px;" onclick="addRef(this)">+ Add Reference</button>
-            <div style="margin-top:15px; border-top:1px solid #eee; padding-top:10px;"><textarea class="field-note" placeholder="Note" style="font-size:12px; min-height:40px;"></textarea></div>
-        `;
-        document.getElementById("taskContainer").appendChild(card);
-        if(data) fillTaskData(card, data);
-        updateNumbers();
-    }
-
-    function fillTaskData(card, data) {
-        card.querySelector(".field-cat").value = data.cat; card.querySelector(".field-type").value = data.type;
-        card.querySelector(".field-mh").value = data.mh; card.querySelector(".field-desc").value = data.desc;
-        card.querySelector(".field-note").value = data.note;
-        if(data.refs) data.refs.forEach(r => addRef(card.querySelector(".btn-secondary"), r));
-    }
-
-    function addRef(btn, data = null) {
-        const div = document.createElement("div");
-        div.style = "background:#f9fafb; padding:12px; margin-top:10px; border:1px solid #ddd; border-radius:8px;";
-        div.innerHTML = `
-            <div style="display:flex; justify-content:space-between; margin-bottom:8px;"><b class="ref-label">R01</b><button class="btn-danger" onclick="this.parentElement.parentElement.remove(); updateNumbers();">Remove</button></div>
-            <div class="row"><input list="docTypes" class="r-doc" placeholder="Type"><input class="r-title" placeholder="Chapter / Task"></div>
-            <div class="row"><input class="r-rev" placeholder="Rev"><input class="r-date" type="date"></div>
-            <input type="file" class="r-file" onchange="this.nextElementSibling.innerText=this.files[0] ? 'Attached: ' + this.files[0].name : ''" style="font-size:11px; border:none; padding:0;"><div style="font-size:10px; color:var(--success)"></div>
-        `;
-        btn.previousElementSibling.appendChild(div);
-        if(data) { div.querySelector(".r-doc").value = data.docType; div.querySelector(".r-title").value = data.title; div.querySelector(".r-rev").value = data.rev; div.querySelector(".r-date").value = data.date; }
-        updateNumbers();
-    }
-
-    function updateNumbers() {
-        document.querySelectorAll("#taskContainer .task-card").forEach((c, i) => {
-            const tNum = START_TASK_NUM + ((i + 1) * 10);
-            c.querySelector(".task-no-label").innerText = "TASK T" + String(tNum).padStart(4, '0');
-            c.querySelectorAll(".ref-label").forEach((r, ri) => r.innerText = "Reference R" + String(ri+1).padStart(2, '0'));
-        });
-        updateMHDisplays();
-    }
-
-    function duplicateTask(btn) {
-        const c = btn.closest(".task-card");
-        const data = { cat: c.querySelector(".field-cat").value, type: c.querySelector(".field-type").value, mh: c.querySelector(".field-mh").value, desc: c.querySelector(".field-desc").value, note: c.querySelector(".field-note").value, refs: Array.from(c.querySelectorAll(".ref-container > div")).map(r => ({ docType: r.querySelector(".r-doc").value, title: r.querySelector(".r-title").value, rev: r.querySelector(".r-rev").value, date: r.querySelector(".r-date").value })) };
-        addTask(data);
-    }
-
-    async function submitWork() {
-        const fNo = document.getElementById("findingSelect").value;
-        if(!fNo) return alert("Select finding.");
-        const cards = document.querySelectorAll("#taskWorkspace .task-card");
-        if(cards.length === 0) return alert("Add task.");
-        showSpinner(true);
-        const payload = [];
-        for (let c of cards) {
-            const desc = c.querySelector(".field-desc").value, mh = c.querySelector(".field-mh").value;
-            if(!desc || !mh) { showSpinner(false); return alert("Desc and MH required."); }
-            const refs = [];
-            for (let r of c.querySelectorAll(".ref-container > div")) {
-                const f = r.querySelector(".r-file").files[0];
-                refs.push({ docType: r.querySelector(".r-doc").value, title: r.querySelector(".r-title").value, rev: r.querySelector(".r-rev").value, date: r.querySelector(".r-date").value, fileData: f ? { name: f.name, mimeType: f.type, base64: await toBase64(f) } : null });
-            }
-            payload.push({ findingNo: fNo, taskNo: c.querySelector(".task-no-label").innerText.split(" ")[1], category: c.querySelector(".field-cat").value, type: c.querySelector(".field-type").value, mh, description: desc, notes: c.querySelector(".field-note").value, references: refs });
+        function openModal(row, index) {
+            document.getElementById('edit-index').value = row.no; // Using "No." as key
+            document.getElementById('field-location').value = row.location || '';
+            document.getElementById('field-ac-type').value = row.acType || '';
+            document.getElementById('field-reg').value = row.acReg || '';
+            document.getElementById('field-rating').value = row.rating || '';
+            document.getElementById('field-privilege').value = row.privilege || '';
+            document.getElementById('field-ata').value = row.ata || '';
+            document.getElementById('field-task-type').value = row.taskType || 'FOT';
+            document.getElementById('field-activity-type').value = row.activityType || 'Training';
+            document.getElementById('field-duration').value = row.duration || '';
+            document.getElementById('field-ref').value = row.maintRef || '';
+            document.getElementById('field-operation').value = row.operation || '';
+            document.getElementById('field-remarks').value = row.remarks || '';
+            
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
         }
-        try {
-            await fetch(API_URL, { method: "POST", body: JSON.stringify({ action: "saveTaskCards", wo: CURRENT_WO, tasks: payload }) });
-            localStorage.removeItem("tc_draft"); alert("Success!"); location.reload();
-        } catch (e) { alert("Error."); showSpinner(false); }
-    }
 
-    function saveDraft() {
-        const d = { fNo: document.getElementById("findingSelect").value, tasks: Array.from(document.querySelectorAll("#taskContainer .task-card")).map(c => ({ cat: c.querySelector(".field-cat").value, type: c.querySelector(".field-type").value, mh: c.querySelector(".field-mh").value, desc: c.querySelector(".field-desc").value, note: c.querySelector(".field-note").value, refs: Array.from(c.querySelectorAll(".ref-container > div")).map(r => ({ docType: r.querySelector(".r-doc").value, title: r.querySelector(".r-title").value, rev: r.querySelector(".r-rev").value, date: r.querySelector(".r-date").value })) })) };
-        localStorage.setItem("tc_draft", JSON.stringify(d));
-    }
-
-    function loadDraft() {
-        const s = localStorage.getItem("tc_draft");
-        if(!s) return;
-        const d = JSON.parse(s);
-        if(d.fNo) {
-            document.getElementById("findingSelect").value = d.fNo;
-            handleFindingChange(document.getElementById("findingSelect"));
-            if(d.tasks.length > 0) {
-                startWork();
-                document.getElementById("taskContainer").innerHTML = "";
-                d.tasks.forEach(t => addTask(t));
-            }
+        function closeModal() {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
         }
-    }
 
-    const toBase64 = f => new Promise((res, rej) => { const r = new FileReader(); r.readAsDataURL(f); r.onload = () => res(r.result.split(',')[1]); r.onerror = e => rej(e); });
-    function autoResize(t) { t.style.height = "auto"; t.style.height = t.scrollHeight + "px"; }
-    function startWork() {
-        if(!document.getElementById("findingSelect").value) return alert("Select finding.");
-        document.getElementById("startZone").classList.add("hidden");
-        document.getElementById("taskWorkspace").classList.remove("hidden");
-        document.getElementById("infoSection").classList.add("locked");
-        document.getElementById("findingSection").classList.add("locked");
-        if(document.getElementById("taskContainer").children.length === 0) addTask();
-    }
-    function removeCard(b) { if(confirm("Remove?")) { b.closest(".task-card").remove(); updateNumbers(); }}
-    function resetForm() { if(confirm("Discard?")) { localStorage.removeItem("tc_draft"); location.reload(); }}
-</script>
+        logForm.onsubmit = async (e) => {
+            e.preventDefault();
+            toggleLoader(true);
 
+            const payload = {
+                no: document.getElementById('edit-index').value,
+                location: document.getElementById('field-location').value,
+                acType: document.getElementById('field-ac-type').value,
+                acReg: document.getElementById('field-reg').value,
+                rating: document.getElementById('field-rating').value,
+                privilege: document.getElementById('field-privilege').value,
+                ata: document.getElementById('field-ata').value,
+                taskType: document.getElementById('field-task-type').value,
+                activityType: document.getElementById('field-activity-type').value,
+                duration: document.getElementById('field-duration').value,
+                maintRef: document.getElementById('field-ref').value,
+                operation: document.getElementById('field-operation').value,
+                remarks: document.getElementById('field-remarks').value
+            };
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                if (result.status === 'success') {
+                    showToast('Log updated successfully');
+                    closeModal();
+                    fetchData(); // Refresh list
+                } else {
+                    showToast('Update failed', 'error');
+                }
+            } catch (err) {
+                showToast('Network error', 'error');
+            } finally {
+                toggleLoader(false);
+            }
+        };
+
+        function toggleLoader(show) {
+            loader.style.display = show ? 'flex' : 'none';
+        }
+
+        function showToast(msg, type = 'success') {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.style.background = type === 'success' ? '#059669' : '#dc2626';
+            t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 3000);
+        }
+    </script>
 </body>
 </html>
