@@ -455,9 +455,22 @@ function updateUI() {
     prevPageBtn.disabled = currentPage === 1;
     nextPageBtn.disabled = currentPage === totalPages || rowsPerPage === 'all';
 
+    // --- ADDED FOR SELECTION LOGIC ---
+    // Check if every item on the NEW page is already in our selectedIds set
+    const selectAllBox = document.getElementById('selectAll');
+    if (paginatedItems.length > 0) {
+        const allVisibleSelected = paginatedItems.every(item => selectedIds.has(item.no.toString()));
+        selectAllBox.checked = allVisibleSelected;
+    } else {
+        selectAllBox.checked = false;
+    }
+
+    // Refresh the count text (e.g., "5 Selected")
+    updateSelectionUI(); 
+    // ---------------------------------
+
     renderCards(paginatedItems);
 }
-
 // --- UPDATED RENDER CARDS FUNCTION ---
 function renderCards(data) {
     cardContainer.innerHTML = '';
