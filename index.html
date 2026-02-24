@@ -451,6 +451,16 @@ async function fetchData() {
 // THE CORE LOGIC: Update UI based on current state
 function updateUI() {
     const totalItems = filteredData.length;
+    const currentItems = filteredData.length; // The number currently visible (search results)
+
+    // Update the counter text
+    // Example: "15 RECORDS" or "3 / 15 RECORDS" if searching
+    if (searchBox.value.trim() !== "") {
+        document.getElementById('record-count').innerText = `${currentItems} / ${totalItems} MATCHES`;
+    } else {
+        document.getElementById('record-count').innerText = `${totalItems} RECORDS`;
+    }
+    
     const itemsPerPage = rowsPerPage === 'all' ? totalItems : parseInt(rowsPerPage);
     const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
 
@@ -752,10 +762,17 @@ document.getElementById('openAddModalBtn').onclick = openAddModal;
                 const result = await response.json();
                 
                 if (result.status === 'success') {
-                    showToast(id === "NEW" ? 'Record added!' : 'Log updated!');
+                    showToast(idValue === "NEW" ? 'Record added' : 'Updated');
                     closeModal();
-                    fetchData(); 
-                
+                    await fetchData(); 
+                    
+                    // If it was a NEW record, jump to the last page to show it
+                    if (idValue === "NEW") {
+                        const totalItems = filteredData.length;
+                        const itemsPerPage = rowsPerPage === 'all' ? totalItems : parseInt(rowsPerPage);
+                        currentPage = Math.ceil(totalItems / itemsPerPage);
+                        updateUI();
+                    }
                 } else {
                     showToast('Error: ' + result.message, 'error');
                 }
