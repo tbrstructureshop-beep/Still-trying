@@ -228,9 +228,11 @@
         body.action-mode .card-checkbox { 
             display: inline-block !important; 
         }
+        
         body.action-mode #selectionBar { 
             display: flex !important; 
         }
+        
         body.action-mode #openAddModalBtn { 
             display: inline-block !important; 
         }
@@ -455,12 +457,13 @@
 
         
 // --- ACTION TOGGLE LOGIC ---
+// --- 1. ACTION TOGGLE LOGIC ---
 const actionToggleBtn = document.getElementById('actionToggleBtn');
 let actionMode = false;
 
 actionToggleBtn.onclick = () => {
     actionMode = !actionMode;
-    // This adds/removes the class that the CSS uses to show/hide items
+    // Toggles the class that shows/hides Add Record and Checkboxes
     document.body.classList.toggle('action-mode', actionMode);
     
     if (actionMode) {
@@ -473,33 +476,46 @@ actionToggleBtn.onclick = () => {
         selectedIds.clear();
         updateSelectionUI();
     }
-    // Refresh UI to show/hide checkboxes on cards
     updateUI(); 
 };
 
-// --- CREATE PEL POPUP LOGIC ---
-document.getElementById('createPelBtn').onclick = () => {
+// FIND THIS SECTION IN YOUR CODE AND ENSURE IT'S THE ONLY ONE
+document.getElementById('openAddModalBtn').onclick = () => {
     Swal.fire({
-        title: 'Create New Entry',
+        title: 'New Entry',
         text: 'How would you like to add this record?',
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#318b91',
         cancelButtonColor: '#64748b',
         confirmButtonText: '✍️ Write Manually',
-        cancelButtonText: '📂 Export from Daily Barcode',
+        cancelButtonText: '📂 Export Daily Barcode',
         heightAuto: false 
     }).then((result) => {
         if (result.isConfirmed) {
-            openAddModal(); // Opens your existing manual form
+            openAddModal(); // This opens your manual form
         } else if (result.dismiss === Swal.DismissReason.cancel) {
             Swal.fire({
-                title: 'Coming Soon',
-                text: 'The Barcode Export feature is currently in development.',
+                title: 'Barcode Export',
+                text: 'The Barcode feature is currently in development.',
                 icon: 'info',
                 confirmButtonColor: '#318b91'
             });
         }
+    });
+};
+
+
+// --- 3. CREATE PEL BUTTON (Independent Action) ---
+document.getElementById('createPelBtn').onclick = () => {
+    // This button does NOT trigger the add record flow anymore
+    Swal.fire({
+        title: 'Create PEL Report',
+        text: 'Do you want to generate the Personnel Experience Log?',
+        icon: 'info',
+        confirmButtonColor: '#0ea5e9',
+        confirmButtonText: 'Generate Now',
+        heightAuto: false 
     });
 };
 
@@ -798,9 +814,6 @@ function openAddModal() {
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
 }
-
-// Event listener for the new button
-document.getElementById('openAddModalBtn').onclick = openAddModal;
 
         function openModal(row, index) {
             document.getElementById('modalTitle').innerText = "Edit Record";
