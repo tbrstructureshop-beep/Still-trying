@@ -475,7 +475,6 @@ function updateUI() {
 function renderCards(data) {
     cardContainer.innerHTML = '';
     
-    // Show/Hide selection bar based on data presence
     document.getElementById('selectionBar').style.display = data.length > 0 ? 'flex' : 'none';
 
     data.forEach((row) => {
@@ -483,16 +482,17 @@ function renderCards(data) {
         const card = document.createElement('div');
         card.className = `record-card ${isChecked ? 'selected' : ''}`;
         
-        // Modal opens only if not clicking checkbox
         card.onclick = (e) => {
             if (e.target.type !== 'checkbox') openModal(row);
         };
         
         card.innerHTML = `
-            <input type="checkbox" class="card-checkbox" 
-                data-id="${row.no}" ${isChecked ? 'checked' : ''}>
             <div class="card-header">
-                <span class="card-no">No. ${row.no}</span>
+                <div class="card-header-left">
+                    <input type="checkbox" class="card-checkbox" 
+                        data-id="${row.no}" ${isChecked ? 'checked' : ''}>
+                    <span class="card-no">No. ${row.no}</span>
+                </div>
                 <span class="card-ref">${row.maintRef || 'No Ref'}</span>
             </div>
             <div class="card-date">${row.date || 'No Date'}</div>
@@ -515,28 +515,46 @@ function renderCards(data) {
 function attachCheckboxListeners() {
     document.querySelectorAll('.card-checkbox').forEach(cb => {
         cb.onclick = (e) => {
-            e.stopPropagation(); // Prevent modal from opening
+            e.stopPropagation(); // Stop modal from opening
+            
             const id = e.target.getAttribute('data-id');
+            const card = e.target.closest('.record-card'); // Find the parent card
+            
             if (e.target.checked) {
                 selectedIds.add(id);
+                card.classList.add('selected'); // Highlight blue
             } else {
                 selectedIds.delete(id);
+                card.classList.remove('selected'); // Remove highlight
             }
+            
             updateSelectionUI();
         };
     });
 }
-
+        
 function updateSelectionUI() {
     const count = selectedIds.size;
-    document.getElementById('selectedCount').innerText = `${count} Selected`;
-    document.getElementById('deleteBtn').disabled = count === 0;
+    const selectedCountElem = document.getElementById('selectedCount');
+    const deleteBtn = document.getElementById('deleteBtn');
     
-    // Sync Select All checkbox state
+    if (selectedCountElem) {
+        selectedCountElem.innerText = `${count} Selected`;
+    }
+    
+    if (deleteBtn) {
+        // Disable delete button if nothing is selected
+        deleteBtn.disabled = count === 0;
+        // Optional: Change opacity/style based on state
+        deleteBtn.style.opacity = count === 0 ? "0.5" : "1";
+    }
+
+    // Sync the "Select All" checkbox state
     const visibleCheckboxes = document.querySelectorAll('.card-checkbox');
-    const allVisibleChecked = visibleCheckboxes.length > 0 && 
-        Array.from(visibleCheckboxes).every(cb => cb.checked);
-    document.getElementById('selectAll').checked = allVisibleChecked;
+    if (visibleCheckboxes.length > 0) {
+        const allChecked = Array.from(visibleCheckboxes).every(cb => cb.checked);
+        document.getElementById('selectAll').checked = allChecked;
+    }
 }
 
 // Select All visible cards
@@ -544,9 +562,17 @@ document.getElementById('selectAll').onchange = (e) => {
     const isChecked = e.target.checked;
     document.querySelectorAll('.card-checkbox').forEach(cb => {
         const id = cb.getAttribute('data-id');
+        const card = cb.closest('.record-card'); // Get the card element
+        
         cb.checked = isChecked;
-        if (isChecked) selectedIds.add(id);
-        else selectedIds.delete(id);
+        
+        if (isChecked) {
+            selectedIds.add(id);
+            if (card) card.classList.add('selected'); // Add highlight
+        } else {
+            selectedIds.delete(id);
+            if (card) card.classList.remove('selected'); // Remove highlight
+        }
     });
     updateSelectionUI();
 };
