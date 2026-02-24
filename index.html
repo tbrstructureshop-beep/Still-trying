@@ -123,6 +123,63 @@
         .btn-primary { background: var(--primary); color: white; }
         .btn-primary:hover { background: var(--primary-dark); }
         .btn-ghost { background: transparent; color: var(--text-muted); }
+        
+        /* Pagination Styling */
+        .pagination-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .page-info {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+        
+        .page-input {
+            width: 50px;
+            padding: 0.4rem;
+            text-align: center;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+        }
+        
+        .page-select {
+            padding: 0.4rem;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            background: #fff;
+            font-size: 0.9rem;
+        }
+        
+        .btn-page {
+            padding: 0.5rem 0.75rem;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        
+        .btn-page:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .btn-page:hover:not(:disabled) {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
 
         /* Loading & Toasts */
         #loader {
