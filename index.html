@@ -233,6 +233,29 @@
         <div id="cardContainer" class="card-grid">
             <!-- Cards injected here -->
         </div>
+            <!-- Add This -->
+        <div class="pagination-bar">
+            <div class="pagination-controls">
+                <span class="page-info">Show</span>
+                <select id="pageSizeSelect" class="page-select">
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                    <option value="all">All</option>
+                </select>
+                <span class="page-info">per page</span>
+            </div>
+            
+            <div class="pagination-controls">
+                <button class="btn-page" id="prevPage">Prev</button>
+                <span class="page-info">Page 
+                    <input type="number" id="currentPageInput" class="page-input" value="1" min="1"> 
+                    of <span id="totalPages">1</span>
+                </span>
+                <button class="btn-page" id="nextPage">Next</button>
+            </div>
+        </div>
     </main>
 
     <!-- Editor Modal -->
@@ -317,73 +340,138 @@
 
     <script>
         const API_URL = 'https://script.google.com/macros/s/AKfycbxqWrXeBN_SXsRUGX-bwCT6QxHvbj85BZpHH2VLUbdm9JHZYdNIyhDk4TXhrYGk6Ssk5A/exec';
+        
+        // PAGINATION STATE
         let allData = [];
+        let filteredData = [];
+        let currentPage = 1;
+        let rowsPerPage = 10;
 
-        // DOM Elements
-        const cardContainer = document.getElementById('cardContainer');
-        const searchBox = document.getElementById('searchBox');
-        const loader = document.getElementById('loader');
-        const modal = document.getElementById('editorModal');
-        const logForm = document.getElementById('logForm');
+// DOM Elements
+const cardContainer = document.getElementById('cardContainer');
+const searchBox = document.getElementById('searchBox');
+const loader = document.getElementById('loader');
+const modal = document.getElementById('editorModal');
+const logForm = document.getElementById('logForm');
 
-        // Initial Load
-        window.addEventListener('load', fetchData);
+// Pagination Elements
+const pageSizeSelect = document.getElementById('pageSizeSelect');
+const prevPageBtn = document.getElementById('prevPage');
+const nextPageBtn = document.getElementById('nextPage');
+const currentPageInput = document.getElementById('currentPageInput');
+const totalPagesSpan = document.getElementById('totalPages');
 
-        async function fetchData() {
-            toggleLoader(true);
-            try {
-                const response = await fetch(API_URL);
-                const result = await response.json();
-                allData = result.data;
-                renderCards(allData);
-            } catch (err) {
-                showToast('Error loading data', 'error');
-            } finally {
-                toggleLoader(false);
-            }
-        }
+window.addEventListener('load', fetchData);
 
-        function renderCards(data) {
-            cardContainer.innerHTML = '';
-            document.getElementById('record-count').innerText = `${data.length} RECORDS`;
-            
-            data.forEach((row, index) => {
-                const card = document.createElement('div');
-                card.className = 'record-card';
-                card.onclick = () => openModal(row, index);
-                
-                card.innerHTML = `
-                    <div class="card-header">
-                        <span class="card-no">No. ${row.no}</span>
-                        <span class="card-ref">${row.maintRef || 'No Ref'}</span>
-                    </div>
-                    <div class="card-date">${row.date || 'No Date'}</div>
-                    <div style="font-size: 0.9rem; font-weight: 500;">${row.acType || ''} | ${row.acReg || ''}</div>
-                    <div style="font-size: 0.85rem; color: var(--text-muted);">${row.operation?.substring(0, 60)}...</div>
-                    <div class="card-tags">
-                        <span class="tag" style="background: #dcfce7; color: #166534;">${row.location || 'N/A'}</span>
-                        <span class="tag">${row.taskType || 'N/A'}</span>
-                    </div>
-                `;
-                cardContainer.appendChild(card);
-            });
-        }
+async function fetchData() {
+    toggleLoader(true);
+    try {
+        const response = await fetch(API_URL);
+        const result = await response.json();
+        allData = result.data;
+        filteredData = [...allData]; // Initialize filtered data
+        updateUI();
+    } catch (err) {
+        showToast('Error loading data', 'error');
+    } finally {
+        toggleLoader(false);
+    }
+}
 
-        // Search Logic
-        searchBox.addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase();
-            const filtered = allData.filter(item => {
-                return (
-                    item.date?.toLowerCase().includes(term) ||
-                    item.location?.toLowerCase().includes(term) ||
-                    item.acType?.toLowerCase().includes(term) ||
-                    item.acReg?.toLowerCase().includes(term) ||
-                    item.operation?.toLowerCase().includes(term) ||
-                    item.maintRef?.toLowerCase().includes(term)
-                );
-            });
-            renderCards(filtered);
-        });
+// THE CORE LOGIC: Update UI based on current state
+function updateUI() {
+    const totalItems = filteredData.length;
+    const itemsPerPage = rowsPerPage === 'all' ? totalItems : parseInt(rowsPerPage);
+    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+
+    // Boundary check for current page
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    // Calculate Slice
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const paginatedItems = rowsPerPage === 'all' ? filteredData : filteredData.slice(start, end);
+
+    // Update Text/Inputs
+    document.getElementById('record-count').innerText = `${totalItems} RECORDS`;
+    totalPagesSpan.innerText = totalPages;
+    currentPageInput.value = currentPage;
+
+    // Enable/Disable buttons
+    prevPageBtn.disabled = currentPage === 1;
+    nextPageBtn.disabled = currentPage === totalPages || rowsPerPage === 'all';
+
+    renderCards(paginatedItems);
+}
+
+function renderCards(data) {
+    cardContainer.innerHTML = '';
+    data.forEach((row) => {
+        const card = document.createElement('div');
+        card.className = 'record-card';
+        card.onclick = () => openModal(row);
+        
+        card.innerHTML = `
+            <div class="card-header">
+                <span class="card-no">No. ${row.no}</span>
+                <span class="card-ref">${row.maintRef || 'No Ref'}</span>
+            </div>
+            <div class="card-date">${row.date || 'No Date'}</div>
+            <div style="font-size: 0.9rem; font-weight: 500;">${row.acType || ''} | ${row.acReg || ''}</div>
+            <div style="font-size: 0.85rem; color: var(--text-muted);">${row.operation?.substring(0, 60)}...</div>
+            <div class="card-tags">
+                <span class="tag" style="background: #dcfce7; color: #166534;">${row.location || 'N/A'}</span>
+                <span class="tag">${row.taskType || 'N/A'}</span>
+            </div>
+        `;
+        cardContainer.appendChild(card);
+    });
+}
+
+// EVENT LISTENERS
+
+// Search resets to page 1
+searchBox.addEventListener('input', (e) => {
+    const term = e.target.value.toLowerCase();
+    filteredData = allData.filter(item => {
+        return (
+            item.date?.toLowerCase().includes(term) ||
+            item.location?.toLowerCase().includes(term) ||
+            item.acType?.toLowerCase().includes(term) ||
+            item.acReg?.toLowerCase().includes(term) ||
+            item.operation?.toLowerCase().includes(term) ||
+            item.maintRef?.toLowerCase().includes(term)
+        );
+    });
+    currentPage = 1; 
+    updateUI();
+});
+
+// Page size change
+pageSizeSelect.addEventListener('change', (e) => {
+    rowsPerPage = e.target.value;
+    currentPage = 1;
+    updateUI();
+});
+
+// Next/Prev Buttons
+prevPageBtn.onclick = () => { currentPage--; updateUI(); };
+nextPageBtn.onclick = () => { currentPage++; updateUI(); };
+
+// Jump to page input
+currentPageInput.addEventListener('change', (e) => {
+    let val = parseInt(e.target.value);
+    const totalItems = filteredData.length;
+    const itemsPerPage = rowsPerPage === 'all' ? totalItems : parseInt(rowsPerPage);
+    const maxPages = Math.ceil(totalItems / itemsPerPage) || 1;
+
+    if (val >= 1 && val <= maxPages) {
+        currentPage = val;
+    }
+    updateUI();
+});
+
 
         function openModal(row, index) {
             document.getElementById('edit-index').value = row.no; // Using "No." as key
