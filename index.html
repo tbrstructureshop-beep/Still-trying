@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root {
             --primary: #318b91;
@@ -211,11 +212,27 @@
         
         /* Updated Checkbox Styling */
         .card-checkbox {
+            display: none !important; 
             width: 18px;
             height: 18px;
             cursor: pointer;
             margin: 0; /* Remove default margins */
             accent-color: var(--primary); /* Makes the checkbox match your theme */
+        }
+
+        #selectionBar, #openAddModalBtn { 
+            display: none !important; 
+        }
+
+        /* 3. SHOW them only when 'action-mode' class is added to the body */
+        body.action-mode .card-checkbox { 
+            display: inline-block !important; 
+        }
+        body.action-mode #selectionBar { 
+            display: flex !important; 
+        }
+        body.action-mode #openAddModalBtn { 
+            display: inline-block !important; 
         }
         
         /* Adjust the header to handle the checkbox alignment */
@@ -229,6 +246,26 @@
         .record-card.selected {
             border-color: var(--primary);
             background-color: #f0f9fa;
+        }
+
+        /* Styling for the Action Toggle Button */
+        .btn-action-toggle {
+            background: #e2e8f0;
+            color: var(--text-main);
+        }
+        .btn-action-toggle.active {
+            background: #64748b;
+            color: white;
+        }
+        
+        /* Styling for the Create PEL Button */
+        .btn-create {
+            background: #0ea5e9;
+            color: white;
+        }
+        
+        .btn-create:hover {
+            background: #0284c7;
         }
 
         /* Loading & Toasts */
@@ -270,9 +307,12 @@
         <div class="header-container">
             <div class="nav-top">
                 <div class="logo">AEROLOG PRO</div>
-                <div style="display: flex; gap: 10px; align-items: center;">
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <button class="btn-ghost btn-action-toggle" id="actionToggleBtn">⚙️ Actions</button>
+                    <button class="btn-primary btn-create" id="createPelBtn">Create PEL</button>
+                    <!-- This button is hidden by default via CSS now -->
                     <button class="btn-primary" id="openAddModalBtn">+ Add Record</button>
-                    <div class="card-no" id="record-count">0 RECORDS</div>
+                    <div class="card-no" id="record-count" style="margin-left: 10px;">0 RECORDS</div>
                 </div>
             </div>
             <div class="search-wrapper">
@@ -413,6 +453,56 @@
         let rowsPerPage = 10;
         let selectedIds = new Set(); 
 
+        
+// --- ACTION TOGGLE LOGIC ---
+const actionToggleBtn = document.getElementById('actionToggleBtn');
+let actionMode = false;
+
+actionToggleBtn.onclick = () => {
+    actionMode = !actionMode;
+    // This adds/removes the class that the CSS uses to show/hide items
+    document.body.classList.toggle('action-mode', actionMode);
+    
+    if (actionMode) {
+        actionToggleBtn.classList.add('active');
+        actionToggleBtn.innerText = "Hide Actions";
+        showToast("Management Mode Enabled");
+    } else {
+        actionToggleBtn.classList.remove('active');
+        actionToggleBtn.innerText = "⚙️ Actions";
+        selectedIds.clear();
+        updateSelectionUI();
+    }
+    // Refresh UI to show/hide checkboxes on cards
+    updateUI(); 
+};
+
+// --- CREATE PEL POPUP LOGIC ---
+document.getElementById('createPelBtn').onclick = () => {
+    Swal.fire({
+        title: 'Create New Entry',
+        text: 'How would you like to add this record?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#318b91',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: '✍️ Write Manually',
+        cancelButtonText: '📂 Export from Daily Barcode',
+        heightAuto: false 
+    }).then((result) => {
+        if (result.isConfirmed) {
+            openAddModal(); // Opens your existing manual form
+        } else if (result.dismiss === Swal.DismissReason.cancel) {
+            Swal.fire({
+                title: 'Coming Soon',
+                text: 'The Barcode Export feature is currently in development.',
+                icon: 'info',
+                confirmButtonColor: '#318b91'
+            });
+        }
+    });
+};
+
 // DOM Elements
 const cardContainer = document.getElementById('cardContainer');
 const searchBox = document.getElementById('searchBox');
@@ -498,18 +588,20 @@ function updateUI() {
 
     renderCards(paginatedItems);
 }
-// --- UPDATED RENDER CARDS FUNCTION ---
+
+        
 function renderCards(data) {
     cardContainer.innerHTML = '';
     
-    document.getElementById('selectionBar').style.display = data.length > 0 ? 'flex' : 'none';
-
+    // Note: selectionBar display is now handled by CSS 'body.action-mode'
+    
     data.forEach((row) => {
         const isChecked = selectedIds.has(row.no.toString());
         const card = document.createElement('div');
         card.className = `record-card ${isChecked ? 'selected' : ''}`;
         
         card.onclick = (e) => {
+            // Only open edit modal if we aren't clicking a checkbox
             if (e.target.type !== 'checkbox') openModal(row);
         };
         
@@ -534,8 +626,7 @@ function renderCards(data) {
     });
 
     attachCheckboxListeners();
-}
-
+}   
 
 // --- NEW HELPER FUNCTIONS ---
 
