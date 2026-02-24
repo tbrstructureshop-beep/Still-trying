@@ -436,6 +436,10 @@ async function fetchData() {
         const result = await response.json();
         allData = result.data;
         filteredData = [...allData]; // Initialize filtered data
+
+        // --- ADD THIS LINE ---
+        selectedIds.clear(); // Resets the "Selected" count after reload
+        
         updateUI();
     } catch (err) {
         showToast('Error loading data', 'error');
