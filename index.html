@@ -685,6 +685,13 @@ currentPageInput.addEventListener('change', (e) => {
     updateUI();
 });
 
+// Helper to convert any date string to YYYY-MM-DD for the HTML input
+function formatToInputDate(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    if (isNaN(date)) return '';
+    return date.toISOString().split('T')[0];
+}
 
 // Function to open modal for a NEW record
 function openAddModal() {
@@ -706,8 +713,8 @@ document.getElementById('openAddModalBtn').onclick = openAddModal;
 
         function openModal(row, index) {
             document.getElementById('modalTitle').innerText = "Edit Record";
-            document.getElementById('edit-index').value = row.no; // Using "No." as key
-            document.getElementById('field-date').value = row.date || ''; // Added date
+            document.getElementById('edit-index').value = row.no; 
+            document.getElementById('field-date').value = formatToInputDate(row.date);
             document.getElementById('field-location').value = row.location || '';
             document.getElementById('field-ac-type').value = row.acType || '';
             document.getElementById('field-reg').value = row.acReg || '';
@@ -720,7 +727,7 @@ document.getElementById('openAddModalBtn').onclick = openAddModal;
             document.getElementById('field-ref').value = row.maintRef || '';
             document.getElementById('field-operation').value = row.operation || '';
             document.getElementById('field-remarks').value = row.remarks || '';
-            
+    
             modal.style.display = 'flex';
             document.body.style.overflow = 'hidden';
         }
@@ -734,10 +741,9 @@ document.getElementById('openAddModalBtn').onclick = openAddModal;
             e.preventDefault();
             toggleLoader(true);
             
-            const id = document.getElementById('edit-index').value;
-            
+            const id = document.getElementById('edit-index').value; // 'id' is defined here
             const payload = {
-                action: id === "NEW" ? "create" : "update", // Specify the action
+                action: id === "NEW" ? "create" : "update",
                 no: id,
                 date: document.getElementById('field-date').value,
                 location: document.getElementById('field-location').value,
@@ -759,15 +765,15 @@ document.getElementById('openAddModalBtn').onclick = openAddModal;
                     method: 'POST',
                     body: JSON.stringify(payload)
                 });
+                
                 const result = await response.json();
                 
                 if (result.status === 'success') {
-                    showToast(idValue === "NEW" ? 'Record added' : 'Updated');
+                    showToast(id === "NEW" ? 'Record added' : 'Updated');
                     closeModal();
                     await fetchData(); 
-                    
-                    // If it was a NEW record, jump to the last page to show it
-                    if (idValue === "NEW") {
+            
+                    if (id === "NEW") {
                         const totalItems = filteredData.length;
                         const itemsPerPage = rowsPerPage === 'all' ? totalItems : parseInt(rowsPerPage);
                         currentPage = Math.ceil(totalItems / itemsPerPage);
@@ -777,7 +783,8 @@ document.getElementById('openAddModalBtn').onclick = openAddModal;
                     showToast('Error: ' + result.message, 'error');
                 }
             } catch (err) {
-                showToast('Network error', 'error');
+                console.error(err);
+                showToast('Network error: ' + err.message, 'error');
             } finally {
                 toggleLoader(false);
             }
