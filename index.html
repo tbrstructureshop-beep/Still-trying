@@ -270,7 +270,10 @@
         <div class="header-container">
             <div class="nav-top">
                 <div class="logo">AEROLOG PRO</div>
-                <div class="card-no" id="record-count">0 RECORDS</div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button class="btn-primary" id="openAddModalBtn">+ Add Record</button>
+                    <div class="card-no" id="record-count">0 RECORDS</div>
+                </div>
             </div>
             <div class="search-wrapper">
                 <span class="search-icon">🔍</span>
@@ -326,6 +329,10 @@
             <form id="logForm">
                 <input type="hidden" id="edit-index">
                 <div class="modal-body">
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="field-date">
+                    </div>
                     <div class="form-group">
                         <label>Location</label>
                         <input type="text" id="field-location">
@@ -665,8 +672,28 @@ currentPageInput.addEventListener('change', (e) => {
 });
 
 
+// Function to open modal for a NEW record
+function openAddModal() {
+    document.getElementById('modalTitle').innerText = "Add New Record";
+    document.getElementById('edit-index').value = "NEW"; // Set a flag
+    
+    // Clear all fields
+    logForm.reset(); 
+    
+    // Set default date to today
+    document.getElementById('field-date').value = new Date().toISOString().split('T')[0];
+    
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+// Event listener for the new button
+document.getElementById('openAddModalBtn').onclick = openAddModal;
+
         function openModal(row, index) {
+            document.getElementById('modalTitle').innerText = "Edit Record";
             document.getElementById('edit-index').value = row.no; // Using "No." as key
+            document.getElementById('field-date').value = row.date || ''; // Added date
             document.getElementById('field-location').value = row.location || '';
             document.getElementById('field-ac-type').value = row.acType || '';
             document.getElementById('field-reg').value = row.acReg || '';
@@ -692,9 +719,13 @@ currentPageInput.addEventListener('change', (e) => {
         logForm.onsubmit = async (e) => {
             e.preventDefault();
             toggleLoader(true);
-
+            
+            const id = document.getElementById('edit-index').value;
+            
             const payload = {
-                no: document.getElementById('edit-index').value,
+                action: id === "NEW" ? "create" : "update", // Specify the action
+                no: id,
+                date: document.getElementById('field-date').value,
                 location: document.getElementById('field-location').value,
                 acType: document.getElementById('field-ac-type').value,
                 acReg: document.getElementById('field-reg').value,
@@ -708,19 +739,21 @@ currentPageInput.addEventListener('change', (e) => {
                 operation: document.getElementById('field-operation').value,
                 remarks: document.getElementById('field-remarks').value
             };
-
+            
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     body: JSON.stringify(payload)
                 });
                 const result = await response.json();
+                
                 if (result.status === 'success') {
-                    showToast('Log updated successfully');
+                    showToast(id === "NEW" ? 'Record added!' : 'Log updated!');
                     closeModal();
-                    fetchData(); // Refresh list
+                    fetchData(); 
+                
                 } else {
-                    showToast('Update failed', 'error');
+                    showToast('Error: ' + result.message, 'error');
                 }
             } catch (err) {
                 showToast('Network error', 'error');
