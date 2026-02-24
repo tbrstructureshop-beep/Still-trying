@@ -181,6 +181,50 @@
             color: var(--primary);
         }
 
+        /* Selection Bar Styling */
+        .selection-bar {
+            background: #fff;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 80px; /* Below the header */
+            z-index: 90;
+            box-shadow: var(--shadow);
+        }
+        
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .btn-danger:hover { background: #dc2626; }
+        
+        /* Checkbox inside Card */
+        .card-checkbox {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            z-index: 2; /* Above the card click area */
+        }
+        /* Highlight card when selected */
+        .record-card.selected {
+            border-color: var(--primary);
+            background-color: #f0f9fa;
+        }
+
         /* Loading & Toasts */
         #loader {
             position: fixed; inset: 0; background: rgba(255,255,255,0.8);
@@ -230,6 +274,14 @@
     </header>
 
     <main>
+        <div class="selection-bar" id="selectionBar" style="display: none;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <input type="checkbox" id="selectAll" style="width: 20px; height: 20px;">
+                <span id="selectedCount">0 Selected</span>
+            </div>
+            <button class="btn-danger" id="deleteBtn">Remove Selected</button>
+        </div>
+        
         <div id="cardContainer" class="card-grid">
             <!-- Cards injected here -->
         </div>
@@ -346,6 +398,7 @@
         let filteredData = [];
         let currentPage = 1;
         let rowsPerPage = 10;
+        let selectedIds = new Set(); 
 
 // DOM Elements
 const cardContainer = document.getElementById('cardContainer');
@@ -405,14 +458,26 @@ function updateUI() {
     renderCards(paginatedItems);
 }
 
+// --- UPDATED RENDER CARDS FUNCTION ---
 function renderCards(data) {
     cardContainer.innerHTML = '';
+    
+    // Show/Hide selection bar based on data presence
+    document.getElementById('selectionBar').style.display = data.length > 0 ? 'flex' : 'none';
+
     data.forEach((row) => {
+        const isChecked = selectedIds.has(row.no.toString());
         const card = document.createElement('div');
-        card.className = 'record-card';
-        card.onclick = () => openModal(row);
+        card.className = `record-card ${isChecked ? 'selected' : ''}`;
+        
+        // Modal opens only if not clicking checkbox
+        card.onclick = (e) => {
+            if (e.target.type !== 'checkbox') openModal(row);
+        };
         
         card.innerHTML = `
+            <input type="checkbox" class="card-checkbox" 
+                data-id="${row.no}" ${isChecked ? 'checked' : ''}>
             <div class="card-header">
                 <span class="card-no">No. ${row.no}</span>
                 <span class="card-ref">${row.maintRef || 'No Ref'}</span>
@@ -427,7 +492,83 @@ function renderCards(data) {
         `;
         cardContainer.appendChild(card);
     });
+
+    attachCheckboxListeners();
 }
+
+
+// --- NEW HELPER FUNCTIONS ---
+
+function attachCheckboxListeners() {
+    document.querySelectorAll('.card-checkbox').forEach(cb => {
+        cb.onclick = (e) => {
+            e.stopPropagation(); // Prevent modal from opening
+            const id = e.target.getAttribute('data-id');
+            if (e.target.checked) {
+                selectedIds.add(id);
+            } else {
+                selectedIds.delete(id);
+            }
+            updateSelectionUI();
+        };
+    });
+}
+
+function updateSelectionUI() {
+    const count = selectedIds.size;
+    document.getElementById('selectedCount').innerText = `${count} Selected`;
+    document.getElementById('deleteBtn').disabled = count === 0;
+    
+    // Sync Select All checkbox state
+    const visibleCheckboxes = document.querySelectorAll('.card-checkbox');
+    const allVisibleChecked = visibleCheckboxes.length > 0 && 
+        Array.from(visibleCheckboxes).every(cb => cb.checked);
+    document.getElementById('selectAll').checked = allVisibleChecked;
+}
+
+// Select All visible cards
+document.getElementById('selectAll').onchange = (e) => {
+    const isChecked = e.target.checked;
+    document.querySelectorAll('.card-checkbox').forEach(cb => {
+        const id = cb.getAttribute('data-id');
+        cb.checked = isChecked;
+        if (isChecked) selectedIds.add(id);
+        else selectedIds.delete(id);
+    });
+    updateSelectionUI();
+};
+
+// --- DELETE FUNCTIONALITY ---
+document.getElementById('deleteBtn').onclick = async () => {
+    if (selectedIds.size === 0) return;
+    if (!confirm(`Are you sure you want to delete ${selectedIds.size} records?`)) return;
+
+    toggleLoader(true);
+    
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({
+                action: 'delete',
+                ids: Array.from(selectedIds)
+            })
+        });
+        
+        const result = await response.json();
+        if (result.status === 'success') {
+            showToast(`Deleted ${selectedIds.size} records`);
+            selectedIds.clear();
+            updateSelectionUI();
+            fetchData(); // Refresh grid
+        } else {
+            showToast('Delete failed', 'error');
+        }
+    } catch (err) {
+        showToast('Network error', 'error');
+    } finally {
+        toggleLoader(false);
+    }
+};
 
 // EVENT LISTENERS
 
