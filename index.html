@@ -538,10 +538,13 @@ document.getElementById('selectAll').onchange = (e) => {
     updateSelectionUI();
 };
 
+        
 // --- DELETE FUNCTIONALITY ---
 document.getElementById('deleteBtn').onclick = async () => {
     if (selectedIds.size === 0) return;
-    if (!confirm(`Are you sure you want to delete ${selectedIds.size} records?`)) return;
+    
+    const confirmMsg = `Are you sure you want to delete ${selectedIds.size} record(s)?\nThis will re-number all remaining records in the sheet.`;
+    if (!confirm(confirmMsg)) return;
 
     toggleLoader(true);
     
@@ -555,13 +558,16 @@ document.getElementById('deleteBtn').onclick = async () => {
         });
         
         const result = await response.json();
+        
         if (result.status === 'success') {
-            showToast(`Deleted ${selectedIds.size} records`);
+            showToast(`Deleted and Renumbered Successfully`);
             selectedIds.clear();
+            document.getElementById('selectAll').checked = false;
             updateSelectionUI();
-            fetchData(); // Refresh grid
+            await fetchData(); 
+            
         } else {
-            showToast('Delete failed', 'error');
+            showToast('Delete failed: ' + result.message, 'error');
         }
     } catch (err) {
         showToast('Network error', 'error');
