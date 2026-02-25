@@ -506,16 +506,53 @@ document.getElementById('openAddModalBtn').onclick = () => {
 };
 
 
-// --- 3. CREATE PEL BUTTON (Independent Action) ---
+// --- UPDATED CREATE PEL LOGIC ---
 document.getElementById('createPelBtn').onclick = () => {
-    // This button does NOT trigger the add record flow anymore
     Swal.fire({
-        title: 'Create PEL Report',
-        text: 'Do you want to generate the Personnel Experience Log?',
+        title: 'Generate PEL Report',
+        text: 'This will create a new Google Doc based on all records currently in the PEL sheet. Continue?',
         icon: 'info',
+        showCancelButton: true,
         confirmButtonColor: '#0ea5e9',
-        confirmButtonText: 'Generate Now',
+        cancelButtonColor: '#64748b',
+        confirmButtonText: '🚀 Generate Now',
         heightAuto: false 
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            toggleLoader(true); // Show spinner
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'generatePEL' })
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: 'Your PEL report has been generated.',
+                        icon: 'success',
+                        showCancelButton: true,
+                        confirmButtonText: '📂 Open Document',
+                        cancelButtonText: 'Close',
+                        confirmButtonColor: '#318b91'
+                    }).then((res) => {
+                        if (res.isConfirmed) {
+                            window.open(data.url, '_blank');
+                        }
+                    });
+                } else {
+                    showToast('Generation failed: ' + data.message, 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Network error during generation', 'error');
+            } finally {
+                toggleLoader(false); // Hide spinner
+            }
+        }
     });
 };
 
