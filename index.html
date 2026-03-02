@@ -475,7 +475,7 @@
             </div>
             ${hasRest ? '<div style="margin-bottom:1rem;"><span class="rest-tag">REST PERIOD INCLUDED</span></div>' : ''}
             <div class="card-footer">
-               <div style="font-size: 0.65rem; color: var(--text-muted)">${item.Timestamp.split('T')[0]}</div>
+               <div style="font-size: 0.65rem; color: var(--text-muted)">${item.Timestamp ? item.Timestamp.split('T')[0] : ''}</div>
                <div class="stat-box">
                  <span class="stat-label">Total Duration</span>
                  <span class="stat-value">${item['Total Time']}</span>
@@ -492,72 +492,71 @@
         this.render();
       },
 
-        openModal(item = null) {
-          const form = document.getElementById('otForm');
-          const status = item ? item.Status : 'NEW';
-          form.reset();
-          
-          document.getElementById('f_id').value = item ? item.ID : '';
-          document.getElementById('modalTitle').innerText = item ? 'Update Record' : 'New Duty Entry';
-          
-          // Handle Rejection Reason Visibility
-          const rejectContainer = document.getElementById('rejection_container');
-          const rejectInput = document.getElementById('f_rejection_reason');
-          
-          if (status === 'REJECTED') {
-            rejectContainer.style.display = 'block';
-            rejectInput.value = item['Rejection Reason'] || '';
-            rejectInput.disabled = true; // User can't edit it, only see it
-          } else if (status === 'OPEN' && item) {
-            // If you want managers to be able to type a reason while rejecting:
-            rejectContainer.style.display = 'block';
-            rejectInput.value = '';
-            rejectInput.disabled = false;
-          } else {
-            rejectContainer.style.display = 'none';
+      openModal(item = null) {
+        const form = document.getElementById('otForm');
+        const status = item ? item.Status : 'NEW';
+        const isSubmitted = status === 'SUBMITTED';
+        
+        form.reset();
+        document.getElementById('f_id').value = item ? item.ID : '';
+        document.getElementById('modalTitle').innerText = item ? 'Update Record' : 'New Duty Entry';
+        
+        // Handle Rejection Reason Visibility
+        const rejectContainer = document.getElementById('rejection_container');
+        const rejectInput = document.getElementById('f_rejection_reason');
+        
+        if (status === 'REJECTED') {
+          rejectContainer.style.display = 'block';
+          rejectInput.value = item['Rejection Reason'] || '';
+          rejectInput.disabled = true;
+        } else if (status === 'OPEN' && item) {
+          rejectContainer.style.display = 'block';
+          rejectInput.value = '';
+          rejectInput.disabled = false;
+        } else {
+          rejectContainer.style.display = 'none';
+        }
+
+        // Button Visibility Logic
+        document.getElementById('deleteBtn').style.display = (status === 'OPEN' || status === 'REJECTED') ? 'flex' : 'none';
+        document.getElementById('rejectBtn').style.display = (status === 'OPEN' && item) ? 'flex' : 'none';
+        document.getElementById('submitBtn').style.display = (status === 'OPEN' && item) ? 'flex' : 'none';
+        document.getElementById('saveBtn').style.display = isSubmitted ? 'none' : 'flex';
+        
+        if (item) {
+          pickers.from.setDate(item['From DateTime']);
+          pickers.until.setDate(item['Until DateTime']);
+          document.getElementById('f_employee').value = item.Employee;
+          document.getElementById('f_pn').value = item['Personal Number'];
+          document.getElementById('f_remarks').value = item.Remarks || '';
+        
+          const hasRest = item['Rest Start'] && item['Rest Start'] !== "";
+          document.getElementById('f_rest_toggle').checked = hasRest;
+          document.getElementById('rest_fields').style.display = hasRest ? 'grid' : 'none';
+          if(hasRest) {
+            pickers.restStart.setDate(item['Rest Start']);
+            pickers.restEnd.setDate(item['Rest End']);
           }
-          // Button Visibility Logic
-          // Show Delete only for OPEN and REJECTED
-          document.getElementById('deleteBtn').style.display = (status === 'OPEN' || status === 'REJECTED') ? 'flex' : 'none';
-    
-          // Show Reject button only for OPEN items (simulating Manager view)
-          document.getElementById('rejectBtn').style.display = (status === 'OPEN') ? 'flex' : 'none';
-    
-          // Show Submit/Save
-          document.getElementById('submitBtn').style.display = (status === 'OPEN') ? 'flex' : 'none';
-          document.getElementById('saveBtn').style.display = (status === 'SUBMITTED') ? 'none' : 'flex';
+          logic.calc();
           
-          if (item) {
-            pickers.from.setDate(item['From DateTime']);
-            pickers.until.setDate(item['Until DateTime']);
-            document.getElementById('f_employee').value = item.Employee;
-            document.getElementById('f_pn').value = item['Personal Number'];
-            document.getElementById('f_remarks').value = item.Remarks;
-          
-            const hasRest = item['Rest Start'] && item['Rest Start'] !== "";
-            document.getElementById('f_rest_toggle').checked = hasRest;
-            document.getElementById('rest_fields').style.display = hasRest ? 'grid' : 'none';
-            if(hasRest) {
-              pickers.restStart.setDate(item['Rest Start']);
-              pickers.restEnd.setDate(item['Rest End']);
-            }
-            logic.calc();
-            
-            document.getElementById('evidenceLink').innerHTML = item['Evidence File URL'] ? 
-              `<a href="${item['Evidence File URL']}" target="_blank" style="color:var(--primary); font-weight:700; text-decoration:none;">View Attachment</a>` : '';
-          } else {
-            document.getElementById('rest_fields').style.display = 'none';
-            document.getElementById('f_rest_toggle').checked = false;
-            document.getElementById('display_main').innerText = "00:00";
-            document.getElementById('display_human').innerText = "00 HH : 00 MM";
-            document.getElementById('display_decimal').innerText = "0,00 Hrs";
-          }
-          
-          document.getElementById('submitBtn').style.display = (item && !isSubmitted) ? 'flex' : 'none';
-          document.getElementById('saveBtn').style.display = isSubmitted ? 'none' : 'flex';
-          form.querySelectorAll('input, textarea').forEach(el => { if(el.id !== 'f_id') el.disabled = isSubmitted });
-          document.getElementById('formModal').style.display = 'flex';
-        },
+          document.getElementById('evidenceLink').innerHTML = item['Evidence File URL'] ? 
+            `<a href="${item['Evidence File URL']}" target="_blank" style="color:var(--primary); font-weight:700; text-decoration:none;">View Attachment</a>` : '';
+        } else {
+          document.getElementById('rest_fields').style.display = 'none';
+          document.getElementById('f_rest_toggle').checked = false;
+          document.getElementById('display_main').innerText = "00:00";
+          document.getElementById('display_human').innerText = "00 HH : 00 MM";
+          document.getElementById('display_decimal').innerText = "0,00 Hrs";
+          document.getElementById('evidenceLink').innerHTML = '';
+        }
+        
+        // Disable fields if submitted
+        form.querySelectorAll('input, textarea, select').forEach(el => { 
+          if(el.id !== 'f_id') el.disabled = isSubmitted; 
+        });
+
+        document.getElementById('formModal').style.display = 'flex';
+      },
       
       closeModal() { document.getElementById('formModal').style.display = 'none'; },
       toggleLoader(show) { document.getElementById('loader').style.display = show ? 'flex' : 'none'; }
@@ -640,8 +639,11 @@
       async finalize() {
         if (!confirm("Finalize record for HC? No further edits allowed.")) return;
         ui.toggleLoader(true);
-        await this.call('changeStatus', [document.getElementById('f_id').value]);
-        ui.closeModal(); ui.refresh();
+        try {
+          await this.call('changeStatus', [document.getElementById('f_id').value]);
+          ui.closeModal(); ui.refresh();
+        } catch(e) { alert(e); }
+        ui.toggleLoader(false);
       },
 
       toBase64: (f) => new Promise((res, rej) => {
@@ -660,36 +662,35 @@
           if (result.status === 'success') return result.data;
           throw new Error(result.message);
         }
+      },
+
+      async reject() {
+        const reason = document.getElementById('f_rejection_reason').value;
+        if (!reason) return alert("Please provide a rejection reason.");
+        if (!confirm("Reject this overtime request?")) return;
+        
+        ui.toggleLoader(true);
+        try {
+          await this.call('rejectRecord', [{
+            id: document.getElementById('f_id').value,
+            reason: reason
+          }]);
+          ui.closeModal();
+          ui.refresh();
+        } catch(e) { alert(e); }
+        ui.toggleLoader(false);
+      },
+
+      async deleteRecord() {
+        if (!confirm("Are you sure you want to PERMANENTLY delete this record?")) return;
+        ui.toggleLoader(true);
+        try {
+          await this.call('deleteRecord', [document.getElementById('f_id').value]);
+          ui.closeModal();
+          ui.refresh();
+        } catch(e) { alert(e); }
+        ui.toggleLoader(false);
       }
-
-        async reject() {
-          const reason = document.getElementById('f_rejection_reason').value;
-          if (!reason) return alert("Please provide a rejection reason.");
-          if (!confirm("Reject this overtime request?")) return;
-          
-          ui.toggleLoader(true);
-          try {
-            await this.call('rejectRecord', [{
-              id: document.getElementById('f_id').value,
-              reason: reason
-            }]);
-            ui.closeModal();
-            ui.refresh();
-          } catch(e) { alert(e); }
-          ui.toggleLoader(false);
-        },
-
-        async deleteRecord() {
-          if (!confirm("Are you sure you want to PERMANENTLY delete this record?")) return;
-          ui.toggleLoader(true);
-          
-          try {
-            await this.call('deleteRecord', [document.getElementById('f_id').value]);
-            ui.closeModal();
-            ui.refresh();
-          } catch(e) { alert(e); }
-          ui.toggleLoader(false);
-        }
     };
 
     ui.init();
