@@ -419,280 +419,291 @@
     </div>
   </div>
 
-  <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzS0ifBomQAtE6a1wSM3u9nLXdW2lcsj1gqc1llHrEWPsxu9dYOoI5excD16bMsmtGX/exec";
-    
-    const fpConfig = { enableTime: true, time_24hr: true, dateFormat: "Y-m-d H:i", onChange: () => logic.calc() };
-    let pickers = {};
+<script>
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzS0ifBomQAtE6a1wSM3u9nLXdW2lcsj1gqc1llHrEWPsxu9dYOoI5excD16bMsmtGX/exec";
+  
+  const fpConfig = { enableTime: true, time_24hr: true, dateFormat: "Y-m-d H:i", onChange: () => logic.calc() };
+  let pickers = {};
 
-    const ui = {
-      data: [],
-      filter: 'OPEN',
+  const ui = {
+    data: [],
+    filter: 'OPEN',
 
-      init() {
-        pickers.from = flatpickr("#f_from", fpConfig);
-        pickers.until = flatpickr("#f_until", fpConfig);
-        pickers.restStart = flatpickr("#f_rest_start", fpConfig);
-        pickers.restEnd = flatpickr("#f_rest_end", fpConfig);
-        this.refresh();
-        document.getElementById('otForm').onsubmit = (e) => { e.preventDefault(); logic.save(); };
-      },
+    init() {
+      pickers.from = flatpickr("#f_from", fpConfig);
+      pickers.until = flatpickr("#f_until", fpConfig);
+      pickers.restStart = flatpickr("#f_rest_start", fpConfig);
+      pickers.restEnd = flatpickr("#f_rest_end", fpConfig);
+      this.refresh();
+      document.getElementById('otForm').onsubmit = (e) => { e.preventDefault(); logic.save(); };
+    },
 
-      async refresh() {
-        this.toggleLoader(true);
-        try {
-          this.data = await logic.call('getRecords');
-          this.render();
-        } catch(e) { console.error(e); }
-        this.toggleLoader(false);
-      },
-
-      render() {
-        const grid = document.getElementById('grid');
-        grid.innerHTML = '';
-        const filtered = this.data.filter(r => r.Status === this.filter);
-        
-        if (!filtered.length) {
-          grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 6rem 2rem; opacity: 0.5;">
-            <i class="material-icons-round" style="font-size: 64px; color: var(--primary);">folder_open</i>
-            <p style="font-weight:700; margin-top:1rem;">No ${this.filter.toLowerCase()} records found</p>
-          </div>`;
-          return;
-        }
-
-        filtered.forEach(item => {
-          const hasRest = item['Rest Start'] && item['Rest Start'] !== "";
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.onclick = () => this.openModal(item);
-          card.innerHTML = `
-            <span class="status-badge status-${item.Status}">${item.Status}</span>
-            <div class="card-title">${item.Employee}</div>
-            <span class="card-subtitle">PN: ${item['Personal Number']}</span>
-            <div class="timeline">
-              <div class="timeline-row"><i class="material-icons-round">login</i> ${logic.formatDate(item['From DateTime'])}</div>
-              <div class="timeline-row"><i class="material-icons-round">logout</i> ${logic.formatDate(item['Until DateTime'])}</div>
-            </div>
-            ${hasRest ? '<div style="margin-bottom:1rem;"><span class="rest-tag">REST PERIOD INCLUDED</span></div>' : ''}
-            <div class="card-footer">
-               <div style="font-size: 0.65rem; color: var(--text-muted)">${item.Timestamp.split('T')[0]}</div>
-               <div class="stat-box">
-                 <span class="stat-label">Total Duration</span>
-                 <span class="stat-value">${item['Total Time']}</span>
-               </div>
-            </div>
-          `;
-          grid.appendChild(card);
-        });
-      },
-
-      switchTab(t) {
-        this.filter = t;
-        document.querySelectorAll('.nav-item').forEach(btn => btn.classList.toggle('active', btn.id === 'tab-'+t));
+    async refresh() {
+      this.toggleLoader(true);
+      try {
+        this.data = await logic.call('getRecords');
         this.render();
-      },
+      } catch(e) { 
+        console.error("Refresh Error:", e);
+        alert("Failed to load data. Check console.");
+      }
+      this.toggleLoader(false);
+    },
 
-        openModal(item = null) {
-          const form = document.getElementById('otForm');
-          const status = item ? item.Status : 'NEW';
-          form.reset();
-          
-          document.getElementById('f_id').value = item ? item.ID : '';
-          document.getElementById('modalTitle').innerText = item ? 'Update Record' : 'New Duty Entry';
-          
-          // Handle Rejection Reason Visibility
-          const rejectContainer = document.getElementById('rejection_container');
-          const rejectInput = document.getElementById('f_rejection_reason');
-          
-          if (status === 'REJECTED') {
-            rejectContainer.style.display = 'block';
-            rejectInput.value = item['Rejection Reason'] || '';
-            rejectInput.disabled = true; // User can't edit it, only see it
-          } else if (status === 'OPEN' && item) {
-            // If you want managers to be able to type a reason while rejecting:
-            rejectContainer.style.display = 'block';
-            rejectInput.value = '';
-            rejectInput.disabled = false;
-          } else {
-            rejectContainer.style.display = 'none';
-          }
-          // Button Visibility Logic
-          // Show Delete only for OPEN and REJECTED
-          document.getElementById('deleteBtn').style.display = (status === 'OPEN' || status === 'REJECTED') ? 'flex' : 'none';
-    
-          // Show Reject button only for OPEN items (simulating Manager view)
-          document.getElementById('rejectBtn').style.display = (status === 'OPEN') ? 'flex' : 'none';
-    
-          // Show Submit/Save
-          document.getElementById('submitBtn').style.display = (status === 'OPEN') ? 'flex' : 'none';
-          document.getElementById('saveBtn').style.display = (status === 'SUBMITTED') ? 'none' : 'flex';
-          
-          if (item) {
-            pickers.from.setDate(item['From DateTime']);
-            pickers.until.setDate(item['Until DateTime']);
-            document.getElementById('f_employee').value = item.Employee;
-            document.getElementById('f_pn').value = item['Personal Number'];
-            document.getElementById('f_remarks').value = item.Remarks;
-          
-            const hasRest = item['Rest Start'] && item['Rest Start'] !== "";
-            document.getElementById('f_rest_toggle').checked = hasRest;
-            document.getElementById('rest_fields').style.display = hasRest ? 'grid' : 'none';
-            if(hasRest) {
-              pickers.restStart.setDate(item['Rest Start']);
-              pickers.restEnd.setDate(item['Rest End']);
-            }
-            logic.calc();
-            
-            document.getElementById('evidenceLink').innerHTML = item['Evidence File URL'] ? 
-              `<a href="${item['Evidence File URL']}" target="_blank" style="color:var(--primary); font-weight:700; text-decoration:none;">View Attachment</a>` : '';
-          } else {
-            document.getElementById('rest_fields').style.display = 'none';
-            document.getElementById('f_rest_toggle').checked = false;
-            document.getElementById('display_main').innerText = "00:00";
-            document.getElementById('display_human').innerText = "00 HH : 00 MM";
-            document.getElementById('display_decimal').innerText = "0,00 Hrs";
-          }
-          
-          document.getElementById('submitBtn').style.display = (item && !isSubmitted) ? 'flex' : 'none';
-          document.getElementById('saveBtn').style.display = isSubmitted ? 'none' : 'flex';
-          form.querySelectorAll('input, textarea').forEach(el => { if(el.id !== 'f_id') el.disabled = isSubmitted });
-          document.getElementById('formModal').style.display = 'flex';
-        },
+    render() {
+      const grid = document.getElementById('grid');
+      grid.innerHTML = '';
+      const filtered = this.data.filter(r => r.Status === this.filter);
       
-      closeModal() { document.getElementById('formModal').style.display = 'none'; },
-      toggleLoader(show) { document.getElementById('loader').style.display = show ? 'flex' : 'none'; }
-    };
-
-    const logic = {
-      toggleRest() {
-        document.getElementById('rest_fields').style.display = document.getElementById('f_rest_toggle').checked ? 'grid' : 'none';
-        this.calc();
-      },
-
-      calc() {
-        const from = pickers.from.selectedDates[0];
-        const until = pickers.until.selectedDates[0];
-        if (!from || !until) return;
-        
-        let diff = until - from;
-        if (document.getElementById('f_rest_toggle').checked) {
-          const rStart = pickers.restStart.selectedDates[0];
-          const rEnd = pickers.restEnd.selectedDates[0];
-          if (rStart && rEnd) diff -= (rEnd - rStart);
-        }
-        if (diff < 0) diff = 0;
-
-        const totalMinutes = Math.floor(diff / 60000);
-        const h = Math.floor(totalMinutes / 60);
-        const m = totalMinutes % 60;
-        const dec = totalMinutes / 60;
-
-        const std = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-        document.getElementById('f_total').value = std;
-        document.getElementById('display_main').innerText = std;
-        document.getElementById('display_human').innerText = `${String(h).padStart(2,'0')} HH : ${String(m).padStart(2,'0')} MM`;
-        document.getElementById('display_decimal').innerText = `${dec.toFixed(2).replace('.', ',')} Hrs`;
-      },
-
-      async copyValue(id) {
-        try {
-          await navigator.clipboard.writeText(document.getElementById(id).innerText);
-          const toast = document.getElementById(id.replace('display', 'toast'));
-          toast.style.display = 'block';
-          setTimeout(() => { toast.style.display = 'none'; }, 1500);
-        } catch (err) { console.error(err); }
-      },
-
-      formatDate(str) {
-        if(!str) return '--/--';
-        const d = new Date(str);
-        return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
-      },
-
-      async save() {
-        ui.toggleLoader(true);
-        const fileInput = document.getElementById('f_file');
-        let evidenceUrl = document.querySelector('#evidenceLink a')?.href || "";
-        try {
-          if (fileInput.files.length > 0) {
-            const file = fileInput.files[0];
-            const base64 = await this.toBase64(file);
-            evidenceUrl = await this.call('uploadFile', [base64, file.name]);
-          }
-          const payload = {
-            id: document.getElementById('f_id').value,
-            employee: document.getElementById('f_employee').value,
-            pn: document.getElementById('f_pn').value,
-            from: document.getElementById('f_from').value,
-            until: document.getElementById('f_until').value,
-            rest_start: document.getElementById('f_rest_toggle').checked ? document.getElementById('f_rest_start').value : "",
-            rest_end: document.getElementById('f_rest_toggle').checked ? document.getElementById('f_rest_end').value : "",
-            total: document.getElementById('f_total').value,
-            remarks: document.getElementById('f_remarks').value,
-            evidence: evidenceUrl
-          };
-          await this.call('saveOvertime', [payload]);
-          ui.closeModal(); ui.refresh();
-        } catch(e) { alert(e); }
-        finally { ui.toggleLoader(false); }
-      },
-
-      async finalize() {
-        if (!confirm("Finalize record for HC? No further edits allowed.")) return;
-        ui.toggleLoader(true);
-        await this.call('changeStatus', [document.getElementById('f_id').value]);
-        ui.closeModal(); ui.refresh();
-      },
-
-      toBase64: (f) => new Promise((res, rej) => {
-        const r = new FileReader(); r.readAsDataURL(f);
-        r.onload = () => res(r.result); r.onerror = e => rej(e);
-      }),
-
-      async call(fn, args = []) {
-        if (typeof google !== 'undefined' && google.script && google.script.run) {
-          return new Promise((res, rej) => {
-            google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](...args);
-          });
-        } else {
-          const response = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify({ action: fn, data: args[0] }) });
-          const result = await response.json();
-          if (result.status === 'success') return result.data;
-          throw new Error(result.message);
-        }
+      if (!filtered.length) {
+        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 6rem 2rem; opacity: 0.5;">
+          <i class="material-icons-round" style="font-size: 64px; color: var(--primary);">folder_open</i>
+          <p style="font-weight:700; margin-top:1rem;">No ${this.filter.toLowerCase()} records found</p>
+        </div>`;
+        return;
       }
 
-        async reject() {
-          const reason = document.getElementById('f_rejection_reason').value;
-          if (!reason) return alert("Please provide a rejection reason.");
-          if (!confirm("Reject this overtime request?")) return;
-          
-          ui.toggleLoader(true);
-          try {
-            await this.call('rejectRecord', [{
-              id: document.getElementById('f_id').value,
-              reason: reason
-            }]);
-            ui.closeModal();
-            ui.refresh();
-          } catch(e) { alert(e); }
-          ui.toggleLoader(false);
-        },
+      filtered.forEach(item => {
+        const hasRest = item['Rest Start'] && item['Rest Start'] !== "";
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.onclick = () => this.openModal(item);
+        
+        // Safety check for Timestamp
+        const datePart = item.Timestamp ? item.Timestamp.split('T')[0] : '--';
+        
+        card.innerHTML = `
+          <span class="status-badge status-${item.Status}">${item.Status}</span>
+          <div class="card-title">${item.Employee}</div>
+          <span class="card-subtitle">PN: ${item['Personal Number']}</span>
+          <div class="timeline">
+            <div class="timeline-row"><i class="material-icons-round">login</i> ${logic.formatDate(item['From DateTime'])}</div>
+            <div class="timeline-row"><i class="material-icons-round">logout</i> ${logic.formatDate(item['Until DateTime'])}</div>
+          </div>
+          ${hasRest ? '<div style="margin-bottom:1rem;"><span class="rest-tag">REST PERIOD INCLUDED</span></div>' : ''}
+          <div class="card-footer">
+             <div style="font-size: 0.65rem; color: var(--text-muted)">${datePart}</div>
+             <div class="stat-box">
+               <span class="stat-label">Total Duration</span>
+               <span class="stat-value">${item['Total Time']}</span>
+             </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    },
 
-        async deleteRecord() {
-          if (!confirm("Are you sure you want to PERMANENTLY delete this record?")) return;
-          ui.toggleLoader(true);
-          
-          try {
-            await this.call('deleteRecord', [document.getElementById('f_id').value]);
-            ui.closeModal();
-            ui.refresh();
-          } catch(e) { alert(e); }
-          ui.toggleLoader(false);
+    switchTab(t) {
+      this.filter = t;
+      document.querySelectorAll('.nav-item').forEach(btn => btn.classList.toggle('active', btn.id === 'tab-'+t));
+      this.render();
+    },
+
+    openModal(item = null) {
+      const form = document.getElementById('otForm');
+      const status = item ? item.Status : 'NEW';
+      const isSubmitted = status === 'SUBMITTED';
+      
+      form.reset();
+      document.getElementById('f_id').value = item ? item.ID : '';
+      document.getElementById('modalTitle').innerText = item ? 'Update Record' : 'New Duty Entry';
+      
+      // Handle Rejection Reason UI
+      const rejectContainer = document.getElementById('rejection_container');
+      const rejectInput = document.getElementById('f_rejection_reason');
+      
+      if (status === 'REJECTED') {
+        rejectContainer.style.display = 'block';
+        rejectInput.value = item['Rejection Reason'] || '';
+        rejectInput.disabled = true;
+      } else if (status === 'OPEN' && item) {
+        rejectContainer.style.display = 'block';
+        rejectInput.value = '';
+        rejectInput.disabled = false;
+      } else {
+        rejectContainer.style.display = 'none';
+      }
+
+      // Button Visibility Logic
+      document.getElementById('deleteBtn').style.display = (status === 'OPEN' || status === 'REJECTED') ? 'flex' : 'none';
+      document.getElementById('rejectBtn').style.display = (status === 'OPEN' && item) ? 'flex' : 'none';
+      document.getElementById('submitBtn').style.display = (status === 'OPEN' && item) ? 'flex' : 'none';
+      document.getElementById('saveBtn').style.display = isSubmitted ? 'none' : 'flex';
+      
+      if (item) {
+        pickers.from.setDate(item['From DateTime']);
+        pickers.until.setDate(item['Until DateTime']);
+        document.getElementById('f_employee').value = item.Employee;
+        document.getElementById('f_pn').value = item['Personal Number'];
+        document.getElementById('f_remarks').value = item.Remarks || '';
+      
+        const hasRest = item['Rest Start'] && item['Rest Start'] !== "";
+        document.getElementById('f_rest_toggle').checked = hasRest;
+        document.getElementById('rest_fields').style.display = hasRest ? 'grid' : 'none';
+        if(hasRest) {
+          pickers.restStart.setDate(item['Rest Start']);
+          pickers.restEnd.setDate(item['Rest End']);
         }
-    };
+        logic.calc();
+        
+        document.getElementById('evidenceLink').innerHTML = item['Evidence File URL'] ? 
+          `<a href="${item['Evidence File URL']}" target="_blank" style="color:var(--primary); font-weight:700; text-decoration:none;">View Attachment</a>` : '';
+      } else {
+        document.getElementById('rest_fields').style.display = 'none';
+        document.getElementById('f_rest_toggle').checked = false;
+        document.getElementById('display_main').innerText = "00:00";
+        document.getElementById('display_human').innerText = "00 HH : 00 MM";
+        document.getElementById('display_decimal').innerText = "0,00 Hrs";
+        document.getElementById('evidenceLink').innerHTML = '';
+      }
+      
+      // Disable inputs if submitted
+      form.querySelectorAll('input, textarea').forEach(el => { 
+        if(el.id !== 'f_id' && el.id !== 'f_rejection_reason') el.disabled = isSubmitted; 
+      });
 
-    ui.init();
-  </script>
+      document.getElementById('formModal').style.display = 'flex';
+    },
+    
+    closeModal() { document.getElementById('formModal').style.display = 'none'; },
+    toggleLoader(show) { document.getElementById('loader').style.display = show ? 'flex' : 'none'; }
+  };
+
+  const logic = {
+    toggleRest() {
+      document.getElementById('rest_fields').style.display = document.getElementById('f_rest_toggle').checked ? 'grid' : 'none';
+      this.calc();
+    },
+
+    calc() {
+      const from = pickers.from.selectedDates[0];
+      const until = pickers.until.selectedDates[0];
+      if (!from || !until) return;
+      
+      let diff = until - from;
+      if (document.getElementById('f_rest_toggle').checked) {
+        const rStart = pickers.restStart.selectedDates[0];
+        const rEnd = pickers.restEnd.selectedDates[0];
+        if (rStart && rEnd) diff -= (rEnd - rStart);
+      }
+      if (diff < 0) diff = 0;
+
+      const totalMinutes = Math.floor(diff / 60000);
+      const h = Math.floor(totalMinutes / 60);
+      const m = totalMinutes % 60;
+      const dec = totalMinutes / 60;
+
+      const std = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+      document.getElementById('f_total').value = std;
+      document.getElementById('display_main').innerText = std;
+      document.getElementById('display_human').innerText = `${String(h).padStart(2,'0')} HH : ${String(m).padStart(2,'0')} MM`;
+      document.getElementById('display_decimal').innerText = `${dec.toFixed(2).replace('.', ',')} Hrs`;
+    },
+
+    async copyValue(id) {
+      try {
+        await navigator.clipboard.writeText(document.getElementById(id).innerText);
+        const toast = document.getElementById(id.replace('display', 'toast'));
+        toast.style.display = 'block';
+        setTimeout(() => { toast.style.display = 'none'; }, 1500);
+      } catch (err) { console.error(err); }
+    },
+
+    formatDate(str) {
+      if(!str) return '--/--';
+      const d = new Date(str);
+      return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+    },
+
+    async save() {
+      ui.toggleLoader(true);
+      const fileInput = document.getElementById('f_file');
+      let evidenceUrl = document.querySelector('#evidenceLink a')?.href || "";
+      try {
+        if (fileInput.files.length > 0) {
+          const file = fileInput.files[0];
+          const base64 = await this.toBase64(file);
+          evidenceUrl = await this.call('uploadFile', [base64, file.name]);
+        }
+        const payload = {
+          id: document.getElementById('f_id').value,
+          employee: document.getElementById('f_employee').value,
+          pn: document.getElementById('f_pn').value,
+          from: document.getElementById('f_from').value,
+          until: document.getElementById('f_until').value,
+          rest_start: document.getElementById('f_rest_toggle').checked ? document.getElementById('f_rest_start').value : "",
+          rest_end: document.getElementById('f_rest_toggle').checked ? document.getElementById('f_rest_end').value : "",
+          total: document.getElementById('f_total').value,
+          remarks: document.getElementById('f_remarks').value,
+          evidence: evidenceUrl
+        };
+        await this.call('saveOvertime', [payload]);
+        ui.closeModal(); ui.refresh();
+      } catch(e) { alert(e); }
+      finally { ui.toggleLoader(false); }
+    },
+
+    async finalize() {
+      if (!confirm("Finalize record for HC? No further edits allowed.")) return;
+      ui.toggleLoader(true);
+      try {
+        await this.call('changeStatus', [document.getElementById('f_id').value]);
+        ui.closeModal(); ui.refresh();
+      } catch(e) { alert(e); }
+      ui.toggleLoader(false);
+    },
+
+    toBase64: (f) => new Promise((res, rej) => {
+      const r = new FileReader(); r.readAsDataURL(f);
+      r.onload = () => res(r.result); r.onerror = e => rej(e);
+    }),
+
+    async call(fn, args = []) {
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        return new Promise((res, rej) => {
+          google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](...args);
+        });
+      } else {
+        const response = await fetch(WEB_APP_URL, { 
+          method: 'POST', 
+          body: JSON.stringify({ action: fn, data: args[0] }) 
+        });
+        const result = await response.json();
+        if (result.status === 'success') return result.data;
+        throw new Error(result.message);
+      }
+    }, // <-- COMMA ADDED HERE
+
+    async reject() {
+      const reason = document.getElementById('f_rejection_reason').value;
+      if (!reason) return alert("Please provide a rejection reason.");
+      if (!confirm("Reject this overtime request?")) return;
+      
+      ui.toggleLoader(true);
+      try {
+        await this.call('rejectRecord', [{
+          id: document.getElementById('f_id').value,
+          reason: reason
+        }]);
+        ui.closeModal();
+        ui.refresh();
+      } catch(e) { alert(e); }
+      ui.toggleLoader(false);
+    }, // <-- COMMA ADDED HERE
+
+    async deleteRecord() {
+      if (!confirm("Are you sure you want to PERMANENTLY delete this record?")) return;
+      ui.toggleLoader(true);
+      try {
+        await this.call('deleteRecord', [document.getElementById('f_id').value]);
+        ui.closeModal();
+        ui.refresh();
+      } catch(e) { alert(e); }
+      ui.toggleLoader(false);
+    }
+  };
+
+  ui.init();
+</script>
 </body>
 </html>
