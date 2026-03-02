@@ -658,15 +658,17 @@
       r.onload = () => res(r.result); r.onerror = e => rej(e);
     }),
 
+    // --- FIND THIS IN YOUR FRONTEND SCRIPT ---
     async call(fn, args = []) {
       if (typeof google !== 'undefined' && google.script && google.script.run) {
         return new Promise((res, rej) => {
           google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](...args);
         });
       } else {
+        // CHANGE args[0] TO args
         const response = await fetch(WEB_APP_URL, { 
           method: 'POST', 
-          body: JSON.stringify({ action: fn, data: args[0] }) 
+          body: JSON.stringify({ action: fn, data: args }) 
         });
         const result = await response.json();
         if (result.status === 'success') return result.data;
