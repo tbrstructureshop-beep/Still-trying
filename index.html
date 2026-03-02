@@ -1,947 +1,465 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mobile PEL | Personnel Experience Log</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <style>
-        :root {
-            --primary: #318b91;
-            --primary-dark: #266d72;
-            --bg-body: #f8fafc;
-            --bg-card: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            --radius: 12px;
-            --transition: all 0.2s ease;
-        }
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aviation Ops | Overtime Manager</title>
+  
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+  
+  <style>
+    :root {
+      --primary: #2b868c;
+      --primary-dark: #1f6368;
+      --primary-light: #eaf3f4;
+      --accent: #f59e0b;
+      --success: #10b981;
+      --danger: #ef4444;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+    }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg-body); color: var(--text-main); line-height: 1.5; overflow-x: hidden; }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    
+    body { 
+      font-family: 'Plus Jakarta Sans', sans-serif; 
+      background-color: var(--bg); 
+      color: var(--text-main); 
+      line-height: 1.5;
+      min-height: 100vh;
+    }
 
-        /* Header & Search */
-        header {
-            background: var(--bg-card);
-            padding: 1rem 2rem;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            border-bottom: 1px solid var(--border);
-            box-shadow: var(--shadow);
-        }
+    /* --- NAVIGATION --- */
+    .nav-bar {
+      background: white;
+      border-bottom: 1px solid var(--border);
+      padding: 0 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      height: 70px;
+    }
 
-        .header-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand i { 
+      background: var(--primary); 
+      color: white; 
+      padding: 8px; 
+      border-radius: 10px;
+      font-size: 24px;
+    }
+    .brand-text h1 { font-size: 1.1rem; font-weight: 800; color: var(--primary); letter-spacing: -0.5px; }
+    .brand-text p { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
 
-        .nav-top { display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-weight: 700; font-size: 1.25rem; color: var(--primary); letter-spacing: -0.025em; }
-        
-        .search-wrapper { position: relative; width: 100%; }
-        .search-input {
-            width: 100%;
-            padding: 0.75rem 1rem 0.75rem 2.75rem;
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            font-size: 0.95rem;
-            transition: var(--transition);
-            background: #f1f5f9;
-        }
-        .search-input:focus { outline: none; border-color: var(--primary); background: #fff; box-shadow: 0 0 0 3px rgba(49, 139, 145, 0.15); }
-        .search-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+    .nav-tabs { display: flex; gap: 4px; background: var(--bg); padding: 4px; border-radius: 12px; }
+    .nav-item {
+      border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer;
+      font-size: 0.85rem; font-weight: 700; color: var(--text-muted); background: transparent;
+      transition: 0.2s; display: flex; align-items: center; gap: 6px;
+    }
+    .nav-item.active { background: white; color: var(--primary); box-shadow: var(--shadow); }
 
-        /* Card Layout */
-        main { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; }
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 1.5rem;
-        }
+    /* --- LAYOUT --- */
+    .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
+    
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 1.5rem;
+    }
 
-        .record-card {
-            background: var(--bg-card);
-            padding: 1.5rem;
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow);
-            cursor: pointer;
-            transition: var(--transition);
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-        .record-card:hover { transform: translateY(-4px); border-color: var(--primary); }
-        .card-header { display: flex; justify-content: space-between; align-items: flex-start; }
-        .card-no { font-size: 0.75rem; font-weight: 700; color: var(--primary); text-transform: uppercase; letter-spacing: 0.05em; }
-        .card-date { font-weight: 600; font-size: 1.1rem; }
-        .card-ref { font-size: 0.85rem; color: var(--text-muted); background: #f1f5f9; padding: 0.25rem 0.5rem; border-radius: 4px; display: inline-block; }
-        .card-tags { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: auto; }
-        .tag { font-size: 0.7rem; padding: 0.2rem 0.6rem; border-radius: 100px; background: #e2e8f0; font-weight: 600; }
+    /* --- CARDS --- */
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      border: 1px solid var(--border);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      cursor: pointer;
+    }
+    .card:hover { transform: translateY(-4px); border-color: var(--primary); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05); }
 
-        /* Modal Editor */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(15, 23, 42, 0.6);
-            display: none; align-items: center; justify-content: center;
-            z-index: 1000; backdrop-filter: blur(4px); padding: 1rem;
-        }
-        .modal {
-            background: #fff; width: 100%; max-width: 800px; max-height: 90vh;
-            border-radius: var(--radius); overflow-y: auto; position: relative;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
-        }
-        .modal-header {
-            padding: 1.5rem; border-bottom: 1px solid var(--border);
-            position: sticky; top: 0; background: #fff; z-index: 10;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .modal-body { padding: 1.5rem; display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.25rem; }
-        .form-group { display: flex; flex-direction: column; gap: 0.5rem; }
-        .form-group.full { grid-column: span 2; }
-        label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
-        input, select, textarea {
-            padding: 0.75rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem;
-        }
-        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); }
-        .modal-footer {
-            padding: 1.5rem; border-top: 1px solid var(--border);
-            display: flex; justify-content: flex-end; gap: 1rem;
-        }
-        button {
-            padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: var(--transition); border: none;
-        }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-dark); }
-        .btn-ghost { background: transparent; color: var(--text-muted); }
-        
-        /* Pagination Styling */
-        .pagination-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 2rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid var(--border);
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-        
-        .pagination-controls {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        
-        .page-info {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-        }
-        
-        .page-input {
-            width: 50px;
-            padding: 0.4rem;
-            text-align: center;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-        }
-        
-        .page-select {
-            padding: 0.4rem;
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            background: #fff;
-            font-size: 0.9rem;
-        }
-        
-        .btn-page {
-            padding: 0.5rem 0.75rem;
-            background: #fff;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        
-        .btn-page:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
-        .btn-page:hover:not(:disabled) {
-            border-color: var(--primary);
-            color: var(--primary);
-        }
+    .status-badge {
+      position: absolute; top: 1.5rem; right: 1.5rem;
+      padding: 4px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
+    }
+    .status-OPEN { background: #fef3c7; color: #92400e; }
+    .status-SUBMITTED { background: #dcfce7; color: #166534; }
 
-        /* Selection Bar Styling */
-        .selection-bar {
-            background: #fff;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 80px; /* Below the header */
-            z-index: 90;
-            box-shadow: var(--shadow);
-        }
-        
-        .btn-danger {
-            background: #ef4444;
-            color: white;
-            padding: 0.6rem 1.2rem;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            border: none;
-        }
-        
-        .btn-danger:hover { background: #dc2626; }
-        
-        /* Updated Checkbox Styling */
-        .card-checkbox {
-            display: none !important; 
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-            margin: 0; /* Remove default margins */
-            accent-color: var(--primary); /* Makes the checkbox match your theme */
-        }
+    .card-title { font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px; }
+    .card-subtitle { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.5rem; display: block; }
+    
+    .timeline { background: var(--bg); border-radius: var(--radius-md); padding: 12px; margin-bottom: 1.5rem; }
+    .timeline-row { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; font-weight: 600; color: var(--text-main); margin-bottom: 4px; }
+    .timeline-row i { font-size: 18px; color: var(--primary); }
 
-        #selectionBar, #openAddModalBtn { 
-            display: none !important; 
-        }
+    .card-footer {
+      display: flex; justify-content: space-between; align-items: center;
+      padding-top: 1rem; border-top: 1px solid var(--border);
+    }
+    .stat-box { text-align: right; }
+    .stat-label { font-size: 0.6rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; display: block; }
+    .stat-value { font-size: 1.2rem; font-weight: 800; color: var(--primary); }
 
-        /* 3. SHOW them only when 'action-mode' class is added to the body */
-        body.action-mode .card-checkbox { 
-            display: inline-block !important; 
-        }
-        
-        body.action-mode #selectionBar { 
-            display: flex !important; 
-        }
-        
-        body.action-mode #openAddModalBtn { 
-            display: inline-block !important; 
-        }
-        
-        /* Adjust the header to handle the checkbox alignment */
-        .card-header-left {
-            display: flex;
-            align-items: center;
-            gap: 10px; /* Space between checkbox and No. text */
-        }
-        
-        /* Highlight card when selected */
-        .record-card.selected {
-            border-color: var(--primary);
-            background-color: #f0f9fa;
-        }
+    /* --- MODAL --- */
+    .modal {
+      display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px); z-index: 2000; align-items: center; justify-content: center; padding: 1rem;
+    }
+    .modal-content {
+      background: white; width: 100%; max-width: 600px; border-radius: 24px;
+      overflow: hidden; animation: modalIn 0.3s ease-out; max-height: 90vh; display: flex; flex-direction: column;
+    }
+    @keyframes modalIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Styling for the Action Toggle Button */
-        .btn-action-toggle {
-            background: #e2e8f0;
-            color: var(--text-main);
-        }
-        .btn-action-toggle.active {
-            background: #64748b;
-            color: white;
-        }
-        
-        /* Styling for the Create PEL Button */
-        .btn-create {
-            background: #0ea5e9;
-            color: white;
-        }
-        
-        .btn-create:hover {
-            background: #0284c7;
-        }
+    .modal-header { padding: 1.5rem; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; }
+    .modal-body { padding: 1.5rem; overflow-y: auto; }
+    
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .col-span-2 { grid-column: span 2; }
 
-        /* Loading & Toasts */
-        #loader {
-            position: fixed; inset: 0; background: rgba(255,255,255,0.8);
-            display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 2000;
-        }
-        .spinner {
-            width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary);
-            border-radius: 50%; animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    .input-group label { display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; }
+    .input-group input, .input-group textarea {
+      width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border);
+      font-family: inherit; font-size: 0.95rem; transition: 0.2s; background: #fcfcfd;
+    }
+    .input-group input:focus { outline: none; border-color: var(--primary); background: white; box-shadow: 0 0 0 4px rgba(43, 134, 140, 0.1); }
+    
+    .calc-display {
+      background: var(--primary-light); border: 2px dashed var(--primary);
+      padding: 10px; border-radius: 10px; text-align: center;
+      color: var(--primary); font-size: 1.5rem; font-weight: 800;
+    }
 
-        .toast {
-            position: fixed; bottom: 2rem; right: 2rem; padding: 1rem 1.5rem;
-            background: #1e293b; color: white; border-radius: 8px;
-            box-shadow: var(--shadow); display: none; z-index: 3000; animation: slideUp 0.3s ease;
-        }
+    .modal-footer { padding: 1.5rem; background: #f8fafc; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 12px; }
 
-        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    /* --- BUTTONS --- */
+    .btn {
+      padding: 12px 24px; border-radius: 12px; border: none; font-weight: 700;
+      cursor: pointer; transition: 0.2s; font-size: 0.9rem; display: flex; align-items: center; gap: 8px;
+    }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-ghost { background: transparent; color: var(--text-muted); }
+    .btn-ghost:hover { background: #f1f5f9; }
+    .btn-accent { background: var(--accent); color: white; }
 
-        @media (max-width: 768px) {
-            .modal-body { grid-template-columns: 1fr; }
-            .form-group.full { grid-column: span 1; }
-            .card-grid { grid-template-columns: 1fr; }
-        }
-    </style>
+    .fab {
+      position: fixed; bottom: 2rem; right: 2rem; width: 60px; height: 60px;
+      background: var(--primary); color: white; border-radius: 20px; border: none;
+      box-shadow: 0 10px 25px rgba(43, 134, 140, 0.4); cursor: pointer;
+      display: flex; align-items: center; justify-content: center; transition: 0.3s;
+    }
+    .fab:hover { transform: scale(1.1) rotate(90deg); }
+
+    /* --- MOBILE --- */
+    @media (max-width: 600px) {
+      .nav-bar { height: auto; padding: 1rem; flex-direction: column; gap: 1rem; }
+      .grid { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .col-span-2 { grid-column: span 1; }
+      .modal-content { height: 100%; max-height: 100%; border-radius: 0; }
+    }
+
+    #loader { display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.7); z-index: 3000; align-items: center; justify-content: center; flex-direction: column; gap: 1rem; }
+    .spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
 </head>
 <body>
 
-    <div id="loader">
-        <div class="spinner"></div>
-        <p style="margin-top: 1rem; font-weight: 500;">Processing...</p>
+  <nav class="nav-bar">
+    <div class="brand">
+      <i class="material-icons-round">flight_takeoff</i>
+      <div class="brand-text">
+        <h1>OPS DASHBOARD</h1>
+        <p>Aviation Personnel Overtime</p>
+      </div>
     </div>
-
-    <div id="toast" class="toast"></div>
-
-    <header>
-        <div class="header-container">
-            <div class="nav-top">
-                <div class="logo">MOBILE PEL</div>
-            </div>
-            <div class="search-wrapper">
-                <span class="search-icon">🔍</span>
-                <input type="text" id="searchBox" class="search-input" placeholder="Search by Date, Location, AC Type, Reg, Ref...">
-            </div>
-            <div style="display: flex; gap: 8px; align-items: center;">
-                <button class="btn-ghost btn-action-toggle" id="actionToggleBtn">⚙️ Actions</button>
-                <button class="btn-primary btn-create" id="createPelBtn">Create PEL</button>
-                <!-- This button is hidden by default via CSS now -->
-                <button class="btn-primary" id="openAddModalBtn">+ Add Record</button>
-                <div class="card-no" id="record-count" style="margin-left: 10px;">0 RECORDS</div>
-            </div>
-        </div>
-    </header>
-
-    <main>
-        <div class="selection-bar" id="selectionBar" style="display: none;">
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <input type="checkbox" id="selectAll" style="width: 20px; height: 20px;">
-                <span id="selectedCount">0 Selected</span>
-            </div>
-            <button class="btn-danger" id="deleteBtn">Remove Selected</button>
-        </div>
-        
-        <div id="cardContainer" class="card-grid">
-            <!-- Cards injected here -->
-        </div>
-            <!-- Add This -->
-        <div class="pagination-bar">
-            <div class="pagination-controls">
-                <span class="page-info">Show</span>
-                <select id="pageSizeSelect" class="page-select">
-                    <option value="10">10</option>
-                    <option value="25">25</option>
-                    <option value="50">50</option>
-                    <option value="100">100</option>
-                    <option value="all">All</option>
-                </select>
-                <span class="page-info">per page</span>
-            </div>
-            
-            <div class="pagination-controls">
-                <button class="btn-page" id="prevPage">Prev</button>
-                <span class="page-info">Page 
-                    <input type="number" id="currentPageInput" class="page-input" value="1" min="1"> 
-                    of <span id="totalPages">1</span>
-                </span>
-                <button class="btn-page" id="nextPage">Next</button>
-            </div>
-        </div>
-    </main>
-
-    <!-- Editor Modal -->
-    <div id="editorModal" class="modal-overlay">
-        <div class="modal">
-            <div class="modal-header">
-                <h2 id="modalTitle">Edit Record</h2>
-                <button class="btn-ghost" onclick="closeModal()">✕</button>
-            </div>
-            <form id="logForm">
-                <input type="hidden" id="edit-index">
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label>Date</label>
-                        <input type="date" id="field-date">
-                    </div>
-                    <div class="form-group">
-                        <label>Location</label>
-                        <input type="text" id="field-location">
-                    </div>
-                    <div class="form-group">
-                        <label>A/C or Comp. Type</label>
-                        <input type="text" id="field-ac-type">
-                    </div>
-                    <div class="form-group">
-                        <label>A/C Reg or S/N</label>
-                        <input type="text" id="field-reg">
-                    </div>
-                    <div class="form-group">
-                        <label>Maintenance Rating</label>
-                        <input type="text" id="field-rating">
-                    </div>
-                    <div class="form-group">
-                        <label>Privilege Used</label>
-                        <input type="text" id="field-privilege">
-                    </div>
-                    <div class="form-group">
-                        <label>ATA</label>
-                        <input type="text" id="field-ata">
-                    </div>
-                    <div class="form-group">
-                        <label>Task Type</label>
-                        <select id="field-task-type">
-                            <option value="FOT">FOT</option>
-                            <option value="SGH">SGH</option>
-                            <option value="R/I">R/I</option>
-                            <option value="TS">TS</option>
-                            <option value="MOD">MOD</option>
-                            <option value="REP">REP</option>
-                            <option value="INSP">INSP</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Type of Activity</label>
-                        <select id="field-activity-type">
-                            <option value="Training">Training</option>
-                            <option value="Perform">Perform</option>
-                            <option value="Supervise">Supervise</option>
-                            <option value="CRS">CRS</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Duration</label>
-                        <input type="text" id="field-duration">
-                    </div>
-                    <div class="form-group">
-                        <label>Maint. Record Ref</label>
-                        <input type="text" id="field-ref">
-                    </div>
-                    <div class="form-group full">
-                        <label>Operation Performed</label>
-                        <textarea id="field-operation" rows="3"></textarea>
-                    </div>
-                    <div class="form-group full">
-                        <label>Remarks</label>
-                        <textarea id="field-remarks" rows="2"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn-ghost" onclick="closeModal()">Cancel</button>
-                    <button type="submit" class="btn-primary">Save Changes</button>
-                </div>
-            </form>
-        </div>
+    <div class="nav-tabs">
+      <button class="nav-item active" id="tab-OPEN" onclick="ui.switchTab('OPEN')">
+        <i class="material-icons-round">schedule</i> Pending
+      </button>
+      <button class="nav-item" id="tab-SUBMITTED" onclick="ui.switchTab('SUBMITTED')">
+        <i class="material-icons-round">check_circle</i> Processed
+      </button>
     </div>
+  </nav>
 
-    <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxqWrXeBN_SXsRUGX-bwCT6QxHvbj85BZpHH2VLUbdm9JHZYdNIyhDk4TXhrYGk6Ssk5A/exec';
-        
-        // PAGINATION STATE
-        let allData = [];
-        let filteredData = [];
-        let currentPage = 1;
-        let rowsPerPage = 10;
-        let selectedIds = new Set(); 
+  <main class="container">
+    <div id="grid" class="grid"></div>
+  </main>
 
-        
-// --- ACTION TOGGLE LOGIC ---
-// --- 1. ACTION TOGGLE LOGIC ---
-const actionToggleBtn = document.getElementById('actionToggleBtn');
-let actionMode = false;
+  <button class="fab" onclick="ui.openModal()">
+    <i class="material-icons-round">add</i>
+  </button>
 
-actionToggleBtn.onclick = () => {
-    actionMode = !actionMode;
-    // Toggles the class that shows/hides Add Record and Checkboxes
-    document.body.classList.toggle('action-mode', actionMode);
-    
-    if (actionMode) {
-        actionToggleBtn.classList.add('active');
-        actionToggleBtn.innerText = "Hide Actions";
-        showToast("Management Mode Enabled");
-    } else {
-        actionToggleBtn.classList.remove('active');
-        actionToggleBtn.innerText = "⚙️ Actions";
-        selectedIds.clear();
-        updateSelectionUI();
-    }
-    updateUI(); 
-};
+  <div id="loader">
+    <div class="spinner"></div>
+    <p style="font-weight: 700; color: var(--primary)">Processing Data...</p>
+  </div>
 
-// FIND THIS SECTION IN YOUR CODE AND ENSURE IT'S THE ONLY ONE
-document.getElementById('openAddModalBtn').onclick = () => {
-    Swal.fire({
-        title: 'New Entry',
-        text: 'How would you like to add this record?',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#318b91',
-        cancelButtonColor: '#64748b',
-        confirmButtonText: '✍️ Write Manually',
-        cancelButtonText: '📂 Export Daily Barcode',
-        heightAuto: false 
-    }).then((result) => {
-        if (result.isConfirmed) {
-            openAddModal(); // This opens your manual form
-        } else if (result.dismiss === Swal.DismissReason.cancel) {
-            Swal.fire({
-                title: 'Barcode Export',
-                text: 'The Barcode feature is currently in development.',
-                icon: 'info',
-                confirmButtonColor: '#318b91'
-            });
-        }
-    });
-};
-
-
-// --- UPDATED CREATE PEL LOGIC ---
-document.getElementById('createPelBtn').onclick = () => {
-    Swal.fire({
-        title: 'Generate PEL Report',
-        text: 'This will create a new Google Doc based on all records currently in the PEL sheet. Continue?',
-        icon: 'info',
-        showCancelButton: true,
-        confirmButtonColor: '#0ea5e9',
-        cancelButtonColor: '#64748b',
-        confirmButtonText: '🚀 Generate Now',
-        heightAuto: false 
-    }).then(async (result) => {
-        if (result.isConfirmed) {
-            toggleLoader(true); // Show spinner
-            
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'generatePEL' })
-                });
-                
-                const data = await response.json();
-                
-                if (data.status === 'success') {
-                    Swal.fire({
-                        title: 'Success!',
-                        text: 'Your PEL report has been generated.',
-                        icon: 'success',
-                        showCancelButton: true,
-                        confirmButtonText: '📂 Open Document',
-                        cancelButtonText: 'Close',
-                        confirmButtonColor: '#318b91'
-                    }).then((res) => {
-                        if (res.isConfirmed) {
-                            window.open(data.url, '_blank');
-                        }
-                    });
-                } else {
-                    showToast('Generation failed: ' + data.message, 'error');
-                }
-            } catch (err) {
-                console.error(err);
-                showToast('Network error during generation', 'error');
-            } finally {
-                toggleLoader(false); // Hide spinner
-            }
-        }
-    });
-};
-
-// DOM Elements
-const cardContainer = document.getElementById('cardContainer');
-const searchBox = document.getElementById('searchBox');
-const loader = document.getElementById('loader');
-const modal = document.getElementById('editorModal');
-const logForm = document.getElementById('logForm');
-
-// Pagination Elements
-const pageSizeSelect = document.getElementById('pageSizeSelect');
-const prevPageBtn = document.getElementById('prevPage');
-const nextPageBtn = document.getElementById('nextPage');
-const currentPageInput = document.getElementById('currentPageInput');
-const totalPagesSpan = document.getElementById('totalPages');
-
-window.addEventListener('load', fetchData);
-
-async function fetchData() {
-    toggleLoader(true);
-    try {
-        const response = await fetch(API_URL);
-        const result = await response.json();
-        allData = result.data;
-        filteredData = [...allData]; // Initialize filtered data
-
-        // --- ADD THIS LINE ---
-        selectedIds.clear(); // Resets the "Selected" count after reload
-        
-        updateUI();
-    } catch (err) {
-        showToast('Error loading data', 'error');
-    } finally {
-        toggleLoader(false);
-    }
-}
-
-// THE CORE LOGIC: Update UI based on current state
-function updateUI() {
-    const totalItems = filteredData.length;
-    const currentItems = filteredData.length; // The number currently visible (search results)
-
-    // Update the counter text
-    // Example: "15 RECORDS" or "3 / 15 RECORDS" if searching
-    if (searchBox.value.trim() !== "") {
-        document.getElementById('record-count').innerText = `${currentItems} / ${totalItems} MATCHES`;
-    } else {
-        document.getElementById('record-count').innerText = `${totalItems} RECORDS`;
-    }
-    
-    const itemsPerPage = rowsPerPage === 'all' ? totalItems : parseInt(rowsPerPage);
-    const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
-
-    // Boundary check for current page
-    if (currentPage > totalPages) currentPage = totalPages;
-    if (currentPage < 1) currentPage = 1;
-
-    // Calculate Slice
-    const start = (currentPage - 1) * itemsPerPage;
-    const end = start + itemsPerPage;
-    const paginatedItems = rowsPerPage === 'all' ? filteredData : filteredData.slice(start, end);
-
-    // Update Text/Inputs
-    document.getElementById('record-count').innerText = `${totalItems} RECORDS`;
-    totalPagesSpan.innerText = totalPages;
-    currentPageInput.value = currentPage;
-
-    // Enable/Disable buttons
-    prevPageBtn.disabled = currentPage === 1;
-    nextPageBtn.disabled = currentPage === totalPages || rowsPerPage === 'all';
-
-    // --- ADDED FOR SELECTION LOGIC ---
-    // Check if every item on the NEW page is already in our selectedIds set
-    const selectAllBox = document.getElementById('selectAll');
-    if (paginatedItems.length > 0) {
-        const allVisibleSelected = paginatedItems.every(item => selectedIds.has(item.no.toString()));
-        selectAllBox.checked = allVisibleSelected;
-    } else {
-        selectAllBox.checked = false;
-    }
-
-    // Refresh the count text (e.g., "5 Selected")
-    updateSelectionUI(); 
-    // ---------------------------------
-
-    renderCards(paginatedItems);
-}
-
-        
-function renderCards(data) {
-    cardContainer.innerHTML = '';
-    
-    // Note: selectionBar display is now handled by CSS 'body.action-mode'
-    
-    data.forEach((row) => {
-        const isChecked = selectedIds.has(row.no.toString());
-        const card = document.createElement('div');
-        card.className = `record-card ${isChecked ? 'selected' : ''}`;
-        
-        card.onclick = (e) => {
-            // Only open edit modal if we aren't clicking a checkbox
-            if (e.target.type !== 'checkbox') openModal(row);
-        };
-        
-        card.innerHTML = `
-            <div class="card-header">
-                <div class="card-header-left">
-                    <input type="checkbox" class="card-checkbox" 
-                        data-id="${row.no}" ${isChecked ? 'checked' : ''}>
-                    <span class="card-no">No. ${row.no}</span>
-                </div>
-                <span class="card-ref">${row.maintRef || 'No Ref'}</span>
+  <!-- Modal -->
+  <div id="formModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitle" style="font-size: 1.2rem;">New Entry</h2>
+        <i class="material-icons-round" style="cursor:pointer" onclick="ui.closeModal()">close</i>
+      </div>
+      
+      <form id="otForm">
+        <div class="modal-body">
+          <input type="hidden" id="f_id">
+          <div class="form-grid">
+            <div class="input-group">
+              <label>Employee Name</label>
+              <input type="text" id="f_employee" required>
             </div>
-            <div class="card-date">${row.date || 'No Date'}</div>
-            <div style="font-size: 0.9rem; font-weight: 500;">${row.acType || ''} | ${row.acReg || ''}</div>
-            <div style="font-size: 0.85rem; color: var(--text-muted);">${row.operation?.substring(0, 60)}...</div>
-            <div class="card-tags">
-                <span class="tag" style="background: #dcfce7; color: #166534;">${row.location || 'N/A'}</span>
-                <span class="tag">${row.taskType || 'N/A'}</span>
+            <div class="input-group">
+              <label>Personal Number (PN)</label>
+              <input type="text" id="f_pn" required placeholder="PN-XXXX">
             </div>
-        `;
-        cardContainer.appendChild(card);
-    });
+            <div class="input-group">
+              <label>Duty Start</label>
+              <input type="datetime-local" id="f_from" required onchange="logic.calc()">
+            </div>
+            <div class="input-group">
+              <label>Duty End</label>
+              <input type="datetime-local" id="f_until" required onchange="logic.calc()">
+            </div>
+            <div class="input-group">
+              <label>Rest Duration</label>
+              <input type="time" id="f_rest" value="00:00" onchange="logic.calc()">
+            </div>
+            <div class="input-group">
+              <label>Total Calculated</label>
+              <input type="text" id="f_total" readonly class="calc-display">
+            </div>
+            <div class="input-group col-span-2">
+              <label>Remarks</label>
+              <textarea id="f_remarks" rows="3"></textarea>
+            </div>
+            <div class="input-group col-span-2" id="fileZone">
+              <label>Evidence Document</label>
+              <input type="file" id="f_file">
+              <div id="evidenceLink" style="margin-top: 10px;"></div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-ghost" onclick="ui.closeModal()">Cancel</button>
+          <button type="submit" id="saveBtn" class="btn btn-primary">Save Draft</button>
+          <button type="button" id="submitBtn" class="btn btn-accent" style="display:none" onclick="logic.finalize()">Finalize to HC</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-    attachCheckboxListeners();
-}   
+  <script>
+    /** 
+     * IMPORTANT: Replace this with your Web App URL 
+     * after deploying from Apps Script as "Anyone" 
+     */
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzX9vu9-02sXQjxDIOs_bXWuqw1R2BHaooolv0ytvXkfR7LJ1aHvJVnRuaBEpbQcWkL/exec";
 
-// --- NEW HELPER FUNCTIONS ---
+    const ui = {
+      data: [],
+      filter: 'OPEN',
 
-function attachCheckboxListeners() {
-    document.querySelectorAll('.card-checkbox').forEach(cb => {
-        cb.onclick = (e) => {
-            e.stopPropagation(); // Stop modal from opening
-            
-            const id = e.target.getAttribute('data-id');
-            const card = e.target.closest('.record-card'); // Find the parent card
-            
-            if (e.target.checked) {
-                selectedIds.add(id);
-                card.classList.add('selected'); // Highlight blue
-            } else {
-                selectedIds.delete(id);
-                card.classList.remove('selected'); // Remove highlight
-            }
-            
-            updateSelectionUI();
-        };
-    });
-}
+      init() {
+        this.refresh();
+        document.getElementById('otForm').onsubmit = (e) => { e.preventDefault(); logic.save(); };
+      },
+
+      async refresh() {
+        this.toggleLoader(true);
+        try {
+          this.data = await logic.call('getRecords');
+          this.render();
+        } catch(e) { alert("Connection Error: " + e); }
+        this.toggleLoader(false);
+      },
+
+      render() {
+        const grid = document.getElementById('grid');
+        grid.innerHTML = '';
+        const filtered = this.data.filter(r => r.Status === this.filter);
         
-function updateSelectionUI() {
-    const count = selectedIds.size;
-    const selectedCountElem = document.getElementById('selectedCount');
-    const deleteBtn = document.getElementById('deleteBtn');
-    
-    if (selectedCountElem) {
-        selectedCountElem.innerText = `${count} Selected`;
-    }
-    
-    if (deleteBtn) {
-        // Disable delete button if nothing is selected
-        deleteBtn.disabled = count === 0;
-        // Optional: Change opacity/style based on state
-        deleteBtn.style.opacity = count === 0 ? "0.5" : "1";
-    }
-
-    // Sync the "Select All" checkbox state
-    const visibleCheckboxes = document.querySelectorAll('.card-checkbox');
-    if (visibleCheckboxes.length > 0) {
-        const allChecked = Array.from(visibleCheckboxes).every(cb => cb.checked);
-        document.getElementById('selectAll').checked = allChecked;
-    }
-}
-
-// Select All visible cards
-document.getElementById('selectAll').onchange = (e) => {
-    const isChecked = e.target.checked;
-    document.querySelectorAll('.card-checkbox').forEach(cb => {
-        const id = cb.getAttribute('data-id');
-        const card = cb.closest('.record-card'); // Get the card element
-        
-        cb.checked = isChecked;
-        
-        if (isChecked) {
-            selectedIds.add(id);
-            if (card) card.classList.add('selected'); // Add highlight
-        } else {
-            selectedIds.delete(id);
-            if (card) card.classList.remove('selected'); // Remove highlight
+        if (!filtered.length) {
+          grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 4rem; opacity: 0.5;">
+            <i class="material-icons-round" style="font-size: 48px;">folder_open</i>
+            <p>No records found in ${this.filter} status</p>
+          </div>`;
+          return;
         }
-    });
-    updateSelectionUI();
-};
 
-        
-// --- DELETE FUNCTIONALITY ---
-document.getElementById('deleteBtn').onclick = async () => {
-    if (selectedIds.size === 0) return;
-    
-    const confirmMsg = `Are you sure you want to delete ${selectedIds.size} record(s)?\nThis will re-number all remaining records in the sheet.`;
-    if (!confirm(confirmMsg)) return;
+        filtered.forEach(item => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.onclick = () => this.openModal(item);
+          card.innerHTML = `
+            <span class="status-badge status-${item.Status}">${item.Status}</span>
+            <div class="card-title">${item.Employee}</div>
+            <span class="card-subtitle">PN: ${item['Personal Number']}</span>
+            
+            <div class="timeline">
+              <div class="timeline-row"><i class="material-icons-round">login</i> ${logic.formatDate(item['From DateTime'])}</div>
+              <div class="timeline-row"><i class="material-icons-round">logout</i> ${logic.formatDate(item['Until DateTime'])}</div>
+            </div>
 
-    toggleLoader(true);
-    
-    try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-                action: 'delete',
-                ids: Array.from(selectedIds)
-            })
+            <div class="card-footer">
+               <div style="font-size: 0.65rem; color: var(--text-muted)">
+                ${item.Timestamp.split('T')[0]}
+               </div>
+               <div class="stat-box">
+                 <span class="stat-label">Calculated Duty</span>
+                 <span class="stat-value">${item['Total Time']}</span>
+               </div>
+            </div>
+          `;
+          grid.appendChild(card);
         });
+      },
+
+      switchTab(t) {
+        this.filter = t;
+        document.querySelectorAll('.nav-item').forEach(btn => btn.classList.toggle('active', btn.id === 'tab-'+t));
+        this.render();
+      },
+
+      openModal(item = null) {
+        const form = document.getElementById('otForm');
+        const isSubmitted = item && item.Status === 'SUBMITTED';
+        form.reset();
         
-        const result = await response.json();
+        document.getElementById('f_id').value = item ? item.ID : '';
+        document.getElementById('modalTitle').innerText = item ? 'Update Record' : 'New Duty Entry';
         
-        if (result.status === 'success') {
-            showToast(`Deleted and Renumbered Successfully`);
-            selectedIds.clear();
-            document.getElementById('selectAll').checked = false;
-            updateSelectionUI();
-            await fetchData(); 
-            
+        if (item) {
+          document.getElementById('f_employee').value = item.Employee;
+          document.getElementById('f_pn').value = item['Personal Number'];
+          document.getElementById('f_from').value = item['From DateTime'];
+          document.getElementById('f_until').value = item['Until DateTime'];
+          document.getElementById('f_rest').value = item['Rest Time'];
+          document.getElementById('f_total').value = item['Total Time'];
+          document.getElementById('f_remarks').value = item.Remarks;
+          document.getElementById('evidenceLink').innerHTML = item['Evidence File URL'] ? 
+            `<a href="${item['Evidence File URL']}" target="_blank" style="color:var(--primary); font-weight:700; text-decoration:none;">View Attachment</a>` : '';
+        }
+
+        document.getElementById('submitBtn').style.display = (item && !isSubmitted) ? 'flex' : 'none';
+        document.getElementById('saveBtn').style.display = isSubmitted ? 'none' : 'flex';
+        
+        form.querySelectorAll('input, textarea').forEach(el => { if(el.id !== 'f_id') el.disabled = isSubmitted });
+        document.getElementById('formModal').style.display = 'flex';
+      },
+
+      closeModal() { document.getElementById('formModal').style.display = 'none'; },
+      toggleLoader(show) { document.getElementById('loader').style.display = show ? 'flex' : 'none'; }
+    };
+
+    const logic = {
+      calc() {
+        const from = new Date(document.getElementById('f_from').value);
+        const until = new Date(document.getElementById('f_until').value);
+        const rest = document.getElementById('f_rest').value || "00:00";
+        if (isNaN(from) || isNaN(until)) return;
+        let diff = until - from;
+        const [rh, rm] = rest.split(':').map(Number);
+        diff -= (rh * 3600000 + rm * 60000);
+        const h = Math.floor(Math.max(0, diff) / 3600000);
+        const m = Math.floor((Math.max(0, diff) % 3600000) / 60000);
+        document.getElementById('f_total').value = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+      },
+
+      formatDate(str) {
+        if(!str) return '--/--';
+        const d = new Date(str);
+        return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+      },
+
+      async save() {
+        ui.toggleLoader(true);
+        const fileInput = document.getElementById('f_file');
+        let evidenceUrl = document.querySelector('#evidenceLink a')?.href || "";
+
+        try {
+          if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            const base64 = await this.toBase64(file);
+            evidenceUrl = await this.call('uploadFile', [base64, file.name]);
+          }
+
+          const payload = {
+            id: document.getElementById('f_id').value,
+            employee: document.getElementById('f_employee').value,
+            pn: document.getElementById('f_pn').value,
+            from: document.getElementById('f_from').value,
+            until: document.getElementById('f_until').value,
+            rest: document.getElementById('f_rest').value,
+            total: document.getElementById('f_total').value,
+            remarks: document.getElementById('f_remarks').value,
+            evidence: evidenceUrl
+          };
+
+          await this.call('saveOvertime', [payload]);
+          ui.closeModal();
+          ui.refresh();
+        } catch(e) { alert(e); }
+        finally { ui.toggleLoader(false); }
+      },
+
+      async finalize() {
+        if (!confirm("Finalize this record for HC? No further edits allowed.")) return;
+        ui.toggleLoader(true);
+        await this.call('changeStatus', [document.getElementById('f_id').value]);
+        ui.closeModal();
+        ui.refresh();
+      },
+
+      toBase64: (f) => new Promise((res, rej) => {
+        const r = new FileReader(); r.readAsDataURL(f);
+        r.onload = () => res(r.result); r.onerror = e => rej(e);
+      }),
+
+      /**
+       * SMART BRIDGE: 
+       * Uses google.script.run if inside GAS environment.
+       * Uses fetch() if deployed to Vercel.
+       */
+      async call(fn, args = []) {
+        if (typeof google !== 'undefined' && google.script && google.script.run) {
+          return new Promise((res, rej) => {
+            google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](...args);
+          });
         } else {
-            showToast('Delete failed: ' + result.message, 'error');
+          // Standard POST request for Vercel
+          const response = await fetch(WEB_APP_URL, {
+            method: 'POST',
+            redirect: 'follow',
+            body: JSON.stringify({ action: fn, data: args[0] }) 
+          });
+          const result = await response.json();
+          if (result.status === 'success') return result.data;
+          throw new Error(result.message);
         }
-    } catch (err) {
-        showToast('Network error', 'error');
-    } finally {
-        toggleLoader(false);
-    }
-};
+      }
+    };
 
-// EVENT LISTENERS
-
-// Search resets to page 1
-searchBox.addEventListener('input', (e) => {
-    const term = e.target.value.toLowerCase();
-    filteredData = allData.filter(item => {
-        return (
-            item.date?.toLowerCase().includes(term) ||
-            item.location?.toLowerCase().includes(term) ||
-            item.acType?.toLowerCase().includes(term) ||
-            item.acReg?.toLowerCase().includes(term) ||
-            item.operation?.toLowerCase().includes(term) ||
-            item.maintRef?.toLowerCase().includes(term)
-        );
-    });
-    currentPage = 1; 
-    updateUI();
-});
-
-// Page size change
-pageSizeSelect.addEventListener('change', (e) => {
-    rowsPerPage = e.target.value;
-    currentPage = 1;
-    updateUI();
-});
-
-// Next/Prev Buttons
-prevPageBtn.onclick = () => { currentPage--; updateUI(); };
-nextPageBtn.onclick = () => { currentPage++; updateUI(); };
-
-// Jump to page input
-currentPageInput.addEventListener('change', (e) => {
-    let val = parseInt(e.target.value);
-    const totalItems = filteredData.length;
-    const itemsPerPage = rowsPerPage === 'all' ? totalItems : parseInt(rowsPerPage);
-    const maxPages = Math.ceil(totalItems / itemsPerPage) || 1;
-
-    if (val >= 1 && val <= maxPages) {
-        currentPage = val;
-    }
-    updateUI();
-});
-
-// Helper to convert any date string to YYYY-MM-DD for the HTML input
-function formatToInputDate(dateStr) {
-    if (!dateStr) return '';
-    const date = new Date(dateStr);
-    if (isNaN(date)) return '';
-    return date.toISOString().split('T')[0];
-}
-
-// Function to open modal for a NEW record
-function openAddModal() {
-    document.getElementById('modalTitle').innerText = "Add New Record";
-    document.getElementById('edit-index').value = "NEW"; // Set a flag
-    
-    // Clear all fields
-    logForm.reset(); 
-    
-    // Set default date to today
-    document.getElementById('field-date').value = new Date().toISOString().split('T')[0];
-    
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-}
-
-        function openModal(row, index) {
-            document.getElementById('modalTitle').innerText = "Edit Record";
-            document.getElementById('edit-index').value = row.no; 
-            document.getElementById('field-date').value = formatToInputDate(row.date);
-            document.getElementById('field-location').value = row.location || '';
-            document.getElementById('field-ac-type').value = row.acType || '';
-            document.getElementById('field-reg').value = row.acReg || '';
-            document.getElementById('field-rating').value = row.rating || '';
-            document.getElementById('field-privilege').value = row.privilege || '';
-            document.getElementById('field-ata').value = row.ata || '';
-            document.getElementById('field-task-type').value = row.taskType || 'FOT';
-            document.getElementById('field-activity-type').value = row.activityType || 'Training';
-            document.getElementById('field-duration').value = row.duration || '';
-            document.getElementById('field-ref').value = row.maintRef || '';
-            document.getElementById('field-operation').value = row.operation || '';
-            document.getElementById('field-remarks').value = row.remarks || '';
-    
-            modal.style.display = 'flex';
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeModal() {
-            modal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-        }
-
-        logForm.onsubmit = async (e) => {
-            e.preventDefault();
-            toggleLoader(true);
-            
-            const id = document.getElementById('edit-index').value; // 'id' is defined here
-            const payload = {
-                action: id === "NEW" ? "create" : "update",
-                no: id,
-                date: document.getElementById('field-date').value,
-                location: document.getElementById('field-location').value,
-                acType: document.getElementById('field-ac-type').value,
-                acReg: document.getElementById('field-reg').value,
-                rating: document.getElementById('field-rating').value,
-                privilege: document.getElementById('field-privilege').value,
-                ata: document.getElementById('field-ata').value,
-                taskType: document.getElementById('field-task-type').value,
-                activityType: document.getElementById('field-activity-type').value,
-                duration: document.getElementById('field-duration').value,
-                maintRef: document.getElementById('field-ref').value,
-                operation: document.getElementById('field-operation').value,
-                remarks: document.getElementById('field-remarks').value
-            };
-            
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(payload)
-                });
-                
-                const result = await response.json();
-                
-                if (result.status === 'success') {
-                    showToast(id === "NEW" ? 'Record added' : 'Updated');
-                    closeModal();
-                    await fetchData(); 
-            
-                    if (id === "NEW") {
-                        const totalItems = filteredData.length;
-                        const itemsPerPage = rowsPerPage === 'all' ? totalItems : parseInt(rowsPerPage);
-                        currentPage = Math.ceil(totalItems / itemsPerPage);
-                        updateUI();
-                    }
-                } else {
-                    showToast('Error: ' + result.message, 'error');
-                }
-            } catch (err) {
-                console.error(err);
-                showToast('Network error: ' + err.message, 'error');
-            } finally {
-                toggleLoader(false);
-            }
-        };
-
-        function toggleLoader(show) {
-            loader.style.display = show ? 'flex' : 'none';
-        }
-
-        function showToast(msg, type = 'success') {
-            const t = document.getElementById('toast');
-            t.innerText = msg;
-            t.style.background = type === 'success' ? '#059669' : '#dc2626';
-            t.style.display = 'block';
-            setTimeout(() => t.style.display = 'none', 3000);
-        }
-    </script>
+    ui.init();
+  </script>
 </body>
 </html>
