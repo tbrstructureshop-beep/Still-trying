@@ -30,6 +30,8 @@
       --radius-lg: 16px;
       --radius-md: 12px;
       --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+      --rejected: #fef2f2;
+      --rejected-text: #991b1b;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -227,6 +229,24 @@
     .btn-accent { background: var(--accent); color: white; }
     .fab { position: fixed; bottom: 2rem; right: 2rem; width: 60px; height: 60px; background: var(--primary); color: white; border-radius: 20px; border: none; box-shadow: 0 10px 25px rgba(43, 134, 140, 0.4); cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 999; }
 
+    /* Status badge for REJECTED */
+    .status-REJECTED { background: var(--rejected); color: var(--rejected-text); }
+    
+    /* Delete Button Style */
+    .btn-danger { background: var(--danger); color: white; margin-right: auto; }
+    .btn-danger:hover { background: #b91c1c; }
+
+    /* Rejection Reason Box in Modal */
+    .rejection-box {
+      background: #fef2f2;
+      border: 1px solid #fee2e2;
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 1rem;
+    }
+    
+    .rejection-box label { color: #991b1b; }
+    
     #loader { display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.7); z-index: 3000; align-items: center; justify-content: center; flex-direction: column; gap: 1rem; }
     .spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
@@ -275,6 +295,9 @@
     <div class="nav-tabs">
       <button class="nav-item active" id="tab-OPEN" onclick="ui.switchTab('OPEN')">
         <i class="material-icons-round" style="font-size:18px">schedule</i> Pending
+      </button>
+      <button class="nav-item" id="tab-REJECTED" onclick="ui.switchTab('REJECTED')">
+        <i class="material-icons-round" style="font-size:18px">cancel</i> Rejected
       </button>
       <button class="nav-item" id="tab-SUBMITTED" onclick="ui.switchTab('SUBMITTED')">
         <i class="material-icons-round" style="font-size:18px">check_circle</i> Processed
@@ -371,6 +394,10 @@
               <label>Remarks</label>
               <textarea id="f_remarks" rows="3"></textarea>
             </div>
+            <div id="rejection_container" class="input-group col-span-2 rejection-box" style="display:none">
+              <label>Manager's Rejection Reason</label>
+              <textarea id="f_rejection_reason" rows="2" placeholder="Reason for rejection..."></textarea>
+            </div>
             <div class="input-group col-span-2" id="fileZone">
               <label>Evidence Document</label>
               <input type="file" id="f_file">
@@ -379,7 +406,12 @@
           </div>
         </div>
         <div class="modal-footer">
+          <button type="button" id="deleteBtn" class="btn btn-danger" style="display:none" onclick="logic.deleteRecord()">
+            <i class="material-icons-round">delete_outline</i> Delete
+          </button>
           <button type="button" class="btn btn-ghost" onclick="ui.closeModal()">Cancel</button>
+          <!-- Add a Reject button for managers (only shows on OPEN records) -->
+          <button type="button" id="rejectBtn" class="btn btn-ghost" style="color:var(--danger); display:none" onclick="logic.reject()">Reject</button>
           <button type="submit" id="saveBtn" class="btn btn-primary">Save Draft</button>
           <button type="button" id="submitBtn" class="btn btn-accent" style="display:none" onclick="logic.finalize()">Finalize to HC</button>
         </div>
@@ -460,46 +492,73 @@
         this.render();
       },
 
-      openModal(item = null) {
-        const form = document.getElementById('otForm');
-        const isSubmitted = item && item.Status === 'SUBMITTED';
-        form.reset();
-        
-        document.getElementById('f_id').value = item ? item.ID : '';
-        document.getElementById('modalTitle').innerText = item ? 'Update Record' : 'New Duty Entry';
-        
-        if (item) {
-          pickers.from.setDate(item['From DateTime']);
-          pickers.until.setDate(item['Until DateTime']);
-          document.getElementById('f_employee').value = item.Employee;
-          document.getElementById('f_pn').value = item['Personal Number'];
-          document.getElementById('f_remarks').value = item.Remarks;
+        openModal(item = null) {
+          const form = document.getElementById('otForm');
+          const status = item ? item.Status : 'NEW';
+          form.reset();
           
-          const hasRest = item['Rest Start'] && item['Rest Start'] !== "";
-          document.getElementById('f_rest_toggle').checked = hasRest;
-          document.getElementById('rest_fields').style.display = hasRest ? 'grid' : 'none';
-          if(hasRest) {
-            pickers.restStart.setDate(item['Rest Start']);
-            pickers.restEnd.setDate(item['Rest End']);
+          document.getElementById('f_id').value = item ? item.ID : '';
+          document.getElementById('modalTitle').innerText = item ? 'Update Record' : 'New Duty Entry';
+          
+          // Handle Rejection Reason Visibility
+          const rejectContainer = document.getElementById('rejection_container');
+          const rejectInput = document.getElementById('f_rejection_reason');
+          
+          if (status === 'REJECTED') {
+            rejectContainer.style.display = 'block';
+            rejectInput.value = item['Rejection Reason'] || '';
+            rejectInput.disabled = true; // User can't edit it, only see it
+          } else if (status === 'OPEN' && item) {
+            // If you want managers to be able to type a reason while rejecting:
+            rejectContainer.style.display = 'block';
+            rejectInput.value = '';
+            rejectInput.disabled = false;
+          } else {
+            rejectContainer.style.display = 'none';
           }
-          logic.calc();
-
-          document.getElementById('evidenceLink').innerHTML = item['Evidence File URL'] ? 
-            `<a href="${item['Evidence File URL']}" target="_blank" style="color:var(--primary); font-weight:700; text-decoration:none;">View Attachment</a>` : '';
-        } else {
-          document.getElementById('rest_fields').style.display = 'none';
-          document.getElementById('f_rest_toggle').checked = false;
-          document.getElementById('display_main').innerText = "00:00";
-          document.getElementById('display_human').innerText = "00 HH : 00 MM";
-          document.getElementById('display_decimal').innerText = "0,00 Hrs";
-        }
-
-        document.getElementById('submitBtn').style.display = (item && !isSubmitted) ? 'flex' : 'none';
-        document.getElementById('saveBtn').style.display = isSubmitted ? 'none' : 'flex';
-        form.querySelectorAll('input, textarea').forEach(el => { if(el.id !== 'f_id') el.disabled = isSubmitted });
-        document.getElementById('formModal').style.display = 'flex';
-      },
-
+          // Button Visibility Logic
+          // Show Delete only for OPEN and REJECTED
+          document.getElementById('deleteBtn').style.display = (status === 'OPEN' || status === 'REJECTED') ? 'flex' : 'none';
+    
+          // Show Reject button only for OPEN items (simulating Manager view)
+          document.getElementById('rejectBtn').style.display = (status === 'OPEN') ? 'flex' : 'none';
+    
+          // Show Submit/Save
+          document.getElementById('submitBtn').style.display = (status === 'OPEN') ? 'flex' : 'none';
+          document.getElementById('saveBtn').style.display = (status === 'SUBMITTED') ? 'none' : 'flex';
+          
+          if (item) {
+            pickers.from.setDate(item['From DateTime']);
+            pickers.until.setDate(item['Until DateTime']);
+            document.getElementById('f_employee').value = item.Employee;
+            document.getElementById('f_pn').value = item['Personal Number'];
+            document.getElementById('f_remarks').value = item.Remarks;
+          
+            const hasRest = item['Rest Start'] && item['Rest Start'] !== "";
+            document.getElementById('f_rest_toggle').checked = hasRest;
+            document.getElementById('rest_fields').style.display = hasRest ? 'grid' : 'none';
+            if(hasRest) {
+              pickers.restStart.setDate(item['Rest Start']);
+              pickers.restEnd.setDate(item['Rest End']);
+            }
+            logic.calc();
+            
+            document.getElementById('evidenceLink').innerHTML = item['Evidence File URL'] ? 
+              `<a href="${item['Evidence File URL']}" target="_blank" style="color:var(--primary); font-weight:700; text-decoration:none;">View Attachment</a>` : '';
+          } else {
+            document.getElementById('rest_fields').style.display = 'none';
+            document.getElementById('f_rest_toggle').checked = false;
+            document.getElementById('display_main').innerText = "00:00";
+            document.getElementById('display_human').innerText = "00 HH : 00 MM";
+            document.getElementById('display_decimal').innerText = "0,00 Hrs";
+          }
+          
+          document.getElementById('submitBtn').style.display = (item && !isSubmitted) ? 'flex' : 'none';
+          document.getElementById('saveBtn').style.display = isSubmitted ? 'none' : 'flex';
+          form.querySelectorAll('input, textarea').forEach(el => { if(el.id !== 'f_id') el.disabled = isSubmitted });
+          document.getElementById('formModal').style.display = 'flex';
+        },
+      
       closeModal() { document.getElementById('formModal').style.display = 'none'; },
       toggleLoader(show) { document.getElementById('loader').style.display = show ? 'flex' : 'none'; }
     };
@@ -602,6 +661,35 @@
           throw new Error(result.message);
         }
       }
+
+        async reject() {
+          const reason = document.getElementById('f_rejection_reason').value;
+          if (!reason) return alert("Please provide a rejection reason.");
+          if (!confirm("Reject this overtime request?")) return;
+          
+          ui.toggleLoader(true);
+          try {
+            await this.call('rejectRecord', [{
+              id: document.getElementById('f_id').value,
+              reason: reason
+            }]);
+            ui.closeModal();
+            ui.refresh();
+          } catch(e) { alert(e); }
+          ui.toggleLoader(false);
+        },
+
+        async deleteRecord() {
+          if (!confirm("Are you sure you want to PERMANENTLY delete this record?")) return;
+          ui.toggleLoader(true);
+          
+          try {
+            await this.call('deleteRecord', [document.getElementById('f_id').value]);
+            ui.closeModal();
+            ui.refresh();
+          } catch(e) { alert(e); }
+          ui.toggleLoader(false);
+        }
     };
 
     ui.init();
