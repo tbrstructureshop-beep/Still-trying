@@ -10,6 +10,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
   
+  <!-- Flatpickr (Calendar & Clock) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
   <style>
     :root {
       --primary: #2b868c;
@@ -73,12 +77,7 @@
 
     /* --- LAYOUT --- */
     .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
-    
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-      gap: 1.5rem;
-    }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem; }
 
     /* --- CARDS --- */
     .card {
@@ -114,19 +113,21 @@
     .stat-label { font-size: 0.6rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; display: block; }
     .stat-value { font-size: 1.2rem; font-weight: 800; color: var(--primary); }
 
-    /* --- MODAL --- */
+    /* --- MODAL UPDATES --- */
     .modal {
       display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6);
       backdrop-filter: blur(4px); z-index: 2000; align-items: center; justify-content: center; padding: 1rem;
     }
     .modal-content {
       background: white; width: 100%; max-width: 600px; border-radius: 24px;
-      overflow: hidden; animation: modalIn 0.3s ease-out; max-height: 90vh; display: flex; flex-direction: column;
+      overflow: hidden; animation: modalIn 0.3s ease-out; 
+      max-height: 90vh; /* Reduced for better mobile visibility */
+      display: flex; flex-direction: column;
     }
     @keyframes modalIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-    .modal-header { padding: 1.5rem; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; }
-    .modal-body { padding: 1.5rem; overflow-y: auto; }
+    .modal-header { padding: 1.2rem 1.5rem; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+    .modal-body { padding: 1.5rem; overflow-y: auto; flex-grow: 1; -webkit-overflow-scrolling: touch; }
     
     .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
     .col-span-2 { grid-column: span 2; }
@@ -136,42 +137,55 @@
       width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border);
       font-family: inherit; font-size: 0.95rem; transition: 0.2s; background: #fcfcfd;
     }
-    .input-group input:focus { outline: none; border-color: var(--primary); background: white; box-shadow: 0 0 0 4px rgba(43, 134, 140, 0.1); }
     
+    /* Toggle Switch Styles */
+    .toggle-container {
+      display: flex; align-items: center; gap: 10px; padding: 10px; 
+      background: var(--bg); border-radius: 10px; margin-bottom: 1rem;
+    }
+    .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute; cursor: pointer; inset: 0; background-color: #cbd5e1;
+      transition: .4s; border-radius: 24px;
+    }
+    .slider:before {
+      position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px;
+      background-color: white; transition: .4s; border-radius: 50%;
+    }
+    input:checked + .slider { background-color: var(--primary); }
+    input:checked + .slider:before { transform: translateX(20px); }
+
     .calc-display {
       background: var(--primary-light); border: 2px dashed var(--primary);
       padding: 10px; border-radius: 10px; text-align: center;
       color: var(--primary); font-size: 1.5rem; font-weight: 800;
     }
 
-    .modal-footer { padding: 1.5rem; background: #f8fafc; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 12px; }
+    .modal-footer { padding: 1.2rem 1.5rem; background: #f8fafc; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 12px; flex-shrink: 0; }
 
     /* --- BUTTONS --- */
     .btn {
-      padding: 12px 24px; border-radius: 12px; border: none; font-weight: 700;
+      padding: 12px 20px; border-radius: 12px; border: none; font-weight: 700;
       cursor: pointer; transition: 0.2s; font-size: 0.9rem; display: flex; align-items: center; gap: 8px;
     }
     .btn-primary { background: var(--primary); color: white; }
-    .btn-primary:hover { background: var(--primary-dark); }
     .btn-ghost { background: transparent; color: var(--text-muted); }
-    .btn-ghost:hover { background: #f1f5f9; }
     .btn-accent { background: var(--accent); color: white; }
 
     .fab {
       position: fixed; bottom: 2rem; right: 2rem; width: 60px; height: 60px;
       background: var(--primary); color: white; border-radius: 20px; border: none;
       box-shadow: 0 10px 25px rgba(43, 134, 140, 0.4); cursor: pointer;
-      display: flex; align-items: center; justify-content: center; transition: 0.3s;
+      display: flex; align-items: center; justify-content: center; z-index: 999;
     }
-    .fab:hover { transform: scale(1.1) rotate(90deg); }
 
     /* --- MOBILE --- */
     @media (max-width: 600px) {
-      .nav-bar { height: auto; padding: 1rem; flex-direction: column; gap: 1rem; }
-      .grid { grid-template-columns: 1fr; }
+      .modal { padding: 0; }
+      .modal-content { height: 100%; max-height: 100%; border-radius: 0; }
       .form-grid { grid-template-columns: 1fr; }
       .col-span-2 { grid-column: span 1; }
-      .modal-content { height: 100%; max-height: 100%; border-radius: 0; }
     }
 
     #loader { display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.7); z-index: 3000; align-items: center; justify-content: center; flex-direction: column; gap: 1rem; }
@@ -220,7 +234,7 @@
         <i class="material-icons-round" style="cursor:pointer" onclick="ui.closeModal()">close</i>
       </div>
       
-      <form id="otForm">
+      <form id="otForm" style="display:contents">
         <div class="modal-body">
           <input type="hidden" id="f_id">
           <div class="form-grid">
@@ -232,22 +246,42 @@
               <label>Personal Number (PN)</label>
               <input type="text" id="f_pn" required placeholder="PN-XXXX">
             </div>
+            
             <div class="input-group">
               <label>Duty Start</label>
-              <input type="datetime-local" id="f_from" required onchange="logic.calc()">
+              <input type="text" id="f_from" class="datetime-picker" required>
             </div>
             <div class="input-group">
               <label>Duty End</label>
-              <input type="datetime-local" id="f_until" required onchange="logic.calc()">
+              <input type="text" id="f_until" class="datetime-picker" required>
             </div>
-            <div class="input-group">
-              <label>Rest Duration</label>
-              <input type="time" id="f_rest" value="00:00" onchange="logic.calc()">
+
+            <div class="col-span-2">
+              <div class="toggle-container">
+                <label class="switch">
+                  <input type="checkbox" id="f_rest_toggle" onchange="logic.toggleRest()">
+                  <span class="slider"></span>
+                </label>
+                <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-main)">Include Rest Period?</span>
+              </div>
             </div>
-            <div class="input-group">
-              <label>Total Calculated</label>
+
+            <div id="rest_fields" class="col-span-2 form-grid" style="display:none; margin-top: -10px;">
+              <div class="input-group">
+                <label>Rest Start</label>
+                <input type="text" id="f_rest_start" class="datetime-picker">
+              </div>
+              <div class="input-group">
+                <label>Rest End</label>
+                <input type="text" id="f_rest_end" class="datetime-picker">
+              </div>
+            </div>
+
+            <div class="input-group col-span-2">
+              <label>Total Calculated Duty (Minus Rest)</label>
               <input type="text" id="f_total" readonly class="calc-display">
             </div>
+
             <div class="input-group col-span-2">
               <label>Remarks</label>
               <textarea id="f_remarks" rows="3"></textarea>
@@ -269,17 +303,29 @@
   </div>
 
   <script>
-    /** 
-     * IMPORTANT: Replace this with your Web App URL 
-     * after deploying from Apps Script as "Anyone" 
-     */
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzX9vu9-02sXQjxDIOs_bXWuqw1R2BHaooolv0ytvXkfR7LJ1aHvJVnRuaBEpbQcWkL/exec";
+    
+    // Initialize Flatpickr for better Desktop experience
+    const fpConfig = {
+      enableTime: true,
+      time_24hr: true,
+      dateFormat: "Y-m-d H:i",
+      onChange: () => logic.calc()
+    };
+
+    let pickers = {};
 
     const ui = {
       data: [],
       filter: 'OPEN',
 
       init() {
+        // Initialize Pickers
+        pickers.from = flatpickr("#f_from", fpConfig);
+        pickers.until = flatpickr("#f_until", fpConfig);
+        pickers.restStart = flatpickr("#f_rest_start", fpConfig);
+        pickers.restEnd = flatpickr("#f_rest_end", fpConfig);
+
         this.refresh();
         document.getElementById('otForm').onsubmit = (e) => { e.preventDefault(); logic.save(); };
       },
@@ -289,7 +335,7 @@
         try {
           this.data = await logic.call('getRecords');
           this.render();
-        } catch(e) { alert("Connection Error: " + e); }
+        } catch(e) { console.error(e); }
         this.toggleLoader(false);
       },
 
@@ -325,7 +371,7 @@
                 ${item.Timestamp.split('T')[0]}
                </div>
                <div class="stat-box">
-                 <span class="stat-label">Calculated Duty</span>
+                 <span class="stat-label">Total Duration</span>
                  <span class="stat-value">${item['Total Time']}</span>
                </div>
             </div>
@@ -349,20 +395,33 @@
         document.getElementById('modalTitle').innerText = item ? 'Update Record' : 'New Duty Entry';
         
         if (item) {
+          pickers.from.setDate(item['From DateTime']);
+          pickers.until.setDate(item['Until DateTime']);
           document.getElementById('f_employee').value = item.Employee;
           document.getElementById('f_pn').value = item['Personal Number'];
-          document.getElementById('f_from').value = item['From DateTime'];
-          document.getElementById('f_until').value = item['Until DateTime'];
-          document.getElementById('f_rest').value = item['Rest Time'];
           document.getElementById('f_total').value = item['Total Time'];
           document.getElementById('f_remarks').value = item.Remarks;
+          
+          // Logic for Rest Display in Edit
+          const hasRest = item['Rest Start'] && item['Rest Start'] !== "";
+          document.getElementById('f_rest_toggle').checked = hasRest;
+          document.getElementById('rest_fields').style.display = hasRest ? 'grid' : 'none';
+          if(hasRest) {
+            pickers.restStart.setDate(item['Rest Start']);
+            pickers.restEnd.setDate(item['Rest End']);
+          }
+
           document.getElementById('evidenceLink').innerHTML = item['Evidence File URL'] ? 
             `<a href="${item['Evidence File URL']}" target="_blank" style="color:var(--primary); font-weight:700; text-decoration:none;">View Attachment</a>` : '';
+        } else {
+          document.getElementById('rest_fields').style.display = 'none';
+          document.getElementById('f_rest_toggle').checked = false;
         }
 
         document.getElementById('submitBtn').style.display = (item && !isSubmitted) ? 'flex' : 'none';
         document.getElementById('saveBtn').style.display = isSubmitted ? 'none' : 'flex';
         
+        // Disable fields if submitted
         form.querySelectorAll('input, textarea').forEach(el => { if(el.id !== 'f_id') el.disabled = isSubmitted });
         document.getElementById('formModal').style.display = 'flex';
       },
@@ -372,16 +431,34 @@
     };
 
     const logic = {
+      toggleRest() {
+        const show = document.getElementById('f_rest_toggle').checked;
+        document.getElementById('rest_fields').style.display = show ? 'grid' : 'none';
+        this.calc();
+      },
+
       calc() {
-        const from = new Date(document.getElementById('f_from').value);
-        const until = new Date(document.getElementById('f_until').value);
-        const rest = document.getElementById('f_rest').value || "00:00";
-        if (isNaN(from) || isNaN(until)) return;
-        let diff = until - from;
-        const [rh, rm] = rest.split(':').map(Number);
-        diff -= (rh * 3600000 + rm * 60000);
-        const h = Math.floor(Math.max(0, diff) / 3600000);
-        const m = Math.floor((Math.max(0, diff) % 3600000) / 60000);
+        const from = pickers.from.selectedDates[0];
+        const until = pickers.until.selectedDates[0];
+        
+        if (!from || !until) return;
+        
+        let dutyMs = until - from;
+        let restMs = 0;
+
+        if (document.getElementById('f_rest_toggle').checked) {
+          const rStart = pickers.restStart.selectedDates[0];
+          const rEnd = pickers.restEnd.selectedDates[0];
+          if (rStart && rEnd) {
+            restMs = rEnd - rStart;
+          }
+        }
+
+        let diff = dutyMs - restMs;
+        if (diff < 0) diff = 0;
+
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
         document.getElementById('f_total').value = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
       },
 
@@ -409,7 +486,8 @@
             pn: document.getElementById('f_pn').value,
             from: document.getElementById('f_from').value,
             until: document.getElementById('f_until').value,
-            rest: document.getElementById('f_rest').value,
+            rest_start: document.getElementById('f_rest_toggle').checked ? document.getElementById('f_rest_start').value : "",
+            rest_end: document.getElementById('f_rest_toggle').checked ? document.getElementById('f_rest_end').value : "",
             total: document.getElementById('f_total').value,
             remarks: document.getElementById('f_remarks').value,
             evidence: evidenceUrl
@@ -435,21 +513,14 @@
         r.onload = () => res(r.result); r.onerror = e => rej(e);
       }),
 
-      /**
-       * SMART BRIDGE: 
-       * Uses google.script.run if inside GAS environment.
-       * Uses fetch() if deployed to Vercel.
-       */
       async call(fn, args = []) {
         if (typeof google !== 'undefined' && google.script && google.script.run) {
           return new Promise((res, rej) => {
             google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](...args);
           });
         } else {
-          // Standard POST request for Vercel
           const response = await fetch(WEB_APP_URL, {
             method: 'POST',
-            redirect: 'follow',
             body: JSON.stringify({ action: fn, data: args[0] }) 
           });
           const result = await response.json();
