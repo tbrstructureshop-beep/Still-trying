@@ -180,6 +180,63 @@
       display: flex; align-items: center; justify-content: center; z-index: 999;
     }
 
+    /* New Copyable Styles */
+    .calc-container {
+      background: var(--primary-light);
+      border: 2px dashed var(--primary);
+      border-radius: var(--radius-md);
+      padding: 15px;
+      text-align: center;
+      margin-top: 10px;
+    }
+    
+    .copy-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .copy-box {
+      background: white;
+      border: 1px solid var(--border);
+      padding: 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .copy-box:hover {
+      border-color: var(--primary);
+      background: #f0fdfa;
+    }
+
+    .copy-box:active { transform: scale(0.95); }
+
+    .copy-label {
+      font-size: 0.6rem;
+      text-transform: uppercase;
+      font-weight: 800;
+      color: var(--text-muted);
+    }
+
+    .copy-value {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .toast-mini {
+      font-size: 0.65rem;
+      color: var(--success);
+      font-weight: 800;
+      display: none;
+    }
+
     /* --- MOBILE --- */
     @media (max-width: 600px) {
       .modal { padding: 0; }
@@ -278,8 +335,27 @@
             </div>
 
             <div class="input-group col-span-2">
-              <label>Total Calculated Duty (Minus Rest)</label>
-              <input type="text" id="f_total" readonly class="calc-display">
+              <label>Calculated Overtime Duration</label>
+              
+              <div class="calc-container">
+                <!-- Main Large Display (Input for form data) -->
+                <input type="hidden" id="f_total">
+                <div id="display_main" style="font-size: 1.8rem; font-weight: 800; color: var(--primary);">00:00</div>
+                
+                <!-- Copyable Formats -->
+                <div class="copy-grid">
+                  <div class="copy-box" onclick="logic.copyValue('display_human')">
+                    <span class="copy-label">Format: HH : MM</span>
+                    <span class="copy-value" id="display_human">00 HH : 00 MM</span>
+                    <span class="toast-mini" id="toast_human">COPIED!</span>
+                  </div>
+                  <div class="copy-box" onclick="logic.copyValue('display_decimal')">
+                    <span class="copy-label">Format: Decimal</span>
+                    <span class="copy-value" id="display_decimal">0,00 Hrs</span>
+                    <span class="toast-mini" id="toast_decimal">COPIED!</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div class="input-group col-span-2">
@@ -457,11 +533,41 @@
         let diff = dutyMs - restMs;
         if (diff < 0) diff = 0;
 
-        const h = Math.floor(diff / 3600000);
-        const m = Math.floor((diff % 3600000) / 60000);
-        document.getElementById('f_total').value = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+        const totalMinutes = Math.floor(diff / 60000);
+        const h = Math.floor(totalMinutes / 60);
+        const m = totalMinutes % 60;
+        const decimal = totalMinutes / 60;
+
+        // 1. Standard Hidden Input (for Database/Sheet)
+        const standardStr = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+        document.getElementById('f_total').value = standardStr;
+        document.getElementById('display_main').innerText = standardStr;
+
+        // 2. Format: XX HH : YY MM
+        const humanStr = `${String(h).padStart(2,'0')} HH : ${String(m).padStart(2,'0')} MM`;
+        document.getElementById('display_human').innerText = humanStr;
+
+        // 3. Format: 0,00 Hrs
+        const decimalStr = `${decimal.toFixed(2).replace('.', ',')} Hrs`;
+        document.getElementById('display_decimal').innerText = decimalStr;
       },
 
+      async copyValue(elementId) {
+        const text = document.getElementById(elementId).innerText;
+        const toastId = elementId.replace('display', 'toast');
+        
+        try {
+          await navigator.clipboard.writeText(text);
+          
+          // Visual Feedback
+          const toast = document.getElementById(toastId);
+          toast.style.display = 'block';
+          setTimeout(() => { toast.style.display = 'none'; }, 1500);
+        } catch (err) {
+          console.error('Failed to copy: ', err);
+        }
+      },
+      
       formatDate(str) {
         if(!str) return '--/--';
         const d = new Date(str);
