@@ -220,11 +220,33 @@
 
     /* Filter Bar Styling */
     .filter-section { 
-      display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; 
-      margin-bottom: 2rem; background: white; padding: 1rem; 
-      border-radius: var(--radius-md); border: 1px solid var(--border);
+      display: none; /* HIDE BY DEFAULT */
+      grid-template-columns: 1fr 1fr; 
+      gap: 1rem; 
+      margin-bottom: 2rem; 
+      background: white; 
+      padding: 1rem; 
+      border-radius: var(--radius-md); 
+      border: 1px solid var(--border);
+      animation: slideDown 0.3s ease-out;
+    }
+
+    .filter-section.active {
+      display: grid;
     }
     
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Style for the new Filter Toggle Button */
+    .filter-toggle-container {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1rem;
+    }
+
     .filter-group { display: flex; flex-direction: column; gap: 5px; }
     .filter-group label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; display: flex; align-items: center; gap: 4px; }
     .filter-group select { 
@@ -363,7 +385,13 @@
   </nav>
 
   <main class="container">
-    <div class="filter-section">
+    <div class="filter-toggle-container">
+      <button class="btn btn-ghost" onclick="ui.toggleFilters()" style="border: 1px solid var(--border); background: white;">
+        <i class="material-icons-round">filter_list</i> Filter Data
+      </button>
+    </div>
+    
+    <div class="filter-section" id="filter-bar">
       <div class="filter-group">
         <label><i class="material-icons-round">filter_alt</i> Filter Unit</label>
         <select id="select-unit" onchange="ui.render()"><option value="ALL">All Units</option></select>
@@ -508,6 +536,11 @@
       pickers.restEnd = flatpickr("#f_rest_end", fpConfig);
       this.refresh();
       document.getElementById('otForm').onsubmit = (e) => { e.preventDefault(); logic.save(); };
+    },
+
+    toggleFilters() {
+      const filterBar = document.getElementById('filter-bar');
+      filterBar.classList.toggle('active');
     },
     
     async refresh() {
