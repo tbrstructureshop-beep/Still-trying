@@ -218,21 +218,39 @@
     
     .rejection-box label { color: #991b1b; }
 
-    /* Filter Bar Styling */
-    .filter-section { 
-      display: none; /* HIDE BY DEFAULT */
-      grid-template-columns: 1fr 1fr; 
-      gap: 1rem; 
-      margin-bottom: 2rem; 
-      background: white; 
-      padding: 1rem; 
-      border-radius: var(--radius-md); 
-      border: 1px solid var(--border);
-      animation: slideDown 0.3s ease-out;
+    .filter-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end; /* Aligns button to the right */
+      gap: 12px;
+      margin-bottom: 2rem;
+      overflow: hidden;
     }
-
+    
+    /* The actual bar - initially collapsed */
+    .filter-section { 
+      display: flex; /* Flex instead of grid for horizontal look */
+      gap: 1rem; 
+      background: white; 
+      padding: 0; /* No padding when closed */
+      border-radius: var(--radius-md); 
+      border: 1px solid transparent;
+  
+      /* Hiding logic */
+      max-width: 0;
+      opacity: 0;
+      visibility: hidden;
+      white-space: nowrap;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Expanded state */
     .filter-section.active {
-      display: grid;
+      max-width: 800px; /* Adjust based on your filter width */
+      opacity: 1;
+      visibility: visible;
+      padding: 0.8rem 1.2rem;
+      border-color: var(--border);
     }
     
     @keyframes slideDown {
@@ -240,14 +258,34 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Style for the new Filter Toggle Button */
-    .filter-toggle-container {
-      display: flex;
-      justify-content: flex-end;
-      margin-bottom: 1rem;
+   .btn-filter-toggle {
+     display: flex;
+     align-items: center;
+     gap: 8px;
+     background: white;
+     border: 1px solid var(--border);
+     color: var(--text-main);
+     padding: 10px 16px;
+     border-radius: 12px;
+     cursor: pointer;
+     font-weight: 700;
+     transition: 0.2s;
+     flex-shrink: 0; /* Prevents button from squishing */
+   }
+
+    .btn-filter-toggle.active {
+      background: var(--primary-light);
+      color: var(--primary);
+      border-color: var(--primary);
     }
 
-    .filter-group { display: flex; flex-direction: column; gap: 5px; }
+    .filter-group { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 4px;
+      min-width: 180px; 
+    }
+    
     .filter-group label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; display: flex; align-items: center; gap: 4px; }
     .filter-group select { 
       padding: 10px; border-radius: 8px; border: 1px solid var(--border); 
@@ -261,8 +299,19 @@
     /* --- MERGED MOBILE REVISIONS --- */
     
     @media (max-width: 600px) {
-            .header h1 {
+      
+      .header h1 {
         font-size: 1.5rem;
+      }
+
+      .filter-wrapper {
+        flex-direction: column-reverse; /* Button on bottom or top */
+        align-items: stretch;
+      }
+      
+      .filter-section.active {
+        flex-direction: column;
+        max-width: 100%;
       }
       
       .filter-section { 
@@ -383,23 +432,26 @@
       </button>
     </div>
   </nav>
-
+  
   <main class="container">
-    <div class="filter-toggle-container">
-      <button class="btn btn-ghost" onclick="ui.toggleFilters()" style="border: 1px solid var(--border); background: white;">
-        <i class="material-icons-round">filter_list</i> Filter Data
+    <div class="filter-wrapper">
+      <!-- The filter bar is now inside the wrapper and comes BEFORE the button -->
+      <div class="filter-section" id="filter-bar">
+        <div class="filter-group">
+          <label><i class="material-icons-round">filter_alt</i> Filter Unit</label>
+          <select id="select-unit" onchange="ui.render()"><option value="ALL">All Units</option></select>
+        </div>
+        <div class="filter-group">
+          <label><i class="material-icons-round">person_search</i> Filter Name</label>
+          <select id="select-name" onchange="ui.render()"><option value="ALL">All Personnel</option></select>
+        </div>
+      </div>
+      
+      <!-- The Toggle Button -->
+      <button class="btn-filter-toggle" id="btn-toggle-filters" onclick="ui.toggleFilters()">
+        <i class="material-icons-round">filter_list</i>
+        <span>Filter Data</span>
       </button>
-    </div>
-    
-    <div class="filter-section" id="filter-bar">
-      <div class="filter-group">
-        <label><i class="material-icons-round">filter_alt</i> Filter Unit</label>
-        <select id="select-unit" onchange="ui.render()"><option value="ALL">All Units</option></select>
-      </div>
-      <div class="filter-group">
-        <label><i class="material-icons-round">person_search</i> Filter Name</label>
-        <select id="select-name" onchange="ui.render()"><option value="ALL">All Personnel</option></select>
-      </div>
     </div>
     <div id="grid" class="grid"></div>
   </main>
@@ -537,10 +589,17 @@
       this.refresh();
       document.getElementById('otForm').onsubmit = (e) => { e.preventDefault(); logic.save(); };
     },
-
+    
     toggleFilters() {
-      const filterBar = document.getElementById('filter-bar');
-      filterBar.classList.toggle('active');
+      const bar = document.getElementById('filter-bar');
+      const btn = document.getElementById('btn-toggle-filters');
+      
+      const isActive = bar.classList.toggle('active');
+      btn.classList.toggle('active');
+      
+      // Change icon/text based on state
+      btn.querySelector('span').innerText = isActive ? 'Close Filters' : 'Filter Data';
+      btn.querySelector('i').innerText = isActive ? 'close' : 'filter_list';
     },
     
     async refresh() {
