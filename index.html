@@ -492,7 +492,7 @@
   const ui = {
     data: [],
     filter: 'OPEN',
-
+    
     init() {
       pickers.from = flatpickr("#f_from", fpConfig);
       pickers.until = flatpickr("#f_until", fpConfig);
@@ -501,67 +501,110 @@
       this.refresh();
       document.getElementById('otForm').onsubmit = (e) => { e.preventDefault(); logic.save(); };
     },
-
+    
     async refresh() {
       this.toggleLoader(true);
       try {
         this.data = await logic.call('getRecords');
+        this.populateDropdowns(); // Fill Unit and Name filters
         this.render();
       } catch(e) { 
         console.error("Refresh Error:", e);
-        alert("Failed to load data. Check console.");
+        alert("Failed to load data.");
       }
       this.toggleLoader(false);
     },
-
-    render() {
-      const grid = document.getElementById('grid');
-      grid.innerHTML = '';
-      const filtered = this.data.filter(r => r.Status === this.filter);
+    
+    populateDropdowns() {
+      const units = new Set();
+      const names = new Set();
       
-      if (!filtered.length) {
-        grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 6rem 2rem; opacity: 0.5;">
-          <i class="material-icons-round" style="font-size: 64px; color: var(--primary);">folder_open</i>
-          <p style="font-weight:700; margin-top:1rem;">No ${this.filter.toLowerCase()} records found</p>
-        </div>`;
-        return;
-      }
+      this.data.forEach(item => {
+        if (item.Unit) units.add(item.Unit);
+        if (item.Employee) names.add(item.Employee);
+      });
+      
+      const unitSelect = document.getElementById('select-unit');
+      const nameSelect = document.getElementById('select-name');
+      
+      // Save current selections
+      const curUnit = unitSelect.value;
+      const curName = nameSelect.value;
+      
+      unitSelect.innerHTML = '<option value="ALL">All Units</option>';
+      nameSelect.innerHTML = '<option value="ALL">All Personnel</option>';
+      
+      Array.from(units).sort().forEach(u => unitSelect.innerHTML += `<option value="${u}">${u}</option>`);
+      Array.from(names).sort().forEach(n => nameSelect.innerHTML += `<option value="${n}">${n}</option>`);
+      
+      unitSelect.value = curUnit;
+      nameSelect.value = curName;
+    },
 
-      filtered.forEach(item => {
-        const hasRest = item['Rest Start'] && item['Rest Start'] !== "";
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.onclick = () => this.openModal(item);
+      render() {
+        const grid = document.getElementById('grid');
+        const selectedUnit = document.getElementById('select-unit').value;
+        const selectedName = document.getElementById('select-name').value;
         
-        // Safety check for Timestamp
-        const datePart = item.Timestamp ? item.Timestamp.split('T')[0] : '--';
+        // 1. Filter data based on Unit and Name Dropdowns
+        const baseFiltered = this.data.filter(item => {
+          const matchUnit = selectedUnit === 'ALL' || item.Unit === selectedUnit;
+          const matchName = selectedName === 'ALL' || item.Employee === selectedName;
+          return matchUnit && matchName;
+        });
         
-        card.innerHTML = `
+        // 2. Update Tab Counters based on these filters
+        const counts = { OPEN: 0, REJECTED: 0, SUBMITTED: 0 };
+        baseFiltered.forEach(item => { if(counts[item.Status] !== undefined) counts[item.Status]++; });
+        
+        document.getElementById('cnt-OPEN').innerText = counts.OPEN;
+        document.getElementById('cnt-REJECTED').innerText = counts.REJECTED;
+        document.getElementById('cnt-SUBMITTED').innerText = counts.SUBMITTED;
+        
+        // 3. Further filter by the active Tab (OPEN/REJECTED/SUBMITTED)
+        const finalDisplay = baseFiltered.filter(item => item.Status === this.filter);
+        
+        grid.innerHTML = '';
+        if (!finalDisplay.length) {
+          grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 4rem 2rem; opacity: 0.5;">
+          <i class="material-icons-round" style="font-size: 48px;">folder_open</i>
+          <p>No records found matching criteria</p>
+          </div>`;
+          return;
+        }
+        
+        finalDisplay.forEach(item => {
+          const hasRest = item['Rest Start'] && item['Rest Start'] !== "";
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.onclick = () => this.openModal(item);
+          
+          card.innerHTML = `
           <span class="status-badge status-${item.Status}">${item.Status}</span>
           <div class="card-title">${item.Employee}</div>
-          <span class="card-subtitle">PN: ${item['Personal Number']} | Unit: ${item['Unit'] || '-'}</span>
+          <span class="card-subtitle">PN: ${item['Personal Number']} | Unit: ${item.Unit || '-'}</span>
           <div class="timeline">
-            <div class="timeline-row"><i class="material-icons-round">login</i> ${logic.formatDate(item['From DateTime'])}</div>
-            <div class="timeline-row"><i class="material-icons-round">logout</i> ${logic.formatDate(item['Until DateTime'])}</div>
+          <div class="timeline-row"><i class="material-icons-round">login</i> ${logic.formatDate(item['From DateTime'])}</div>
+          <div class="timeline-row"><i class="material-icons-round">logout</i> ${logic.formatDate(item['Until DateTime'])}</div>
           </div>
           ${hasRest ? '<div style="margin-bottom:1rem;"><span class="rest-tag">REST PERIOD INCLUDED</span></div>' : ''}
           <div class="card-footer">
-             <div style="font-size: 0.65rem; color: var(--text-muted)">${datePart}</div>
-             <div class="stat-box">
-               <span class="stat-label">Total Duration</span>
-               <span class="stat-value">${item['Total Time']}</span>
-             </div>
+          <div style="font-size: 0.65rem; color: var(--text-muted)">${item.Timestamp ? item.Timestamp.split('T')[0] : '--'}</div>
+          <div class="stat-box">
+          <span class="stat-label">Total Duration</span>
+          <span class="stat-value">${item['Total Time']}</span>
           </div>
-        `;
-        grid.appendChild(card);
-      });
-    },
+          </div>
+          `;
+          grid.appendChild(card);
+        });
+      },
 
-    switchTab(t) {
-      this.filter = t;
-      document.querySelectorAll('.nav-item').forEach(btn => btn.classList.toggle('active', btn.id === 'tab-'+t));
-      this.render();
-    },
+     switchTab(t) {
+       this.filter = t;
+       document.querySelectorAll('.nav-item').forEach(btn => btn.classList.toggle('active', btn.id === 'tab-'+t));
+       this.render();
+     },
 
     openModal(item = null) {
       const form = document.getElementById('otForm');
