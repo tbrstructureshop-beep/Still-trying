@@ -271,7 +271,6 @@
 </body>
   
 <script>
-    // [STAYS EXACTLY THE SAME AS YOUR ORIGINAL CODE]
     const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTcm6VhsS6UO8X9ueZulzk-ysTUP7xhIpmeT_R1OFPsbh37lPZbNdZ1vgcekX_xpxOwK9EfFpEa_84F/pub?gid=1284751190&single=true&output=csv";
     const DOCS_ICON = "https://www.gstatic.com/images/branding/product/1x/docs_2020q4_48dp.png";
     const WA_ICON = "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/2044px-WhatsApp.svg.png";
@@ -282,200 +281,173 @@
     let rowsPerPage = 12;
 
     async function fetchData() {
-      document.getElementById("gifOverlay").style.display = "flex";
-      try {
-        const response = await fetch(SHEET_URL);
-        const csvData = await response.text();
-        const result = Papa.parse(csvData, { header: true, skipEmptyLines: true });
-        rawData = result.data.reverse();
-        filteredData = [...rawData];
-        renderCards();
-      } catch (e) { console.error(e); } 
-      finally { document.getElementById("gifOverlay").style.display = "none"; }
+        document.getElementById("gifOverlay").style.display = "flex";
+        try {
+            const response = await fetch(SHEET_URL);
+            const csvData = await response.text();
+            const result = Papa.parse(csvData, { header: true, skipEmptyLines: true });
+            rawData = result.data.reverse();
+            filteredData = [...rawData];
+            renderCards();
+        } catch (e) { console.error(e); } 
+        finally { document.getElementById("gifOverlay").style.display = "none"; }
+    }
+
+    // Helper to get Google Drive Thumbnail
+    function getDriveThumb(url) {
+        if (!url || !url.includes('drive.google.com')) return null;
+        const match = url.match(/\/d\/(.+?)\/|id=([^&]+)/);
+        const id = match ? (match[1] || match[2]) : null;
+        return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w200` : null;
     }
 
     function formatDescriptionTable(text) {
-      if (!text || text.trim() === "") return `<div style="padding:10px; font-size:0.8rem; color:#999;">No description provided.</div>`;
-      
-      const lines = text.split('\n').filter(l => l.trim() !== "");
-      let rowsHtml = lines.map(line => {
-        const cols = line.split('|').map(c => c.trim());
+        if (!text || text.trim() === "") return `<div style="padding:10px; font-size:0.8rem; color:#999;">No description provided.</div>`;
+        const lines = text.split('\n').filter(l => l.trim() !== "");
+        let rowsHtml = lines.map(line => {
+            const cols = line.split('|').map(c => c.trim());
+            return `<tr><td>${cols[0] || ''}</td><td>${cols[1] || ''}</td><td>${cols[2] || ''}</td></tr>`;
+        }).join('');
         return `
-          <tr>
-            <td>${cols[0] || ''}</td>
-            <td>${cols[1] || ''}</td>
-            <td>${cols[2] || ''}</td>
-          </tr>
-        `;
-      }).join('');
-
-      return `
-        <div class="table-wrapper">
-          <table class="desc-table">
-            <thead>
-              <tr>
-                <th>Qty</th>
-                <th>Description</th>
-                <th>Remarks</th>
-              </tr>
-            </thead>
-            <tbody>${rowsHtml}</tbody>
-          </table>
-        </div>
-      `;
+            <div class="table-wrapper">
+                <table class="desc-table">
+                    <thead><tr><th>Qty</th><th>Description</th><th>Remarks</th></tr></thead>
+                    <tbody>${rowsHtml}</tbody>
+                </table>
+            </div>`;
     }
 
     function renderCards() {
-      const container = document.getElementById("cardContainer");
-      const start = (currentPage - 1) * rowsPerPage;
-      const end = start + rowsPerPage;
-      const pageData = filteredData.slice(start, end);
+        const container = document.getElementById("cardContainer");
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+        const pageData = filteredData.slice(start, end);
 
-      if (pageData.length === 0) {
-        container.innerHTML = "";
-        document.getElementById("noDataMessage").style.display = "block";
-        document.getElementById("pagination").innerHTML = "";
-        return;
-      }
-      document.getElementById("noDataMessage").style.display = "none";
-
-      container.innerHTML = pageData.map(row => {
-        const keys = Object.keys(row);
-        const spNumber = row[keys[0]] || "N/A";
-        const date = row["Timestamp"] || "";
-        
-        const docKey = keys.find(k => k.toLowerCase().includes("url") && !k.toLowerCase().includes("whatsapp"));
-        const waKey = keys.find(k => k.toLowerCase().includes("whatsapp"));
-        const sigKey = keys.find(k => k.toLowerCase().includes("signature") || k.toLowerCase().includes("image"));
-        const descKey = keys.find(k => k.toLowerCase() === "description");
-
-        const docUrl = docKey ? row[docKey] : null;
-        const waUrl = waKey ? row[waKey] : null;
-        // Inside your row mapping loop in renderCards()
-        const senderSigUrl = row["Sender Signature"] || "";
-        let sigThumb = "";
-        
-        if (senderSigUrl.includes('drive.google.com')) {
-          const match = senderSigUrl.match(/\/d\/(.+?)\//);
-          const id = match ? match[1] : "";
-          sigThumb = `https://drive.google.com/thumbnail?id=${id}&sz=w200`;
-        } else if (senderSigUrl.startsWith('data:image')) {
-          sigThumb = senderSigUrl;
+        if (pageData.length === 0) {
+            container.innerHTML = "";
+            document.getElementById("noDataMessage").style.display = "block";
+            document.getElementById("pagination").innerHTML = "";
+            return;
         }
+        document.getElementById("noDataMessage").style.display = "none";
 
-        const infoGrid = keys.map(key => {
-          const val = row[key];
-          const kLow = key.toLowerCase();
-          if (!val || kLow === "description" || kLow.includes("url") || kLow.includes("signature") || kLow.includes("image") || kLow.includes("whatsapp") || kLow === "timestamp" || key === keys[0]) return "";
-          
-          return `
-            <div class="data-item">
-              <span class="label">${key}</span>
-              <span class="value">${val}</span>
-            </div>
-          `;
+        container.innerHTML = pageData.map(row => {
+            const keys = Object.keys(row);
+            const spNumber = row["SP No."] || row[keys[0]] || "N/A";
+            const date = row["Date"] || row["Timestamp"] || "";
+            const time = row["Time"] || "";
+            
+            // Signature logic
+            const senderSigUrl = row["Sender Signature"] || "";
+            let sigThumb = getDriveThumb(senderSigUrl);
+            if (!sigThumb && senderSigUrl.startsWith('data:image')) sigThumb = senderSigUrl;
+
+            const waUrl = row["Whatsapp Notif"] || "";
+
+            // Columns to hide from the card grid
+            const exclude = [
+                "SP No.", "Date", "Time", "Description", "Timestamp",
+                "Google Doc URL", "Whatsapp Notif", "Sender Signature", 
+                "Receiver Signature", "Evidence"
+            ];
+
+            const infoGrid = keys.map(key => {
+                const val = row[key];
+                if (exclude.includes(key) || !val || val === "") return "";
+                return `
+                    <div class="data-item">
+                        <span class="label">${key}</span>
+                        <span class="value">${val}</span>
+                    </div>`;
+            }).join('');
+
+            return `
+                <div class="card">
+                    <div class="card-header">
+                        <div class="sp-no"># ${spNumber}</div>
+                        <div class="sp-date">${date} ${time}</div>
+                    </div>
+                    
+                    <div class="card-info-grid">${infoGrid}</div>
+
+                    <div class="desc-section">
+                        <details>
+                            <summary>Items / Description</summary>
+                            ${formatDescriptionTable(row["Description"])}
+                        </details>
+                    </div>
+
+                    <div class="card-footer">
+                        <div class="sig-box">
+                            ${sigThumb ? `<img src="${sigThumb}" alt="Sig">` : '<span class="label" style="color:#ccc">No Signature</span>'}
+                        </div>
+                        <div class="action-icons">
+                            <a href="javascript:void(0)" onclick='openFormModal(${JSON.stringify(row)})' title="View Document">
+                                <img src="${DOCS_ICON}">
+                            </a>
+                            ${waUrl ? `<a href="${waUrl}" target="_blank" title="WA Notif"><img src="${WA_ICON}"></a>` : ''}
+                        </div>
+                    </div>
+                </div>`;
         }).join('');
 
-        return `
-          <div class="card">
-            <div class="card-header">
-              <div class="sp-no"># ${spNumber}</div>
-              <div class="sp-date">${date}</div>
-            </div>
-            
-            <div class="card-info-grid">
-              ${infoGrid}
-            </div>
-
-            <div class="desc-section">
-              <details>
-                <summary>Items / Description</summary>
-                ${formatDescriptionTable(row[descKey])}
-              </details>
-            </div>
-
-            <div class="card-footer">
-              <div class="sig-box">
-              ${sigThumb ? `<img src="${sigThumb}" alt="Sig">` : '<span class="label" style="color:#ccc">No Signature</span>'}
-              </div>
-              <div class="action-icons">
-              <a href="javascript:void(0)" onclick='openFormModal(${JSON.stringify(row)})' title="View Document">
-              <img src="${DOCS_ICON}">
-              </a>
-                ${waUrl ? `<a href="${waUrl}" target="_blank" title="WA Notif"><img src="${WA_ICON}"></a>` : ''}
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      renderPagination();
+        renderPagination();
     }
 
     function handleFilter() {
-      const q = document.getElementById("searchBox").value.toLowerCase();
-      filteredData = rawData.filter(row => 
-        Object.values(row).some(v => String(v).toLowerCase().includes(q))
-      );
-      currentPage = 1;
-      renderCards();
-    }
-
-    function openForm(rowData) {
-      // Save the data to the browser's storage
-      localStorage.setItem('currentSPData', JSON.stringify(rowData));
-      // Redirect to the form directory
-      window.location.href = 'form/index.html';
+        const q = document.getElementById("searchBox").value.toLowerCase();
+        filteredData = rawData.filter(row => 
+            Object.values(row).some(v => String(v).toLowerCase().includes(q))
+        );
+        currentPage = 1;
+        renderCards();
     }
 
     function renderPagination() {
-      const totalPages = Math.ceil(filteredData.length / rowsPerPage);
-      const container = document.getElementById("pagination");
-      container.innerHTML = `
-        <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>Prev</button>
-        <span style="font-size:0.85rem; font-weight:bold;">Page ${currentPage} / ${totalPages || 1}</span>
-        <button onclick="changePage(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''}>Next</button>
-      `;
+        const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+        const container = document.getElementById("pagination");
+        container.innerHTML = `
+            <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>Prev</button>
+            <span style="font-size:0.85rem; font-weight:bold;">Page ${currentPage} / ${totalPages || 1}</span>
+            <button onclick="changePage(${currentPage + 1})" ${currentPage >= totalPages ? 'disabled' : ''}>Next</button>
+        `;
     }
 
     function changePage(p) {
-      currentPage = p;
-      renderCards();
-      window.scrollTo({top: 0, behavior: 'smooth'});
+        currentPage = p;
+        renderCards();
+        window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
     function changeRowsPerPage() {
-      rowsPerPage = parseInt(document.getElementById("rowsDropdown").value);
-      currentPage = 1;
-      renderCards();
+        rowsPerPage = parseInt(document.getElementById("rowsDropdown").value);
+        currentPage = 1;
+        renderCards();
     }
 
-  function printIframe() {
-    const iframe = document.getElementById('formIframe');
-    if (iframe) {
-        // This targets the window inside the iframe and triggers print
-        iframe.contentWindow.focus();
-        iframe.contentWindow.print();
+    function printIframe() {
+        const iframe = document.getElementById('formIframe');
+        if (iframe) {
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+        }
     }
-}
 
-function openFormModal(rowData) {
-    localStorage.setItem('currentSPData', JSON.stringify(rowData));
-    const iframe = document.getElementById('formIframe');
-    // Important: Setting the source triggers the data-mapping script in form/index.html
-    iframe.src = 'form/index.html'; 
-    
-    document.getElementById('formModal').style.display = 'block';
-    document.body.style.overflow = 'hidden'; 
-}
+    function openFormModal(rowData) {
+        localStorage.setItem('currentSPData', JSON.stringify(rowData));
+        const iframe = document.getElementById('formIframe');
+        iframe.src = 'form/index.html?t=' + new Date().getTime(); // Added cache buster
+        document.getElementById('formModal').style.display = 'block';
+        document.body.style.overflow = 'hidden'; 
+    }
 
-function closeFormModal() {
-    document.getElementById('formModal').style.display = 'none';
-    document.getElementById('formIframe').src = ''; 
-    document.body.style.overflow = 'auto'; 
-}
+    function closeFormModal() {
+        document.getElementById('formModal').style.display = 'none';
+        document.getElementById('formIframe').src = ''; 
+        document.body.style.overflow = 'auto'; 
+    }
 
     fetchData();
-  </script>
+</script>
   
 </html>
