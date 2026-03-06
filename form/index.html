@@ -309,6 +309,69 @@
         </div>
         <div style="margin-top: 10px; font-size: 8pt;">GMF/A-111</div>
     </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const rawData = localStorage.getItem('currentSPData');
+        if (!rawData) return;
 
+        const data = JSON.parse(rawData);
+        const keys = Object.keys(data);
+
+        // 1. Map basic fields
+        // Adjust these mapping names to match your Google Sheet Column Headers exactly
+        const mapping = {
+            "{{No. SP}}": data[keys[0]], // Usually the first column
+            "{{To}}": data["Customer"] || data["To"] || "", 
+            "{{Sent By}}": data["Sent By"] || "",
+            "{{Note}}": data["Note"] || "",
+            "{{Sender name}}": data["Sender Name"] || "",
+            "{{receiverPhone}}": data["Phone"] || "",
+            "{{Receiver Name}}": data["Receiver"] || "",
+            "{{Date}}": data["Timestamp"] ? data["Timestamp"].split(' ')[0] : "",
+            "{{Time}}": data["Timestamp"] ? data["Timestamp"].split(' ')[1] : "",
+            "{{IMAGE_URL}}": data["Image URL"] || data["image"] || ""
+        };
+
+        // 2. Handle Signatures (if they are Base64)
+        const sigKey = keys.find(k => k.toLowerCase().includes("signature") || k.toLowerCase().includes("image"));
+        if (sigKey && data[sigKey]) {
+            const sigVal = data[sigKey].startsWith("data:image") ? data[sigKey] : "data:image/png;base64," + data[sigKey];
+            mapping["{{Sender Signature}}"] = `<img src="${sigVal}" style="max-height:60px;">`;
+        } else {
+            mapping["{{Sender Signature}}"] = "";
+        }
+
+        // 3. Parse the Description (Qty | Desc | Remarks)
+        const descText = data["Description"] || "";
+        const lines = descText.split('\n').filter(l => l.trim() !== "");
+        
+        lines.forEach((line, index) => {
+            const i = index + 1;
+            const cols = line.split('|').map(c => c.trim());
+            mapping[`{{No ${i}}}`] = i;
+            mapping[`{{Quantity ${i}}}`] = cols[0] || "";
+            mapping[`{{Item ${i}}}`] = cols[1] || "";
+            mapping[`{{Remarks ${i}}}`] = cols[2] || "";
+        });
+
+        // 4. Perform the Replacement in HTML
+        let html = document.body.innerHTML;
+        
+        Object.keys(mapping).forEach(placeholder => {
+            const val = mapping[placeholder] === undefined ? "" : mapping[placeholder];
+            // Use a global regex to replace all instances
+            const regex = new RegExp(placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
+            html = html.replace(regex, val);
+        });
+
+        // Clean up remaining placeholders
+        html = html.replace(/{{.*?}}/g, "");
+        
+        document.body.innerHTML = html;
+
+        // Optional: Auto-trigger print dialog
+        // window.print();
+    });
+</script>
 </body>
 </html>
