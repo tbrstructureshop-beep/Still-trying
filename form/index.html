@@ -137,11 +137,15 @@
             max-height: 98%;
             object-fit: contain;
         }
+        @media print {
+            button { display: none; }
+        }
     </style>
 </head>
 <body>
 
     <!-- PAGE 1 -->
+    <button onclick="window.print()" style="padding:10px; background:green; color:white; cursor:pointer;">Print to PDF</button>
     <div class="page">
         <div class="header-wrapper">
             <table>
