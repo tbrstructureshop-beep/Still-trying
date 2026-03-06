@@ -314,21 +314,20 @@
     </div>
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // 1. Get data from localStorage
         const rawData = localStorage.getItem('currentSPData');
         if (!rawData) return;
         const data = JSON.parse(rawData);
 
-        // HELPER: Convert Drive URL to Image Link
+        // HELPER: Convert Drive URL to a high-quality Image Link
         function getDriveImg(url, width = 400) {
-            if (!url || !url.includes('/d/')) return "";
-            const match = url.match(/\/d\/(.+?)\//);
-            const id = match ? match[1] : "";
-            // Using sz parameter to get higher quality for the Evidence page
+            if (!url || !url.includes('drive.google.com')) return "";
+            // Regex to find the ID between /d/ and /view or /edit
+            const idMatch = url.match(/\/d\/(.+?)\/|id=([^&]+)/);
+            const id = idMatch ? (idMatch[1] || idMatch[2]) : "";
+            // sz=w1000 ensures the evidence photo is high resolution for printing
             return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w${width}` : "";
         }
 
-        // 2. Map Basic Fields
         const basicMappings = {
             "{{No. SP}}": data["SP No."] || "",
             "{{To}}": data["To"] || "",
@@ -339,20 +338,18 @@
             "{{Receiver Name}}": data["Receiver Name"] || "",
             "{{Date}}": data["Date"] || "",
             "{{Time}}": data["Time"] || "",
-            // Signatures & Evidence
-            "{{Sender Signature}}": getDriveImg(data["Sender Signature"]),
-            "{{Receiver Signature}}": getDriveImg(data["Receiver Signature"]),
-            "{{IMAGE_URL}}": getDriveImg(data["Evidence"], 1000) // Quality w1000 for Page 2
+            
+            // DRIVE IMAGES
+            "{{Sender Signature}}": getDriveImg(data["Sender Signature"], 400),
+            "{{Receiver Signature}}": getDriveImg(data["Receiver Signature"], 400),
+            "{{IMAGE_URL}}": getDriveImg(data["Evidence"], 1200) // Quality w1200 for Evidence Page
         };
 
-        // 3. Replace text and Image placeholders
+        // 1. Process Text and Signatures
         let bodyHtml = document.body.innerHTML;
-        
-        // Handle normal text first
         for (const [key, value] of Object.entries(basicMappings)) {
             const regex = new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
             
-            // If it's a signature placeholder, wrap in IMG tag
             if (key.includes("Signature")) {
                 const imgTag = value ? `<img src="${value}" style="max-height:60px; mix-blend-mode:multiply;">` : "";
                 bodyHtml = bodyHtml.replace(regex, imgTag);
@@ -362,7 +359,7 @@
         }
         document.body.innerHTML = bodyHtml;
 
-        // 4. Populate the 31 Description Rows (Same logic as before)
+        // 2. Process Table Rows (1-31)
         const descText = data["Description"] || "";
         const lines = descText.split('\n').map(l => l.trim()).filter(l => l !== "");
         const tableRows = document.querySelectorAll('.item-row');
