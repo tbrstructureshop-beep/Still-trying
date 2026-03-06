@@ -1,921 +1,321 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <base target="_top">
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aviation Ops | Overtime Manager</title>
-  
-  <!-- Fonts & Icons -->
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
-  
-  <!-- Flatpickr (Calendar & Clock) -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-  <link rel="icon" type="image/png" href="/assets/logo.png">
-  <script src="../../auth/script.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <meta charset="UTF-8">
+    <title>GMF Shipping Document - Professional Template</title>
+    <style type="text/css">
+        @import url('https://fonts.googleapis.com/css2?family=Bree+Serif&family=Edu+SA+Beginner:wght@400;700&family=IBM+Plex+Sans:wght@400;700&display=swap');
 
-  <style>
-    :root {
-      --primary: #2b868c;
-      --primary-dark: #1f6368;
-      --primary-light: #eaf3f4;
-      --accent: #f59e0b;
-      --success: #10b981;
-      --danger: #ef4444;
-      --bg: #f8fafc;
-      --card-bg: #ffffff;
-      --text-main: #1e293b;
-      --text-muted: #64748b;
-      --border: #e2e8f0;
-      --radius-lg: 16px;
-      --radius-md: 12px;
-      --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
-      --rejected: #fef2f2;
-      --rejected-text: #991b1b;
-    }
+        /* Print Configuration: 0.5cm all sides */
+        @page {
+            size: A4;
+            margin: 5mm;
+        }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    
-    body { 
-      font-family: 'Plus Jakarta Sans', sans-serif; 
-      background-color: var(--bg); 
-      color: var(--text-main); 
-      line-height: 1.5;
-      min-height: 100vh;
-    }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: "Calibri", "Arial", sans-serif;
+            font-size: 9pt;
+            color: #000;
+            background-color: #fff;
+            line-height: 1.1;
+        }
 
-    /* --- NAVIGATION --- */
-    .nav-bar {
-      background: white;
-      border-bottom: 1px solid var(--border);
-      padding: 0.5rem 1.5rem;
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      min-height: 70px;
-      gap: 10px;
-      flex-wrap: wrap; /* Allows wrapping on small screens */
-    }
+        .page {
+            page-break-after: always;
+            width: 100%;
+            box-sizing: border-box;
+            position: relative;
+        }
 
-    .brand { 
-      display: flex; 
-      align-items: center; 
-      gap: 12px; 
-      flex-shrink: 0; /* PREVENTS LOGO FROM SHRINKING */
-    }
-    
-    .brand i { 
-      background: var(--primary); 
-      color: white; 
-      padding: 8px; 
-      border-radius: 10px;
-      font-size: 24px;
-      flex-shrink: 0; /* PREVENTS ICON FROM SQUISHING */
-    }
-    
-    .brand-text {
-      display: flex;
-      flex-direction: column;
-      line-height: 1.1;
-    }
-    
-    .brand-text h1 { 
-      font-size: 1.1rem; 
-      font-weight: 800; 
-      color: var(--primary); 
-      letter-spacing: -0.5px;
-      white-space: nowrap; /* Keeps title on one line */
-    }
-    
-    .brand-text p { 
-      font-size: 0.65rem; 
-      color: var(--text-muted); 
-      text-transform: uppercase; 
-      font-weight: 700; 
-      white-space: nowrap; 
-    }
+        /* Typography & Colors */
+        .blue-val { color: #073763; font-family: 'Bree Serif', serif; }
+        .script-val { font-family: 'Edu SA Beginner', cursive; font-weight: 500; font-size: 9.5pt; color: #073763; }
+        .label-b-u { font-weight: bold; text-decoration: underline; }
+        .small-label { font-size: 8pt; line-height: 1; display: block; }
+        .b { font-weight: bold; }
 
-    .nav-tabs { 
-      display: flex; 
-      gap: 4px; 
-      background: var(--bg); 
-      padding: 4px; 
-      border-radius: 12px; 
-    }
-    
-    .nav-item {
-      border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer;
-      font-size: 0.85rem; font-weight: 700; color: var(--text-muted); background: transparent;
-      transition: 0.2s; display: flex; align-items: center; gap: 6px;
-      white-space: nowrap;
-    }
-    .nav-item.active { background: white; color: var(--primary); box-shadow: var(--shadow); }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
 
-    /* --- LAYOUT --- */
-    .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem; }
+        td {
+            padding: 1px 3px;
+            vertical-align: top;
+            word-wrap: break-word;
+        }
 
-    /* --- CARDS --- */
-    .card {
-      background: var(--card-bg); border-radius: var(--radius-lg); padding: 1.5rem;
-      border: 1px solid var(--border); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative; cursor: pointer;
-    }
-    .card:hover { transform: translateY(-4px); border-color: var(--primary); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.05); }
+        /* Repeated Header Component Styles */
+        .header-wrapper { margin-bottom: 2px; }
+        .logo-img { width: 240px; height: auto; display: block; }
+        .header-text-right { text-align: right; vertical-align: bottom; padding-bottom: 2px; }
+        .no-sp-row { font-size: 13pt; margin-bottom: 0; }
+        .title-main { font-size: 14pt; font-weight: bold; text-decoration: underline; text-transform: uppercase; margin: 0; }
+        .title-sub { font-size: 10pt; margin: 0; font-weight: normal; }
 
-    .status-badge {
-      position: absolute; top: 1.5rem; right: 1.5rem;
-      padding: 4px 10px; border-radius: 20px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
-    }
-    .status-OPEN { background: #fef3c7; color: #92400e; }
-    .status-SUBMITTED { background: #dcfce7; color: #166534; }
+        .info-table { margin-top: 2px; margin-bottom: 5px; }
+        .field-dotted { border-bottom: 1px dotted black; }
 
-    .card-title { font-size: 1.1rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px; }
-    .card-subtitle { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1.2rem; display: block; }
-    
-    .timeline { background: var(--bg); border-radius: var(--radius-md); padding: 12px; margin-bottom: 1rem; }
-    .timeline-row { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; font-weight: 600; color: var(--text-main); margin-bottom: 4px; }
-    .timeline-row i { font-size: 18px; color: var(--primary); }
+        /* Unified Table Grid */
+        .unified-table {
+            border-top: 1px solid black;
+            border-bottom: 1px solid black;
+            border-left: 1px solid transparent; /* Transparent outer left */
+            border-right: 1px solid transparent; /* Transparent outer right */
+        }
 
-    .rest-tag { font-size: 0.65rem; background: #e2e8f0; color: #475569; padding: 2px 8px; border-radius: 4px; font-weight: 700; }
+        /* Header Row */
+        .unified-table th {
+            border: 1px solid black;
+            border-top: none;
+            padding: 3px 1px;
+            font-weight: bold;
+            text-decoration: underline;
+            font-size: 9pt;
+        }
+        .unified-table th:first-child { border-left: none; }
+        .unified-table th:last-child { border-right: none; }
 
-    .card-footer {
-      display: flex; justify-content: space-between; align-items: center;
-      padding-top: 1rem; border-top: 1px solid var(--border);
-    }
-    .stat-box { text-align: right; }
-    .stat-label { font-size: 0.6rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; display: block; }
-    .stat-value { font-size: 1.2rem; font-weight: 800; color: var(--primary); }
+        /* Item Rows 1 thru 31 (Dotted bottom) */
+        .item-row td {
+            height: 15px;
+            border-bottom: 1px dotted black; 
+            border-left: 1px solid black;
+            border-right: 1px solid black;
+            text-align: center;
+        }
+        /* Hide outer vertical borders */
+        .item-row td:first-child { border-left: none; }
+        .item-row td:last-child { border-right: none; }
+        .item-row td.text-left { text-align: left; padding-left: 5px; }
 
-    /* --- MODAL --- */
-    .modal {
-      display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(4px); z-index: 2000; align-items: center; justify-content: center; padding: 1rem;
-    }
-    .modal-content {
-      background: white; width: 100%; max-width: 600px; border-radius: 24px;
-      overflow: hidden; animation: modalIn 0.3s ease-out; max-height: 90vh; display: flex; flex-direction: column;
-    }
-    @keyframes modalIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        /* Column Logic */
+        .col-no { width: 8%; }
+        .col-qty { width: 12%; }
+        .col-desc { width: 60%; }
+        .col-rem { width: 20%; }
 
-    .modal-header { padding: 1.2rem 1.5rem; background: var(--primary); color: white; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
-    .modal-body { padding: 1.5rem; overflow-y: auto; flex-grow: 1; -webkit-overflow-scrolling: touch; }
-    .modal-footer { padding: 1.2rem 1.5rem; background: #f8fafc; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 12px; flex-shrink: 0; }
-    
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    .col-span-2 { grid-column: span 2; }
+        /* Footer Row - Sticked to Body */
+        .footer-row td {
+            height: 75px;
+            vertical-align: middle;
+            border-bottom: none;
+            border-left: 1px solid black;
+            border-right: 1px solid black;
+        }
+        .footer-row td:first-child { border-left: none; }
+        .footer-row td:last-child { border-right: none; }
 
-    .input-group label { display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); margin-bottom: 6px; text-transform: uppercase; }
-    .input-group input, .input-group textarea {
-      width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border);
-      font-family: inherit; font-size: 0.95rem; transition: 0.2s; background: #fcfcfd;
-    }
+        .packed-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 5px;
+        }
 
-    /* Toggle & Calc Display */
-    .toggle-container { display: flex; align-items: center; gap: 10px; padding: 12px; background: var(--bg); border-radius: 10px; margin-bottom: 0.5rem; }
-    .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
-    .switch input { opacity: 0; width: 0; height: 0; }
-    .slider { position: absolute; cursor: pointer; inset: 0; background-color: #cbd5e1; transition: .4s; border-radius: 24px; }
-    .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-    input:checked + .slider { background-color: var(--primary); }
-    input:checked + .slider:before { transform: translateX(20px); }
+        .sig-line {
+            border-bottom: 1px dotted black;
+            width: 170px;
+            margin: 15px auto 2px auto;
+        }
 
-    .calc-container { background: var(--primary-light); border: 2px dashed var(--primary); border-radius: var(--radius-md); padding: 15px; text-align: center; }
-    .copy-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
-    .copy-box { background: white; border: 1px solid var(--border); padding: 8px; border-radius: 8px; cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; align-items: center; }
-    .copy-box:hover { border-color: var(--primary); background: #f0fdfa; }
-    .copy-label { font-size: 0.6rem; text-transform: uppercase; font-weight: 800; color: var(--text-muted); }
-    .copy-value { font-size: 0.9rem; font-weight: 700; color: var(--primary); }
-    .toast-mini { font-size: 0.65rem; color: var(--success); font-weight: 800; display: none; }
+        /* Receiving Evidence Block */
+        .evidence-block { margin-top: 5px; padding-left: 5px; }
+        .date-line { border-bottom: 1px dotted black; width: 300px; display: inline-block; }
 
-    /* Buttons */
-    .btn { padding: 12px 20px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; transition: 0.2s; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-ghost { background: transparent; color: var(--text-muted); }
-    .btn-accent { background: var(--accent); color: white; }
-    .fab { position: fixed; bottom: 2rem; right: 2rem; width: 60px; height: 60px; background: var(--primary); color: white; border-radius: 20px; border: none; box-shadow: 0 10px 25px rgba(43, 134, 140, 0.4); cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 999; }
-
-    /* Status badge for REJECTED */
-    .status-REJECTED { background: var(--rejected); color: var(--rejected-text); }
-    
-    /* Delete Button Style */
-    .btn-danger { background: var(--danger); color: white; margin-right: auto; }
-    .btn-danger:hover { background: #b91c1c; }
-
-    /* Rejection Reason Box in Modal */
-    .rejection-box {
-      background: #fef2f2;
-      border: 1px solid #fee2e2;
-      padding: 12px;
-      border-radius: 10px;
-      margin-bottom: 1rem;
-    }
-    
-    .rejection-box label { color: #991b1b; }
-
-    .filter-wrapper {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end; /* Aligns button to the right */
-      gap: 12px;
-      margin-bottom: 2rem;
-      overflow: hidden;
-    }
-    
-    /* The actual bar - initially collapsed */
-    .filter-section { 
-      display: flex; /* Flex instead of grid for horizontal look */
-      gap: 1rem; 
-      background: white; 
-      padding: 0; /* No padding when closed */
-      border-radius: var(--radius-md); 
-      border: 1px solid transparent;
-  
-      /* Hiding logic */
-      max-width: 0;
-      opacity: 0;
-      visibility: hidden;
-      white-space: nowrap;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    /* Expanded state */
-    .filter-section.active {
-      max-width: 800px; /* Adjust based on your filter width */
-      opacity: 1;
-      visibility: visible;
-      padding: 0.8rem 1.2rem;
-      border-color: var(--border);
-    }
-    
-    @keyframes slideDown {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-   .btn-filter-toggle {
-     display: flex;
-     align-items: center;
-     gap: 8px;
-     background: white;
-     border: 1px solid var(--border);
-     color: var(--text-main);
-     padding: 10px 16px;
-     border-radius: 12px;
-     cursor: pointer;
-     font-weight: 700;
-     transition: 0.2s;
-     flex-shrink: 0; /* Prevents button from squishing */
-   }
-
-    .btn-filter-toggle.active {
-      background: var(--primary-light);
-      color: var(--primary);
-      border-color: var(--primary);
-    }
-
-    .filter-group { 
-      display: flex; 
-      flex-direction: column; 
-      gap: 4px;
-      min-width: 180px; 
-    }
-    
-    .filter-group label { font-size: 0.65rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; display: flex; align-items: center; gap: 4px; }
-    .filter-group select { 
-      padding: 10px; border-radius: 8px; border: 1px solid var(--border); 
-      font-family: inherit; font-weight: 600; color: var(--text-main); outline: none;
-    }
-    
-    #loader { display: none; position: fixed; inset: 0; background: rgba(255,255,255,0.7); z-index: 3000; align-items: center; justify-content: center; flex-direction: column; gap: 1rem; }
-    .spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* --- MERGED MOBILE REVISIONS --- */
-    
-    @media (max-width: 600px) {
-      
-      .header h1 {
-        font-size: 1.5rem;
-      }
-
-      .filter-wrapper {
-        flex-direction: column-reverse; /* Button on bottom or top */
-        align-items: stretch;
-      }
-      
-      .filter-section.active {
-        flex-direction: column;
-        max-width: 100%;
-      }
-      
-      .filter-section { 
-        grid-template-columns: 1fr; 
-      }
-      
-      /* Navigation Bar */
-      
-      .nav-bar {
-        padding: 0.75rem 1rem;
-        justify-content: center; /* Centers items on mobile */
-      }
-      
-      .brand {
-        width: 100%; /* Force brand to take full width */
-        justify-content: flex-start; /* Keep logo left-aligned */
-        margin-bottom: 5px;
-      }
-      
-      /* Navigation Tabs */
-      .nav-tabs {
-        width: 100%; /* Tabs take full width below logo */
-        justify-content: space-between;
-      }
-      
-      .nav-item {
-        flex: 1; /* Tabs grow to fill the width equally */
-        display: flex; 
-        flex-direction: column; 
-        align-items: center; 
-        justify-content: center;
-        gap: 2px; 
-        position: relative; 
-        padding: 10px 5px;
-        font-size: 0.75rem;
-        /* min-width: 90px; */ /* Optional: uncomment if you want a minimum size */
-      }
-      
-      .nav-label {
-        display: flex; 
-        align-items: center; 
-        gap: 6px;
-      }
-    }
-      
-  /* Tab Counter Styling */
-  .tab-counter { 
-    font-size: 0.7rem; 
-    background: var(--primary-light); 
-    color: var(--primary); 
-    padding: 2px 8px; 
-    border-radius: 10px; 
-    font-weight: 800; 
-    margin-top: 2px;
-  }
-
-  .nav-item.active .tab-counter { 
-    background: var(--primary); 
-    color: white; 
-  }
-  
-  /* Modals & Forms */
-  .modal { 
-    padding: 0; 
-  }
-
-  .modal-content { 
-    height: 100%; 
-    max-height: 100%; 
-    border-radius: 0; 
-  }
-
-  .form-grid { 
-    grid-template-columns: 1fr; 
-  }
-
-  .col-span-2 { 
-    grid-column: span 1; 
-  }
-}
-
-
-  </style>
+        /* Page 2 Specifics */
+        .image-box {
+            border: 1px solid black;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 65vh;
+            width: 100%;
+        }
+        .document-image {
+            max-width: 98%;
+            max-height: 98%;
+            object-fit: contain;
+        }
+    </style>
 </head>
 <body>
-  <nav class="nav-bar">
-    <div class="brand">
-      <i class="material-icons-round">flight_takeoff</i>
-      <div class="brand-text">
-        <h1>OPS DASHBOARD</h1>
-        <p>Aviation Personnel Overtime</p>
-      </div>
+
+    <!-- PAGE 1 -->
+    <div class="page">
+        <!-- HEADER (Shared) -->
+        <div class="header-wrapper">
+            <table>
+                <tr>
+                    <td style="width: 50%;"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/GMF_AeroAsia_logo.svg/1280px-GMF_AeroAsia_logo.svg.png" class="logo-img"></td>
+                    <td class="header-text-right">
+                        <div class="no-sp-row">No. SP <span class="blue-val">{{No. SP}}</span></div>
+                        <h1 class="title-main">SURAT PENGIRIMAN</h1>
+                        <h2 class="title-sub">Shipping Document</h2>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- INFO FIELDS (Shared) -->
+        <table class="info-table">
+            <tr>
+                <td style="width: 80px;"><span class="label-b-u">Kepada</span><span class="small-label">To</span></td>
+                <td style="width: 10px; text-align: center;">:</td>
+                <td class="field-dotted blue-val">{{To}}</td>
+            </tr>
+            <tr style="height: 2px;"></tr>
+            <tr>
+                <td><span class="label-b-u">Dikirim oleh</span><span class="small-label">Sent by</span></td>
+                <td style="text-align: center;">:</td>
+                <td class="field-dotted">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span class="blue-val">{{Sent By}}</span>
+                        <span class="blue-val" style="margin-right: 50px;">{{Note}}</span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+        <!-- UNIFIED GRID (32 Rows + Sticked Footer) -->
+        <table class="unified-table">
+            <colgroup>
+                <col class="col-no"><col class="col-qty"><col class="col-desc"><col class="col-rem">
+            </colgroup>
+            <thead>
+                <tr>
+                    <th>Nomor<br><span class="small-label" style="text-decoration:none">No.</span></th>
+                    <th>Banyaknya<br><span class="small-label" style="text-decoration:none">Quantity</span></th>
+                    <th>Macam dari barang-barang<br><span class="small-label" style="text-decoration:none">Description of goods</span></th>
+                    <th>Keterangan<br><span class="small-label" style="text-decoration:none">Remarks</span></th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Data Row 1 -->
+                <tr class="item-row script-val">
+                    <td>{{No 1}}</td><td>{{Quantity 1}}</td><td class="text-left">{{Item 1}}</td><td>{{Remarks 1}}</td>
+                </tr>
+                <!-- Rows 2 thru 31 (Dotted) -->
+                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
+                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
+                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
+                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
+                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
+                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
+                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
+                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
+                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
+                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
+                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
+                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
+                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
+                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
+                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
+                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
+                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
+                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
+                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
+                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
+                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
+                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
+                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
+                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
+                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
+                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
+                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
+                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
+                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
+                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
+                <!-- Last Row 32 (Solid bottom to close grid) -->
+                <tr class="item-row" style="border-bottom: 1px solid black;"><td></td><td></td><td></td><td></td></tr>
+
+                <!-- FOOTER STICKED -->
+                <tr class="footer-row">
+                    <td></td><td></td>
+                    <td class="text-left">
+                        <div class="packed-content">
+                            <div style="text-align: center;"><span class="label-b-u">Dikirim oleh :</span><br><span class="small-label">Packed by</span></div>
+                            <div style="flex-grow: 1; text-align: center; margin-top: -10px;">
+                                <span class="script-val">{{Sender Signature}}</span>
+                                <div class="sig-line"></div>
+                                <span class="script-val">{{Sender name}}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="text-align: left; padding-left: 5px;">
+                        <div class="b">Receiver Contact:</div>
+                        <div class="blue-val" style="font-size: 8.5pt;">{{receiverPhone}}</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Bottom Sign Evidence -->
+        <div class="evidence-block">
+            <span class="label-b-u">Tanda tangan penerima :</span><span class="small-label">Sign Received</span>
+            <div class="script-val" style="margin-left: 280px; margin-top: 5px; margin-bottom: -12px;">{{Receiver Signature}}</div>
+            <table style="margin-top: 5px;">
+                <tr>
+                    <td style="width: 45px;"><span class="b">Tgl.</span><br><span class="small-label">Date</span></td>
+                    <td class="date-line"><span class="script-val" style="padding-left: 10px;">{{Receiver Name}}</span></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td class="script-val b" style="padding-left: 10px;">{{Date}} {{Time}}</td>
+                    <td></td>
+                </tr>
+            </table>
+        </div>
+        <div style="margin-top: 5px; font-size: 8pt;">GMF/A-111</div>
     </div>
-    <div class="nav-tabs">
-      <button class="nav-item active" id="tab-OPEN" onclick="ui.switchTab('OPEN')">
-        <div class="nav-label">
-          <i class="material-icons-round">schedule</i> 
-          <span>Pending</span>
+
+    <!-- PAGE 2 -->
+    <div class="page">
+        <!-- REPEATED HEADER -->
+        <div class="header-wrapper">
+            <table>
+                <tr>
+                    <td style="width: 50%;"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/GMF_AeroAsia_logo.svg/1280px-GMF_AeroAsia_logo.svg.png" class="logo-img"></td>
+                    <td class="header-text-right">
+                        <div class="no-sp-row">No. SP <span class="blue-val">{{No. SP}}</span></div>
+                        <h1 class="title-main">SURAT PENGIRIMAN</h1>
+                        <h2 class="title-sub">Shipping Document</h2>
+                    </td>
+                </tr>
+            </table>
         </div>
-        <span class="tab-counter" id="cnt-OPEN">0</span>
-      </button>
-      
-      <button class="nav-item" id="tab-REJECTED" onclick="ui.switchTab('REJECTED')">
-        <div class="nav-label">
-          <i class="material-icons-round">cancel</i> 
-          <span>Rejected</span>
-        
+
+        <!-- REPEATED INFO FIELDS -->
+        <table class="info-table">
+            <tr>
+                <td style="width: 80px;"><span class="label-b-u">Kepada</span><span class="small-label">To</span></td>
+                <td style="width: 10px; text-align: center;">:</td>
+                <td class="field-dotted blue-val">{{To}}</td>
+            </tr>
+            <tr style="height: 2px;"></tr>
+            <tr>
+                <td><span class="label-b-u">Dikirim oleh</span><span class="small-label">Sent by</span></td>
+                <td style="text-align: center;">:</td>
+                <td class="field-dotted">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span class="blue-val">{{Sent By}}</span>
+                        <span class="blue-val" style="margin-right: 50px;">{{Note}}</span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+
+        <div style="text-align: center; border: 1px solid black; padding: 4px; font-weight: bold; margin-bottom: 5px; margin-top: 10px;">Uploaded Picture</div>
+        <div class="image-box">
+            <img src="{{IMAGE_URL}}" class="document-image">
         </div>
-        <span class="tab-counter" id="cnt-REJECTED">0</span>
-      </button>
-      
-      <button class="nav-item" id="tab-SUBMITTED" onclick="ui.switchTab('SUBMITTED')">
-        <div class="nav-label">
-          <i class="material-icons-round">check_circle</i> 
-          <span>Processed</span>
-        </div>
-        <span class="tab-counter" id="cnt-SUBMITTED">0</span>
-      </button>
+        <div style="margin-top: 10px; font-size: 8pt;">GMF/A-111</div>
     </div>
-  </nav>
-  
-  <main class="container">
-    <div class="filter-wrapper">
-      <!-- The filter bar is now inside the wrapper and comes BEFORE the button -->
-      <div class="filter-section" id="filter-bar">
-        <div class="filter-group">
-          <label><i class="material-icons-round">filter_alt</i> Filter Unit</label>
-          <select id="select-unit" onchange="ui.render()"><option value="ALL">All Units</option></select>
-        </div>
-        <div class="filter-group">
-          <label><i class="material-icons-round">person_search</i> Filter Name</label>
-          <select id="select-name" onchange="ui.render()"><option value="ALL">All Personnel</option></select>
-        </div>
-      </div>
-      
-      <!-- The Toggle Button -->
-      <button class="btn-filter-toggle" id="btn-toggle-filters" onclick="ui.toggleFilters()">
-        <i class="material-icons-round">filter_list</i>
-        <span>Filter Data</span>
-      </button>
-    </div>
-    <div id="grid" class="grid"></div>
-  </main>
 
-  <button class="fab" onclick="ui.openModal()">
-    <i class="material-icons-round">add</i>
-  </button>
-
-  <div id="loader">
-    <div class="spinner"></div>
-    <p style="font-weight: 700; color: var(--primary)">Processing Data...</p>
-  </div>
-
-  <!-- Modal -->
-  <div id="formModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 id="modalTitle" style="font-size: 1.2rem;">New Entry</h2>
-        <i class="material-icons-round" style="cursor:pointer" onclick="ui.closeModal()">close</i>
-      </div>
-      
-      <form id="otForm" style="display:contents">
-        <div class="modal-body">
-          <input type="hidden" id="f_id">
-          <div class="form-grid">
-            <div class="input-group">
-              <label>Employee Name</label>
-              <input type="text" id="f_employee" required>
-            </div>
-            <div class="input-group">
-              <label>Personal Number (PN)</label>
-              <input type="text" id="f_pn" required placeholder="PN-XXXX">
-            </div>
-
-            <div class="input-group">
-              <label>Unit / Department</label>
-              <input type="text" id="f_unit" placeholder="e.g. Maintenance">
-            </div>
-            
-            <div class="input-group">
-              <label>Duty Start</label>
-              <input type="text" id="f_from" required>
-            </div>
-            <div class="input-group">
-              <label>Duty End</label>
-              <input type="text" id="f_until" required>
-            </div>
-
-            <div class="col-span-2">
-              <div class="toggle-container">
-                <label class="switch">
-                  <input type="checkbox" id="f_rest_toggle" onchange="logic.toggleRest()">
-                  <span class="slider"></span>
-                </label>
-                <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-main)">Include Rest Period?</span>
-              </div>
-            </div>
-
-            <div id="rest_fields" class="col-span-2 form-grid" style="display:none; margin-top: -10px;">
-              <div class="input-group">
-                <label>Rest Start</label>
-                <input type="text" id="f_rest_start">
-              </div>
-              <div class="input-group">
-                <label>Rest End</label>
-                <input type="text" id="f_rest_end">
-              </div>
-            </div>
-
-            <div class="input-group col-span-2">
-              <label>Calculated Overtime Duration</label>
-              <div class="calc-container">
-                <input type="hidden" id="f_total">
-                <div id="display_main" style="font-size: 1.8rem; font-weight: 800; color: var(--primary);">00:00</div>
-                
-                <div class="copy-grid">
-                  <div class="copy-box" onclick="logic.copyValue('display_human')">
-                    <span class="copy-label">Format: HH : MM</span>
-                    <span class="copy-value" id="display_human">00 HH : 00 MM</span>
-                    <span class="toast-mini" id="toast_human">COPIED!</span>
-                  </div>
-                  <div class="copy-box" onclick="logic.copyValue('display_decimal')">
-                    <span class="copy-label">Format: Decimal</span>
-                    <span class="copy-value" id="display_decimal">0,00 Hrs</span>
-                    <span class="toast-mini" id="toast_decimal">COPIED!</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="input-group col-span-2">
-              <label>Remarks</label>
-              <textarea id="f_remarks" rows="3"></textarea>
-            </div>
-            <div id="rejection_container" class="input-group col-span-2 rejection-box" style="display:none">
-              <label>Manager's Rejection Reason</label>
-              <textarea id="f_rejection_reason" rows="2" placeholder="Reason for rejection..."></textarea>
-            </div>
-            <div class="input-group col-span-2" id="fileZone">
-              <label>Evidence Document</label>
-              <input type="file" id="f_file">
-              <div id="evidenceLink" style="margin-top: 10px;"></div>
-            </div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" id="deleteBtn" class="btn btn-danger" style="display:none" onclick="logic.deleteRecord()">
-            <i class="material-icons-round">delete_outline</i> Delete
-          </button>
-          <button type="button" class="btn btn-ghost" onclick="ui.closeModal()">Cancel</button>
-          <!-- Add a Reject button for managers (only shows on OPEN records) -->
-          <button type="button" id="rejectBtn" class="btn btn-ghost" style="color:var(--danger); display:none" onclick="logic.reject()">Reject</button>
-          <button type="submit" id="saveBtn" class="btn btn-primary">Save Draft</button>
-          <button type="button" id="submitBtn" class="btn btn-accent" style="display:none" onclick="logic.finalize()">Finalize to HC</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-<script>
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw4MAK0BJYSFKhx70R7JIasZnwRFhGrTPOCsZmo16R8b9Gzim5gZSrTgOSUTqoYUOFVKQ/exec";
-  
-  const fpConfig = { enableTime: true, time_24hr: true, dateFormat: "Y-m-d H:i", onChange: () => logic.calc() };
-  let pickers = {};
-
-  const ui = {
-    data: [],
-    filter: 'OPEN',
-    
-    init() {
-      pickers.from = flatpickr("#f_from", fpConfig);
-      pickers.until = flatpickr("#f_until", fpConfig);
-      pickers.restStart = flatpickr("#f_rest_start", fpConfig);
-      pickers.restEnd = flatpickr("#f_rest_end", fpConfig);
-      this.refresh();
-      document.getElementById('otForm').onsubmit = (e) => { e.preventDefault(); logic.save(); };
-    },
-    
-    toggleFilters() {
-      const bar = document.getElementById('filter-bar');
-      const btn = document.getElementById('btn-toggle-filters');
-      
-      const isActive = bar.classList.toggle('active');
-      btn.classList.toggle('active');
-      
-      // Change icon/text based on state
-      btn.querySelector('span').innerText = isActive ? 'Close Filters' : 'Filter Data';
-      btn.querySelector('i').innerText = isActive ? 'close' : 'filter_list';
-    },
-    
-    async refresh() {
-      this.toggleLoader(true);
-      try {
-        this.data = await logic.call('getRecords');
-        this.populateDropdowns(); // Fill Unit and Name filters
-        this.render();
-      } catch(e) { 
-        console.error("Refresh Error:", e);
-        alert("Failed to load data.");
-      }
-      this.toggleLoader(false);
-    },
-    
-    populateDropdowns() {
-      const units = new Set();
-      const names = new Set();
-      
-      this.data.forEach(item => {
-        if (item.Unit) units.add(item.Unit);
-        if (item.Employee) names.add(item.Employee);
-      });
-      
-      const unitSelect = document.getElementById('select-unit');
-      const nameSelect = document.getElementById('select-name');
-      
-      // Save current selections
-      const curUnit = unitSelect.value;
-      const curName = nameSelect.value;
-      
-      unitSelect.innerHTML = '<option value="ALL">All Units</option>';
-      nameSelect.innerHTML = '<option value="ALL">All Personnel</option>';
-      
-      Array.from(units).sort().forEach(u => unitSelect.innerHTML += `<option value="${u}">${u}</option>`);
-      Array.from(names).sort().forEach(n => nameSelect.innerHTML += `<option value="${n}">${n}</option>`);
-      
-      unitSelect.value = curUnit;
-      nameSelect.value = curName;
-    },
-
-      render() {
-        const grid = document.getElementById('grid');
-        const selectedUnit = document.getElementById('select-unit').value;
-        const selectedName = document.getElementById('select-name').value;
-        
-        // 1. Filter data based on Unit and Name Dropdowns
-        const baseFiltered = this.data.filter(item => {
-          const matchUnit = selectedUnit === 'ALL' || item.Unit === selectedUnit;
-          const matchName = selectedName === 'ALL' || item.Employee === selectedName;
-          return matchUnit && matchName;
-        });
-        
-        // 2. Update Tab Counters based on these filters
-        const counts = { OPEN: 0, REJECTED: 0, SUBMITTED: 0 };
-        baseFiltered.forEach(item => { if(counts[item.Status] !== undefined) counts[item.Status]++; });
-        
-        document.getElementById('cnt-OPEN').innerText = counts.OPEN;
-        document.getElementById('cnt-REJECTED').innerText = counts.REJECTED;
-        document.getElementById('cnt-SUBMITTED').innerText = counts.SUBMITTED;
-        
-        // 3. Further filter by the active Tab (OPEN/REJECTED/SUBMITTED)
-        const finalDisplay = baseFiltered.filter(item => item.Status === this.filter);
-        
-        grid.innerHTML = '';
-        if (!finalDisplay.length) {
-          grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 4rem 2rem; opacity: 0.5;">
-          <i class="material-icons-round" style="font-size: 48px;">folder_open</i>
-          <p>No records found matching criteria</p>
-          </div>`;
-          return;
-        }
-        
-        finalDisplay.forEach(item => {
-          const hasRest = item['Rest Start'] && item['Rest Start'] !== "";
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.onclick = () => this.openModal(item);
-          
-          card.innerHTML = `
-          <span class="status-badge status-${item.Status}">${item.Status}</span>
-          <div class="card-title">${item.Employee}</div>
-          <span class="card-subtitle">PN: ${item['Personal Number']} | Unit: ${item.Unit || '-'}</span>
-          <div class="timeline">
-          <div class="timeline-row"><i class="material-icons-round">login</i> ${logic.formatDate(item['From DateTime'])}</div>
-          <div class="timeline-row"><i class="material-icons-round">logout</i> ${logic.formatDate(item['Until DateTime'])}</div>
-          </div>
-          ${hasRest ? '<div style="margin-bottom:1rem;"><span class="rest-tag">REST PERIOD INCLUDED</span></div>' : ''}
-          <div class="card-footer">
-          <div style="font-size: 0.65rem; color: var(--text-muted)">${item.Timestamp ? item.Timestamp.split('T')[0] : '--'}</div>
-          <div class="stat-box">
-          <span class="stat-label">Total Duration</span>
-          <span class="stat-value">${item['Total Time']}</span>
-          </div>
-          </div>
-          `;
-          grid.appendChild(card);
-        });
-      },
-
-     switchTab(t) {
-       this.filter = t;
-       document.querySelectorAll('.nav-item').forEach(btn => btn.classList.toggle('active', btn.id === 'tab-'+t));
-       this.render();
-     },
-
-    openModal(item = null) {
-      const form = document.getElementById('otForm');
-      const status = item ? item.Status : 'NEW';
-      const isSubmitted = status === 'SUBMITTED';
-      
-      form.reset();
-      document.getElementById('f_id').value = item ? item.ID : '';
-      document.getElementById('modalTitle').innerText = item ? 'Update Record' : 'New Duty Entry';
-      
-      // Handle Rejection Reason UI
-      const rejectContainer = document.getElementById('rejection_container');
-      const rejectInput = document.getElementById('f_rejection_reason');
-      
-      if (status === 'REJECTED') {
-        rejectContainer.style.display = 'block';
-        rejectInput.value = item['Rejection Reason'] || '';
-        rejectInput.disabled = true;
-      } else if (status === 'OPEN' && item) {
-        rejectContainer.style.display = 'block';
-        rejectInput.value = '';
-        rejectInput.disabled = false;
-      } else {
-        rejectContainer.style.display = 'none';
-      }
-
-      // Button Visibility Logic
-      document.getElementById('deleteBtn').style.display = (status === 'OPEN' || status === 'REJECTED') ? 'flex' : 'none';
-      document.getElementById('rejectBtn').style.display = (status === 'OPEN' && item) ? 'flex' : 'none';
-      document.getElementById('submitBtn').style.display = (status === 'OPEN' && item) ? 'flex' : 'none';
-      document.getElementById('saveBtn').style.display = isSubmitted ? 'none' : 'flex';
-      
-      if (item) {
-        pickers.from.setDate(item['From DateTime']);
-        pickers.until.setDate(item['Until DateTime']);
-        document.getElementById('f_employee').value = item.Employee;
-        document.getElementById('f_pn').value = item['Personal Number'];
-        document.getElementById('f_unit').value = item.Unit || '';
-        document.getElementById('f_remarks').value = item.Remarks || '';
-      
-        const hasRest = item['Rest Start'] && item['Rest Start'] !== "";
-        document.getElementById('f_rest_toggle').checked = hasRest;
-        document.getElementById('rest_fields').style.display = hasRest ? 'grid' : 'none';
-        if(hasRest) {
-          pickers.restStart.setDate(item['Rest Start']);
-          pickers.restEnd.setDate(item['Rest End']);
-        }
-        logic.calc();
-        
-        document.getElementById('evidenceLink').innerHTML = item['Evidence File URL'] ? 
-          `<a href="${item['Evidence File URL']}" target="_blank" style="color:var(--primary); font-weight:700; text-decoration:none;">View Attachment</a>` : '';
-      } else {
-        document.getElementById('f_unit').value = '';
-        document.getElementById('rest_fields').style.display = 'none';
-        document.getElementById('f_rest_toggle').checked = false;
-        document.getElementById('display_main').innerText = "00:00";
-        document.getElementById('display_human').innerText = "00 HH : 00 MM";
-        document.getElementById('display_decimal').innerText = "0,00 Hrs";
-        document.getElementById('evidenceLink').innerHTML = '';
-      }
-      
-      // Disable inputs if submitted
-      form.querySelectorAll('input, textarea').forEach(el => { 
-        if(el.id !== 'f_id' && el.id !== 'f_rejection_reason') el.disabled = isSubmitted; 
-      });
-
-      document.getElementById('formModal').style.display = 'flex';
-    },
-    
-    closeModal() { document.getElementById('formModal').style.display = 'none'; },
-    toggleLoader(show) { document.getElementById('loader').style.display = show ? 'flex' : 'none'; }
-  };
-
-  const logic = {
-    toggleRest() {
-      document.getElementById('rest_fields').style.display = document.getElementById('f_rest_toggle').checked ? 'grid' : 'none';
-      this.calc();
-    },
-
-    calc() {
-      const from = pickers.from.selectedDates[0];
-      const until = pickers.until.selectedDates[0];
-      if (!from || !until) return;
-      
-      let diff = until - from;
-      if (document.getElementById('f_rest_toggle').checked) {
-        const rStart = pickers.restStart.selectedDates[0];
-        const rEnd = pickers.restEnd.selectedDates[0];
-        if (rStart && rEnd) diff -= (rEnd - rStart);
-      }
-      if (diff < 0) diff = 0;
-
-      const totalMinutes = Math.floor(diff / 60000);
-      const h = Math.floor(totalMinutes / 60);
-      const m = totalMinutes % 60;
-      const dec = totalMinutes / 60;
-
-      const std = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-      document.getElementById('f_total').value = std;
-      document.getElementById('display_main').innerText = std;
-      document.getElementById('display_human').innerText = `${String(h).padStart(2,'0')} HH : ${String(m).padStart(2,'0')} MM`;
-      document.getElementById('display_decimal').innerText = `${dec.toFixed(2).replace('.', ',')} Hrs`;
-    },
-
-    async copyValue(id) {
-      try {
-        await navigator.clipboard.writeText(document.getElementById(id).innerText);
-        const toast = document.getElementById(id.replace('display', 'toast'));
-        toast.style.display = 'block';
-        setTimeout(() => { toast.style.display = 'none'; }, 1500);
-      } catch (err) { console.error(err); }
-    },
-
-    formatDate(str) {
-      if(!str) return '--/--';
-      const d = new Date(str);
-      return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
-    },
-
-    async save() {
-      ui.toggleLoader(true);
-      const fileInput = document.getElementById('f_file');
-      let evidenceUrl = document.querySelector('#evidenceLink a')?.href || "";
-      try {
-        if (fileInput.files.length > 0) {
-          const file = fileInput.files[0];
-          const base64 = await this.toBase64(file);
-          evidenceUrl = await this.call('uploadFile', [base64, file.name]);
-        }
-        const payload = {
-          id: document.getElementById('f_id').value,
-          employee: document.getElementById('f_employee').value,
-          pn: document.getElementById('f_pn').value,
-          unit: document.getElementById('f_unit').value, // ADD THIS LINE
-          from: document.getElementById('f_from').value,
-          until: document.getElementById('f_until').value,
-          rest_start: document.getElementById('f_rest_toggle').checked ? document.getElementById('f_rest_start').value : "",
-          rest_end: document.getElementById('f_rest_toggle').checked ? document.getElementById('f_rest_end').value : "",
-          total: document.getElementById('f_total').value,
-          remarks: document.getElementById('f_remarks').value,
-          evidence: evidenceUrl
-        };
-        await this.call('saveOvertime', [payload]);
-        ui.closeModal(); ui.refresh();
-      } catch(e) { alert(e); }
-      finally { ui.toggleLoader(false); }
-    },
-
-    async finalize() {
-      if (!confirm("Finalize record for HC? No further edits allowed.")) return;
-      ui.toggleLoader(true);
-      try {
-        await this.call('changeStatus', [document.getElementById('f_id').value]);
-        ui.closeModal(); ui.refresh();
-      } catch(e) { alert(e); }
-      ui.toggleLoader(false);
-    },
-
-    toBase64: (f) => new Promise((res, rej) => {
-      const r = new FileReader(); r.readAsDataURL(f);
-      r.onload = () => res(r.result); r.onerror = e => rej(e);
-    }),
-
-    // --- FIND THIS IN YOUR FRONTEND SCRIPT ---
-    async call(fn, args = []) {
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        return new Promise((res, rej) => {
-          google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](...args);
-        });
-      } else {
-        // CHANGE args[0] TO args
-        const response = await fetch(WEB_APP_URL, { 
-          method: 'POST', 
-          body: JSON.stringify({ action: fn, data: args }) 
-        });
-        const result = await response.json();
-        if (result.status === 'success') return result.data;
-        throw new Error(result.message);
-      }
-    }, // <-- COMMA ADDED HERE
-
-    async reject() {
-      const reason = document.getElementById('f_rejection_reason').value;
-      if (!reason) return alert("Please provide a rejection reason.");
-      if (!confirm("Reject this overtime request?")) return;
-      
-      ui.toggleLoader(true);
-      try {
-        await this.call('rejectRecord', [{
-          id: document.getElementById('f_id').value,
-          reason: reason
-        }]);
-        ui.closeModal();
-        ui.refresh();
-      } catch(e) { alert(e); }
-      ui.toggleLoader(false);
-    }, // <-- COMMA ADDED HERE
-
-    async deleteRecord() {
-      if (!confirm("Are you sure you want to PERMANENTLY delete this record?")) return;
-      ui.toggleLoader(true);
-      try {
-        await this.call('deleteRecord', [document.getElementById('f_id').value]);
-        ui.closeModal();
-        ui.refresh();
-      } catch(e) { alert(e); }
-      ui.toggleLoader(false);
-    }
-  };
-
-  ui.init();
-</script>
 </body>
 </html>
