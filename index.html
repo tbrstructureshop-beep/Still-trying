@@ -245,15 +245,17 @@
     <div id="noDataMessage" style="display:none; text-align:center; padding:40px; color:#666;">No results found.</div>
     <div class="pagination" id="pagination"></div>
   </div>
-
-  <!-- THE MODAL OVERLAY -->
+  
+  <!-- Modal Overlay -->
   <div id="formModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; padding:20px; box-sizing:border-box;">
     <!-- Modal Toolbar -->
     <div style="max-width:900px; margin:0 auto 10px auto; display:flex; justify-content:flex-end; gap:10px;" class="no-print">
+      <!-- ADDED PRINT BUTTON HERE -->
+      <button onclick="printIframe()" style="padding:10px 20px; background:#28a745; color:white; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">Print to PDF</button>
       <button onclick="closeFormModal()" style="padding:10px 20px; background:#dc3545; color:white; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">✕ Close</button>
     </div>
     
-    <!-- The Iframe (This loads form/index.html) -->
+    <!-- The Iframe -->
     <div style="max-width:900px; height:calc(100% - 60px); margin:0 auto; background:white; border-radius:8px; overflow:hidden; box-shadow:0 0 30px rgba(0,0,0,0.5);">
       <iframe id="formIframe" src="" style="width:100%; height:100%; border:none;"></iframe>
     </div>
@@ -430,23 +432,29 @@
       renderCards();
     }
 
-  function openFormModal(rowData) {
-    // 1. Save data to localStorage so form/index.html can read it
-    localStorage.setItem('currentSPData', JSON.stringify(rowData));
-    
-    // 2. Set the iframe source (adds a timestamp to prevent caching issues)
+  function printIframe() {
     const iframe = document.getElementById('formIframe');
-    iframe.src = 'form/index.html?t=' + new Date().getTime();
+    if (iframe) {
+        // This targets the window inside the iframe and triggers print
+        iframe.contentWindow.focus();
+        iframe.contentWindow.print();
+    }
+}
+
+function openFormModal(rowData) {
+    localStorage.setItem('currentSPData', JSON.stringify(rowData));
+    const iframe = document.getElementById('formIframe');
+    // Important: Setting the source triggers the data-mapping script in form/index.html
+    iframe.src = 'form/index.html'; 
     
-    // 3. Show the modal
     document.getElementById('formModal').style.display = 'block';
-    document.body.style.overflow = 'hidden'; // Stop background scrolling
+    document.body.style.overflow = 'hidden'; 
 }
 
 function closeFormModal() {
     document.getElementById('formModal').style.display = 'none';
-    document.getElementById('formIframe').src = ''; // Clear iframe
-    document.body.style.overflow = 'auto'; // Restore scrolling
+    document.getElementById('formIframe').src = ''; 
+    document.body.style.overflow = 'auto'; 
 }
 
     fetchData();
