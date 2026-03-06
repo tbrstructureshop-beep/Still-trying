@@ -356,7 +356,9 @@
                 ${sigVal ? `<img src="${sigVal}" alt="Sig">` : '<span class="label">No Sig</span>'}
               </div>
               <div class="action-icons">
-                ${docUrl ? `<a href="${docUrl}" target="_blank" title="View PDF"><img src="${DOCS_ICON}"></a>` : ''}
+                <a href="javascript:void(0)" onclick='openForm(${JSON.stringify(row)})' title="View Form">
+                <img src="${DOCS_ICON}">
+                </a>
                 ${waUrl ? `<a href="${waUrl}" target="_blank" title="WA Notif"><img src="${WA_ICON}"></a>` : ''}
               </div>
             </div>
@@ -374,6 +376,13 @@
       );
       currentPage = 1;
       renderCards();
+    }
+
+    function openForm(rowData) {
+      // Save the data to the browser's storage
+      localStorage.setItem('currentSPData', JSON.stringify(rowData));
+      // Redirect to the form directory
+      window.location.href = 'form/index.html';
     }
 
     function renderPagination() {
