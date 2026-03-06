@@ -316,15 +316,19 @@
     document.addEventListener("DOMContentLoaded", function() {
         // 1. Get data from localStorage
         const rawData = localStorage.getItem('currentSPData');
-        if (!rawData) {
-            console.error("No data found in localStorage");
-            return;
-        }
-
+        if (!rawData) return;
         const data = JSON.parse(rawData);
 
-        // 2. Map Basic Fields (Header & Footer)
-        // We use IDs or class lookups for reliability
+        // HELPER: Convert Drive URL to Image Link
+        function getDriveImg(url, width = 400) {
+            if (!url || !url.includes('/d/')) return "";
+            const match = url.match(/\/d\/(.+?)\//);
+            const id = match ? match[1] : "";
+            // Using sz parameter to get higher quality for the Evidence page
+            return id ? `https://drive.google.com/thumbnail?id=${id}&sz=w${width}` : "";
+        }
+
+        // 2. Map Basic Fields
         const basicMappings = {
             "{{No. SP}}": data["SP No."] || "",
             "{{To}}": data["To"] || "",
@@ -335,23 +339,32 @@
             "{{Receiver Name}}": data["Receiver Name"] || "",
             "{{Date}}": data["Date"] || "",
             "{{Time}}": data["Time"] || "",
-            "{{IMAGE_URL}}": data["Description"] // Usually images are in a specific column, adjust if needed
+            // Signatures & Evidence
+            "{{Sender Signature}}": getDriveImg(data["Sender Signature"]),
+            "{{Receiver Signature}}": getDriveImg(data["Receiver Signature"]),
+            "{{IMAGE_URL}}": getDriveImg(data["Evidence"], 1000) // Quality w1000 for Page 2
         };
 
-        // Replace basic text placeholders in the whole body
+        // 3. Replace text and Image placeholders
         let bodyHtml = document.body.innerHTML;
+        
+        // Handle normal text first
         for (const [key, value] of Object.entries(basicMappings)) {
             const regex = new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
-            bodyHtml = bodyHtml.replace(regex, value || "");
+            
+            // If it's a signature placeholder, wrap in IMG tag
+            if (key.includes("Signature")) {
+                const imgTag = value ? `<img src="${value}" style="max-height:60px; mix-blend-mode:multiply;">` : "";
+                bodyHtml = bodyHtml.replace(regex, imgTag);
+            } else {
+                bodyHtml = bodyHtml.replace(regex, value || "");
+            }
         }
         document.body.innerHTML = bodyHtml;
 
-        // 3. Populate the Description Table (The 31 Rows)
+        // 4. Populate the 31 Description Rows (Same logic as before)
         const descText = data["Description"] || "";
-        // Split by newline and remove empty lines
         const lines = descText.split('\n').map(l => l.trim()).filter(l => l !== "");
-        
-        // Find all rows with the class 'item-row'
         const tableRows = document.querySelectorAll('.item-row');
 
         lines.forEach((line, index) => {
@@ -359,37 +372,16 @@
                 const row = tableRows[index];
                 const cells = row.querySelectorAll('td');
                 const parts = line.split('|').map(p => p.trim());
-
-                // Column 0: Row Number (1, 2, 3...)
                 cells[0].innerText = index + 1;
-                
-                // Column 1: Quantity (Part before first |)
                 cells[1].innerText = parts[0] || "";
-                
-                // Column 2: Description (Part after first |)
                 cells[2].innerText = parts[1] || "";
-                
-                // Column 3: Remarks (Part after second |)
                 cells[3].innerText = parts[2] || "";
-
-                // Add styling class to match your original design
                 row.classList.add('script-val');
                 cells[2].style.textAlign = "left";
-                cells[2].style.paddingLeft = "5px";
             }
         });
-
-        // 4. Handle Signature Image (if exists in data)
-        // Assuming your signature might be in a column named 'Signature'
-        const sigKey = Object.keys(data).find(k => k.toLowerCase().includes('signature'));
-        if (sigKey && data[sigKey]) {
-            const sigImg = document.querySelector('.sig-line').previousElementSibling; 
-            if (sigImg) {
-                const sigVal = data[sigKey].startsWith('data:image') ? data[sigKey] : "data:image/png;base64," + data[sigKey];
-                sigImg.innerHTML = `<img src="${sigVal}" style="max-height: 60px; mix-blend-mode: multiply;">`;
-            }
-        }
     });
+</script>
 </script>
 </body>
 </html>
