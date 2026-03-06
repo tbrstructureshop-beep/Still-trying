@@ -186,12 +186,11 @@
 
         /* CSS to handle printing from the modal */
     @media print {
-        body * { visibility: hidden; }
-        #spModal, #spModal *, #modalPrintArea, #modalPrintArea * { visibility: visible; }
-        #spModal { position: absolute; left: 0; top: 0; width: 100%; background: white !important; }
-        .no-print { display: none !important; }
-        #modalPrintArea { margin: 0 !important; padding: 0 !important; box-shadow: none !important; width: 100% !important; }
-        .page { page-break-after: always; }
+        body > *:not(#formModal) { display: none !important; }
+        #formModal { position: absolute; top:0; left:0; width:100%; height:auto; background:white !important; padding:0; }
+        #formModal .no-print { display: none !important; }
+        #formModal div { height: auto !important; margin:0 !important; box-shadow:none !important; }
+        iframe { height: 1500px; } /* Set height to fit A4 */
     }
 
     /* Mobile Specific Overrides */
@@ -248,21 +247,20 @@
   </div>
 
   <!-- THE MODAL OVERLAY -->
-  <div id="spModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:10000; overflow-y:auto;">
-    <!-- MODAL TOOLBAR (Hidden during print) -->
-    <div style="background:#333; padding:10px; position:sticky; top:0; display:flex; gap:10px; justify-content:center; align-items:center;" class="no-print">
-      <button onclick="window.print()" style="padding:8px 20px; background:#28a745; color:white; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">Print to PDF</button>
-      <button onclick="document.getElementById('spModal').style.display='none'" style="padding:8px 20px; background:#dc3545; color:white; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">Close Window</button>
+  <div id="formModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; padding:20px; box-sizing:border-box;">
+    <!-- Modal Toolbar -->
+    <div style="max-width:900px; margin:0 auto 10px auto; display:flex; justify-content:flex-end; gap:10px;" class="no-print">
+      <button onclick="closeFormModal()" style="padding:10px 20px; background:#dc3545; color:white; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">✕ Close</button>
     </div>
     
-    <!-- THE FORM CONTAINER (Injects your form/index.html content here) -->
-    <div id="modalPrintArea" style="background:white; width:210mm; margin:20px auto; padding:5mm; box-shadow:0 0 20px rgba(0,0,0,0.5);">
-      <!-- Your form/index.html content will be injected here dynamically -->
+    <!-- The Iframe (This loads form/index.html) -->
+    <div style="max-width:900px; height:calc(100% - 60px); margin:0 auto; background:white; border-radius:8px; overflow:hidden; box-shadow:0 0 30px rgba(0,0,0,0.5);">
+      <iframe id="formIframe" src="" style="width:100%; height:100%; border:none;"></iframe>
     </div>
   </div>
 </body>
-
-  <script>
+  
+<script>
     // [STAYS EXACTLY THE SAME AS YOUR ORIGINAL CODE]
     const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTcm6VhsS6UO8X9ueZulzk-ysTUP7xhIpmeT_R1OFPsbh37lPZbNdZ1vgcekX_xpxOwK9EfFpEa_84F/pub?gid=1284751190&single=true&output=csv";
     const DOCS_ICON = "https://www.gstatic.com/images/branding/product/1x/docs_2020q4_48dp.png";
@@ -381,9 +379,9 @@
                 ${sigVal ? `<img src="${sigVal}" alt="Sig">` : '<span class="label">No Sig</span>'}
               </div>
               <div class="action-icons">
-                <a href="javascript:void(0)" onclick='showSPModal(${JSON.stringify(row)})' title="View Document">
-                <img src="${DOCS_ICON}">
-                </a>
+              <a href="javascript:void(0)" onclick='openFormModal(${JSON.stringify(row)})' title="View Document">
+              <img src="${DOCS_ICON}">
+              </a>
                 ${waUrl ? `<a href="${waUrl}" target="_blank" title="WA Notif"><img src="${WA_ICON}"></a>` : ''}
               </div>
             </div>
@@ -432,92 +430,23 @@
       renderCards();
     }
 
-    function showSPModal(data) {
-    const modal = document.getElementById('spModal');
-    const printArea = document.getElementById('modalPrintArea');
+  function openFormModal(rowData) {
+    // 1. Save data to localStorage so form/index.html can read it
+    localStorage.setItem('currentSPData', JSON.stringify(rowData));
     
-    // 1. The Template (This is exactly your form/index.html content)
-    let formTemplate = `
-        <div class="page">
-            <!-- PAGE 1 Structure -->
-            <table style="width:100%">
-                <tr>
-                    <td><img src="https://sp.gmf-aeroasia.co.id/assets/gmf-logo.webp" style="width:200px"></td>
-                    <td style="text-align:right">
-                        <div style="font-size:13pt">No. SP <span class="blue-val">${data["SP No."] || ""}</span></div>
-                        <h1 style="font-size:14pt; text-decoration:underline; margin:0">SURAT PENGIRIMAN</h1>
-                    </td>
-                </tr>
-            </table>
-
-            <table class="info-table" style="width:100%; margin:10px 0">
-                <tr><td style="width:100px; font-weight:bold; text-decoration:underline;">Kepada:</td><td class="field-dotted blue-val">${data["To"] || ""}</td></tr>
-                <tr><td style="font-weight:bold; text-decoration:underline;">Dikirim oleh:</td><td class="field-dotted blue-val">${data["Sent By"] || ""}</td></tr>
-            </table>
-
-            <table class="unified-table" style="width:100%; border:1px solid black; border-collapse:collapse;">
-                <thead>
-                    <tr style="border-bottom:1px solid black">
-                        <th style="border:1px solid black">No.</th>
-                        <th style="border:1px solid black">Quantity</th>
-                        <th style="border:1px solid black">Description</th>
-                        <th style="border:1px solid black">Remarks</th>
-                    </tr>
-                </thead>
-                <tbody id="modalTableBody">
-                    <!-- Rows will be injected here -->
-                </tbody>
-                <tfoot>
-                     <tr class="footer-row" style="height:80px">
-                        <td colspan="2" style="border:1px solid black"></td>
-                        <td style="border:1px solid black; padding:5px">
-                            <b>Packed by:</b><br>
-                            <div style="text-align:center">
-                                <span class="script-val">${data["Sender Name"] || ""}</span>
-                                <div style="border-bottom:1px dotted black; width:150px; margin:5px auto"></div>
-                            </div>
-                        </td>
-                        <td style="border:1px solid black; padding:5px">
-                            <b>Receiver Contact:</b><br>${data["Receiver Phone"] || ""}
-                        </td>
-                    </tr>
-                </tfoot>
-            </table>
-            
-            <div style="margin-top:10px">
-                <b>Receiver Signature:</b><br>
-                <div style="height:40px"></div>
-                <span>Date: ${data["Date"] || ""} ${data["Time"] || ""}</span>
-            </div>
-        </div>
-    `;
-
-    // 2. Inject Template
-    printArea.innerHTML = formTemplate;
-
-    // 3. Populate the 31 Table Rows
-    const tbody = document.getElementById('modalTableBody');
-    const descText = data["Description"] || "";
-    const lines = descText.split('\n').map(l => l.trim()).filter(l => l !== "");
+    // 2. Set the iframe source (adds a timestamp to prevent caching issues)
+    const iframe = document.getElementById('formIframe');
+    iframe.src = 'form/index.html?t=' + new Date().getTime();
     
-    let tableHtml = "";
-    for (let i = 0; i < 31; i++) {
-        let line = lines[i] || "";
-        let parts = line.split('|').map(p => p.trim());
-        
-        tableHtml += `
-            <tr style="height:20px; font-family:'Edu SA Beginner', cursive;">
-                <td style="border:1px solid black; text-align:center">${i < lines.length ? i + 1 : ""}</td>
-                <td style="border:1px solid black; text-align:center">${parts[0] || ""}</td>
-                <td style="border:1px solid black; padding-left:5px">${parts[1] || ""}</td>
-                <td style="border:1px solid black; text-align:center">${parts[2] || ""}</td>
-            </tr>
-        `;
-    }
-    tbody.innerHTML = tableHtml;
+    // 3. Show the modal
+    document.getElementById('formModal').style.display = 'block';
+    document.body.style.overflow = 'hidden'; // Stop background scrolling
+}
 
-    // 4. Show Modal
-    modal.style.display = 'block';
+function closeFormModal() {
+    document.getElementById('formModal').style.display = 'none';
+    document.getElementById('formIframe').src = ''; // Clear iframe
+    document.body.style.overflow = 'auto'; // Restore scrolling
 }
 
     fetchData();
