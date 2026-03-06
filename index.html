@@ -184,6 +184,14 @@
     .pagination { display: flex; justify-content: center; gap: 10px; padding: 20px; align-items: center; flex-wrap: wrap;}
     .pagination button { padding: 10px 18px; border-radius: 5px; border: 1px solid #ccc; background: #fff; cursor: pointer; }
 
+    .sig-box img {
+      max-height: 40px;      /* Limits height so the card doesn't grow too tall */
+      max-width: 120px;     /* Limits width */
+      object-fit: contain;  /* Keeps the aspect ratio */
+      mix-blend-mode: multiply; /* Removes white background if signed on white paper */
+      filter: contrast(1.2);    /* Optional: makes the signature pop more */
+    }
+
         /* CSS to handle printing from the modal */
     @media print {
         body > *:not(#formModal) { display: none !important; }
@@ -343,7 +351,17 @@
 
         const docUrl = docKey ? row[docKey] : null;
         const waUrl = waKey ? row[waKey] : null;
-        const sigVal = sigKey && row[sigKey] ? (row[sigKey].startsWith("data:image") ? row[sigKey] : "data:image/png;base64," + row[sigKey]) : null;
+        // Inside your row mapping loop in renderCards()
+        const senderSigUrl = row["Sender Signature"] || "";
+        let sigThumb = "";
+        
+        if (senderSigUrl.includes('drive.google.com')) {
+          const match = senderSigUrl.match(/\/d\/(.+?)\//);
+          const id = match ? match[1] : "";
+          sigThumb = `https://drive.google.com/thumbnail?id=${id}&sz=w200`;
+        } else if (senderSigUrl.startsWith('data:image')) {
+          sigThumb = senderSigUrl;
+        }
 
         const infoGrid = keys.map(key => {
           const val = row[key];
@@ -378,7 +396,7 @@
 
             <div class="card-footer">
               <div class="sig-box">
-                ${sigVal ? `<img src="${sigVal}" alt="Sig">` : '<span class="label">No Sig</span>'}
+              ${sigThumb ? `<img src="${sigThumb}" alt="Sig">` : '<span class="label" style="color:#ccc">No Signature</span>'}
               </div>
               <div class="action-icons">
               <a href="javascript:void(0)" onclick='openFormModal(${JSON.stringify(row)})' title="View Document">
