@@ -4,299 +4,191 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Surat Pengiriman | GMF</title>
-  <style>
-    :root {
-      --primary: #226873;
-      --primary-light: #f0f6f7;
-      --primary-border: #d1e2e5;
-      --text-main: #2c3e50;
-      --text-muted: #546e7a;
-      --white: #ffffff;
-      --soft-red: #b35c5c;
-      --soft-green: #4b8c7d;
-    }
+<style>
+  :root {
+    --primary: #226873;
+    --primary-light: #f0f6f7;
+    --primary-border: #d1e2e5;
+    --text-main: #2c3e50;
+    --text-muted: #546e7a;
+    --white: #ffffff;
+    --soft-red: #b35c5c;
+    --soft-green: #4b8c7d;
+  }
 
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background-color: var(--white);
-      color: var(--text-main);
-      margin: 0;
-      padding: 10px;
-      line-height: 1.5;
-    }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background-color: var(--white);
+    color: var(--text-main);
+    margin: 0;
+    padding: 10px;
+    line-height: 1.5;
+  }
 
-    .form-container {
-      background-color: var(--white);
-      max-width: 850px;
-      margin: 10px auto;
-      padding: 30px;
-      border: 1px solid var(--primary-border);
-      border-radius: 8px;
-      box-shadow: 0 4px 20px rgba(34, 104, 115, 0.08);
-      position: relative;
-    }
+  .form-container {
+    background-color: var(--white);
+    max-width: 850px;
+    margin: 10px auto;
+    padding: 30px;
+    border: 1px solid var(--primary-border);
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(34, 104, 115, 0.08);
+    position: relative;
+  }
 
-    /* Menu container styles */
-    .menu-container {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      z-index: 100;
-    }
+  /* Menu */
+  .menu-container {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 100;
+  }
+  .menu-toggle {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    font-size: 20px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  .menu-dropdown {
+    display: none;
+    position: absolute;
+    top: 45px;
+    right: 0;
+    background-color: white;
+    border: 1px solid var(--primary-border);
+    box-shadow: 0px 8px 16px rgba(0,0,0,0.1);
+    border-radius: 4px;
+    min-width: 180px;
+  }
+  .menu-dropdown a {
+    display: block;
+    color: var(--text-main);
+    text-decoration: none;
+    padding: 12px 16px;
+    font-size: 14px;
+    border-bottom: 1px solid #f5f5f5;
+  }
+  .menu-container.open .menu-dropdown { display: block; }
 
-    .menu-toggle {
-      background-color: var(--primary);
-      color: white;
-      border: none;
-      padding: 8px 12px;
-      font-size: 20px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 40px;
+    border-bottom: 2px solid var(--primary-light);
+    padding-bottom: 20px;
+  }
+  .header img { width: 160px; margin-bottom: 15px; }
+  .header h1 { margin: 0; font-size: 22px; color: var(--primary); text-transform: uppercase; letter-spacing: 1px; }
+  .header h2 { margin: 5px 0 0; font-size: 13px; font-weight: 400; color: var(--text-muted); letter-spacing: 2px; }
 
-    .menu-dropdown {
-      display: none;
-      position: absolute;
-      top: 45px;
-      right: 0;
-      background-color: white;
-      border: 1px solid var(--primary-border);
-      box-shadow: 0px 8px 16px rgba(0,0,0,0.1);
-      border-radius: 4px;
-      min-width: 180px;
-    }
+  /* Form Elements */
+  label {
+    font-weight: 600;
+    display: block;
+    margin: 15px 0 6px;
+    font-size: 11px;
+    color: var(--primary);
+    text-transform: uppercase;
+  }
+  input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--primary-border);
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 14px;
+    background-color: #fafbfc;
+  }
+  input:focus { outline: none; border-color: var(--primary); background-color: #fff; }
+  input[readonly] { background-color: var(--primary-light); color: var(--text-muted); }
 
-    .menu-dropdown a {
-      display: block;
-      color: var(--text-main);
-      text-decoration: none;
-      padding: 12px 16px;
-      font-size: 14px;
-      border-bottom: 1px solid #f5f5f5;
-    }
+  /* Table - Center Aligned No Column */
+  .table-wrapper { overflow-x: auto; margin: 25px 0; }
+  table { width: 100%; border-collapse: collapse; min-width: 600px; }
+  th { background-color: var(--primary); color: white; font-weight: 500; font-size: 12px; padding: 12px; text-transform: uppercase; }
+  
+  td { border: 1px solid var(--primary-border); padding: 5px; text-align: center; font-size: 14px; }
+  td input { border: none; background: transparent; text-align: center; }
+  td:nth-child(3) input { text-align: left; } /* Description left aligned */
 
-    .menu-dropdown a:hover {
-      background-color: var(--primary-light);
-      color: var(--primary);
-    }
+  /* Signatures */
+  .canvas-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 20px;
+    margin-top: 30px;
+  }
+  .signature-box {
+    flex: 1;
+    min-width: 280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    background-color: var(--primary-light);
+    border-radius: 6px;
+  }
+  canvas {
+    border: 1px solid var(--primary-border);
+    background-color: white;
+    width: 100%;
+    height: 120px;
+    border-radius: 4px;
+    touch-action: none;
+  }
 
-    .menu-container.open .menu-dropdown {
-      display: block;
-    }
+  /* Buttons */
+  .button-container { text-align: center; margin: 25px 0; display: flex; justify-content: center; gap: 10px; }
+  button {
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 4px;
+    cursor: pointer;
+    text-transform: uppercase;
+  }
+  .red-button { background-color: var(--soft-red); }
+  .green-button { background-color: var(--soft-green); padding: 12px 35px; font-size: 14px; }
 
-    .header {
-      text-align: center;
-      margin-bottom: 40px;
-      border-bottom: 2px solid var(--primary-light);
-      padding-bottom: 20px;
-    }
+  /* Utilities */
+  .upload-container { margin-top: 30px; padding: 20px; border: 2px dashed var(--primary-border); border-radius: 8px; text-align: center; }
+  #imagePreview { max-width: 250px; margin-top: 15px; border-radius: 4px; }
+  #loadingGif { position: fixed; inset: 0; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; }
+  .notification { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--soft-green); color: white; padding: 12px 25px; border-radius: 30px; display: none; z-index: 1001; }
 
-    .header img {
-      width: 160px;
-      margin-bottom: 15px;
-    }
-
-    .header h1 {
-      margin: 0;
-      font-size: 22px;
-      color: var(--primary);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .header h2 {
-      margin: 5px 0 0;
-      font-size: 13px;
-      font-weight: 400;
-      color: var(--text-muted);
-      letter-spacing: 2px;
-    }
-
-    label {
-      font-weight: 600;
-      display: block;
-      margin: 15px 0 6px;
-      font-size: 11px;
-      color: var(--primary);
-      text-transform: uppercase;
-    }
-
-    input, textarea {
-      width: 100%;
-      padding: 10px;
-      border: 1px solid var(--primary-border);
-      border-radius: 4px;
-      box-sizing: border-box;
-      font-size: 14px;
-      background-color: #fafbfc;
-    }
-
-    input:focus {
-      outline: none;
-      border-color: var(--primary);
-      background-color: #fff;
-    }
-
-    input[readonly] {
-      background-color: var(--primary-light);
-      color: var(--text-muted);
-    }
-
-    /* Table Styling */
-    .table-wrapper {
-      overflow-x: auto;
-      margin: 25px 0;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 600px;
-    }
-
-    th {
-      background-color: var(--primary);
-      color: white;
-      font-weight: 500;
-      font-size: 12px;
-      padding: 12px;
-      text-transform: uppercase;
-      text-align: center;
-    }
-
-    /* Target the first column (Row Number) */
-    td {
-      border: 1px solid var(--primary-border);
-      padding: 5px;
-      text-align: center; /* Centers the "1, 2, 3" row numbers */
-      font-size: 14px;
-    }
-
-    td input {
-      border: none;
-      background: transparent;
-      text-align: center;
-    }
-
-    /* Maintain Left Alignment for Description for better readability */
-    td:nth-child(3) input {
-      text-align: left;
-    }
-
-    /* Signatures */
-    .canvas-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      gap: 20px;
-      margin-top: 30px;
-    }
-
-    .signature-box {
-      flex: 1;
-      min-width: 280px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 15px;
-      background-color: var(--primary-light);
-      border-radius: 6px;
-    }
-
-    canvas {
-      border: 1px solid var(--primary-border);
-      background-color: white;
-      width: 100%;
-      height: 120px;
-      border-radius: 4px;
-      touch-action: none;
-    }
-
-    /* Buttons */
-    .button-container {
-      text-align: center;
-      margin: 25px 0;
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-    }
-
-    button {
-      background-color: var(--primary);
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      font-size: 13px;
-      font-weight: 600;
-      border-radius: 4px;
-      cursor: pointer;
-      text-transform: uppercase;
-    }
-
-    .red-button { background-color: var(--soft-red); }
-    .green-button { background-color: var(--soft-green); padding: 12px 30px; font-size: 15px; }
-
-    /* Upload Area */
-    .upload-container {
-      margin-top: 30px;
-      padding: 20px;
-      border: 2px dashed var(--primary-border);
-      border-radius: 8px;
-      text-align: center;
-    }
-
-    #imagePreview {
-      max-width: 250px;
-      margin-top: 15px;
-      border-radius: 4px;
-    }
-
-    #loadingGif {
-      position: fixed;
-      inset: 0;
-      background-color: rgba(255, 255, 255, 0.9);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-
-    .notification {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background-color: var(--soft-green);
-      color: white;
-      padding: 12px 25px;
-      border-radius: 30px;
-      display: none;
-    }
-
-    @media (max-width: 600px) {
-      .form-container { padding: 15px; }
-      .signature-box { min-width: 100%; }
-      .button-container { flex-direction: column; }
-      button { width: 100%; }
-    }
-  </style>
+  @media (max-width: 600px) {
+    .form-container { padding: 15px; }
+    .signature-box { min-width: 100%; }
+    .button-container { flex-direction: column; }
+    button { width: 100%; }
+  }
+</style>
 </head>
 <body>
-
+  <!-- Loading Overlay -->
   <div id="loadingGif">
-    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExeWc0djRoenZ1YWhjcjdkMmk3YWN6dGpvN29qZGo1bGViMzI4OXdqcyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/eK7Nj68Yur6vRmVyqN/giphy.gif" alt="Loading..." width="100">
+    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExeWc0djRoenZ1YWhjcjdkMmk3YWN6dGpvN29qZGo1bGViMzI4OXdqcyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/eK7Nj68Yur6vRmVyqN/giphy.gif" alt="Loading..." width="80">
   </div>
 
   <div class="form-container">
+    <!-- Menu -->
     <div class="menu-container">
       <button class="menu-toggle" type="button">☰</button>
       <div class="menu-dropdown">
         <a href="https://shorturl.at/lgPJ7" target="_blank">Edit SP</a>
-        <a href="https://shorturl.at/uSCeY" target="_blank">Go to Dashboard</a>
+        <a href="https://shorturl.at/uSCeY" target="_blank">Dashboard</a>
         <a href="#" onclick="location.reload()">Refresh</a>
       </div>
     </div>
 
+    <!-- Header -->
     <div class="header">
       <img src="https://www.gmf-aeroasia.co.id/cfind/source/thumb/images/cover_w241_h51_gmf%20aeroasia%20logo%20new%20blue.png" alt="Logo">
       <h1>Surat Pengiriman</h1>
@@ -308,10 +200,10 @@
       <input type="text" id="spNo" readonly>
 
       <label>To (Unit Tujuan)</label>
-      <input type="text" id="to" placeholder="Destination Unit" required>
+      <input type="text" id="to" placeholder="Enter Destination Unit" required>
 
       <label>Sent By (Unit Pengirim)</label>
-      <input type="text" id="sentBy" placeholder="Sending Unit" required>
+      <input type="text" id="sentBy" placeholder="Enter Sending Unit" required>
 
       <label>A/C Reg. / Info</label>
       <input type="text" id="note" placeholder="Aircraft Reg. or Reference" required>
@@ -343,6 +235,7 @@
       </div>
 
       <div class="canvas-container">
+        <!-- Sender -->
         <div class="signature-box">
           <label>Sender Signature</label>
           <canvas id="senderCanvas"></canvas>
@@ -350,6 +243,7 @@
           <button type="button" class="red-button" style="padding: 5px 10px; margin-top: 10px; font-size: 11px;" onclick="clearCanvas('senderCanvas')">Clear</button>
         </div>
 
+        <!-- Receiver -->
         <div class="signature-box">
           <label>Receiver Signature</label>
           <canvas id="receiverCanvas"></canvas>
@@ -372,12 +266,14 @@
         </div>
       </div>
 
+      <!-- Image Section -->
       <div class="upload-container">
         <label>Upload Image / Attachment</label>
         <input type="file" id="imageUpload" accept="image/*" onchange="previewImage(event, 'imagePreview')">
         <img id="imagePreview" src="" alt="Image Preview" style="display:none;">
       </div>
 
+      <!-- Footer Buttons -->
       <div class="button-container" style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--primary-light);">
         <button type="button" class="green-button" onclick="saveForm()">Save Document</button>
         <button type="button" class="red-button" onclick="resetForm()">Reset Form</button>
@@ -386,7 +282,8 @@
   </div>
 
   <div class="notification" id="submissionNotification">Form submitted successfully!</div>
- <script>
+
+   <script>
   // 1. SET YOUR API URL HERE
   const API_URL = 'YOUR_WEB_APP_URL_HERE'; 
 
@@ -500,108 +397,165 @@
   }
 
   // Form Submission via API
-  async function saveForm() {
-    const requiredFields = [
-      { id: 'to', label: 'To' },
-      { id: 'sentBy', label: 'Sent By' },
-      { id: 'note', label: 'Note' },
-      { id: 'senderName', label: 'Sender Name' },
-      { id: 'receiverName', label: 'Receiver Name' }
-    ];
+async function saveForm() {
+  const requiredFields = [
+    { id: 'to', label: 'To' },
+    { id: 'sentBy', label: 'Sent By' },
+    { id: 'note', label: 'Note' },
+    { id: 'senderName', label: 'Sender Name' },
+    { id: 'receiverName', label: 'Receiver Name' }
+  ];
 
-    let missingFields = [];
-    requiredFields.forEach(field => {
-      const input = document.getElementById(field.id);
-      if (!input.value.trim()) {
-        missingFields.push(field.label);
-        input.style.border = '1px solid #b35c5c';
-      } else {
-        input.style.border = '';
-      }
+  let missingFields = [];
+  requiredFields.forEach(field => {
+    const input = document.getElementById(field.id);
+    if (!input.value.trim()) {
+      missingFields.push(field.label);
+      input.style.border = '1px solid #b35c5c';
+    } else {
+      input.style.border = '';
+    }
+  });
+
+  const rows = document.querySelectorAll('#itemsTable tbody tr');
+  // Check if at least the first row has a description
+  if (!rows[0].cells[2].querySelector('input').value.trim()) {
+    missingFields.push('Table Items (Description)');
+  }
+
+  if (missingFields.length > 0) {
+    alert('Required: ' + missingFields.join(', '));
+    return;
+  }
+
+  document.getElementById('loadingGif').style.display = 'flex';
+
+  // Aligned to your specific Google Apps Script backend
+  const formData = {
+    spNo: document.getElementById('spNo').value,
+    to: document.getElementById('to').value,
+    sentBy: document.getElementById('sentBy').value,
+    note: document.getElementById('note').value,
+    senderName: document.getElementById('senderName').value,
+    receiverName: document.getElementById('receiverName').value,
+    receiverPhone: document.getElementById('receiverPhone').value,
+    date: document.getElementById('date').value,
+    time: document.getElementById('time').value,
+    
+    // Matched to backend keys
+    senderSignature: document.getElementById('senderCanvas').toDataURL(),
+    receiverSignature: document.getElementById('receiverCanvas').toDataURL(),
+    uploadedImage: document.getElementById('imagePreview').src || '',
+    
+    // Matched to backend table loop logic
+    tableData: Array.from(rows).map((row, i) => ({
+      quantity: row.cells[1].querySelector('input').value,    // Backend looks for .quantity
+      description: row.cells[2].querySelector('input').value, // Backend looks for .description
+      remarks: row.cells[3].querySelector('input').value      // Backend looks for .remarks
+    }))
+  };
+
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      mode: 'no-cors', // Required for Google Apps Script Web Apps
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
     });
 
-    const rows = document.querySelectorAll('#itemsTable tbody tr');
-    if (!rows[0].cells[2].querySelector('input').value.trim()) {
-      missingFields.push('Table Items (Description)');
-    }
-
-    if (missingFields.length > 0) {
-      alert('Required: ' + missingFields.join(', '));
-      return;
-    }
-
-    document.getElementById('loadingGif').style.display = 'flex';
-
-    const formData = {
-      spNo: document.getElementById('spNo').value,
-      to: document.getElementById('to').value,
-      sentBy: document.getElementById('sentBy').value,
-      note: document.getElementById('note').value,
-      items: Array.from(rows).map((row, i) => ({
-        no: i + 1,
-        qty: row.cells[1].querySelector('input').value,
-        desc: row.cells[2].querySelector('input').value,
-        remarks: row.cells[3].querySelector('input').value
-      })),
-      senderName: document.getElementById('senderName').value,
-      receiverName: document.getElementById('receiverName').value,
-      receiverPhone: document.getElementById('receiverPhone').value,
-      date: document.getElementById('date').value,
-      time: document.getElementById('time').value,
-      senderSig: document.getElementById('senderCanvas').toDataURL(),
-      receiverSig: document.getElementById('receiverCanvas').toDataURL(),
-      image: document.getElementById('imagePreview').src || ''
-    };
-
-    try {
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        mode: 'no-cors', // Note: use 'cors' if your API supports it. 'no-cors' won't allow reading response.
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-
-      // If using Apps Script Web App with 'no-cors', we assume success if no error is thrown
+    // We assume success with no-cors if the fetch doesn't error out
+    setTimeout(() => {
       document.getElementById('loadingGif').style.display = 'none';
       document.getElementById('submissionNotification').style.display = 'block';
-      
-      setTimeout(() => {
-        alert('Data submitted successfully!');
-        location.reload();
-      }, 1000);
+      alert('Form submitted successfully!');
+      location.reload();
+    }, 2000); // Wait 2 seconds for processing
 
-    } catch (error) {
-      document.getElementById('loadingGif').style.display = 'none';
-      alert('Error: ' + error.message);
-    }
+  } catch (error) {
+    document.getElementById('loadingGif').style.display = 'none';
+    console.error('Submission Error:', error);
+    alert('Error submitting form: ' + error.message);
   }
+}
 
   // Canvas & Setup
-  function setupCanvas(canvasId) {
-    const canvas = document.getElementById(canvasId);
-    const ctx = canvas.getContext('2d');
-    let drawing = false;
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = "#226873";
+function setupCanvas(canvasId) {
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext('2d');
+  
+  // 1. Handle High-DPI (Retina) screens for sharp lines
+  const ratio = window.devicePixelRatio || 1;
+  const width = canvas.offsetWidth;
+  const height = canvas.offsetHeight;
+  canvas.width = width * ratio;
+  canvas.height = height * ratio;
+  ctx.scale(ratio, ratio);
 
-    const getPos = (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      return [clientX - rect.left, clientY - rect.top];
+  // 2. Set Professional Pen Styles
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round';   // Makes the start/end of strokes round
+  ctx.lineJoin = 'round';  // Makes joints between points smooth
+  ctx.strokeStyle = "#226873";
+
+  let drawing = false;
+  let lastPoint = { x: 0, y: 0 };
+
+  const getPos = (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return {
+      x: clientX - rect.left,
+      y: clientY - rect.top
+    };
+  };
+
+  const start = (e) => {
+    drawing = true;
+    lastPoint = getPos(e);
+    ctx.beginPath();
+    ctx.moveTo(lastPoint.x, lastPoint.y);
+    e.preventDefault();
+  };
+
+  const move = (e) => {
+    if (!drawing) return;
+    e.preventDefault();
+
+    const currentPoint = getPos(e);
+    
+    // 3. Quadratic Curve Logic:
+    // Instead of drawing to the current point, we draw a curve 
+    // to the midpoint between the last point and the current point.
+    const midPoint = {
+      x: lastPoint.x + (currentPoint.x - lastPoint.x) / 2,
+      y: lastPoint.y + (currentPoint.y - lastPoint.y) / 2
     };
 
-    const start = (e) => { drawing = true; const [x,y] = getPos(e); ctx.beginPath(); ctx.moveTo(x,y); e.preventDefault(); };
-    const move = (e) => { if(!drawing) return; const [x,y] = getPos(e); ctx.lineTo(x,y); ctx.stroke(); e.preventDefault(); };
-    const stop = () => drawing = false;
+    ctx.quadraticCurveTo(lastPoint.x, lastPoint.y, midPoint.x, midPoint.y);
+    ctx.stroke();
+    
+    lastPoint = currentPoint;
+  };
 
-    canvas.addEventListener('mousedown', start);
-    canvas.addEventListener('mousemove', move);
-    window.addEventListener('mouseup', stop);
-    canvas.addEventListener('touchstart', start, {passive: false});
-    canvas.addEventListener('touchmove', move, {passive: false});
-    canvas.addEventListener('touchend', stop);
-  }
+  const stop = () => {
+    if (drawing) {
+      ctx.lineTo(lastPoint.x, lastPoint.y);
+      ctx.stroke();
+      ctx.closePath();
+      drawing = false;
+    }
+  };
+
+  // Event Listeners
+  canvas.addEventListener('mousedown', start);
+  canvas.addEventListener('mousemove', move);
+  window.addEventListener('mouseup', stop);
+
+  canvas.addEventListener('touchstart', start, { passive: false });
+  canvas.addEventListener('touchmove', move, { passive: false });
+  canvas.addEventListener('touchend', stop);
+}
 
   function clearCanvas(id) {
     const c = document.getElementById(id);
