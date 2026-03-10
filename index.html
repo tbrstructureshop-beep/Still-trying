@@ -5,77 +5,86 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Electronic SP List | GMF AeroAsia</title>
   <meta name="description" content="Management system for Electronic SP List">
-  <!-- Open Graph for WhatsApp/Teams previews -->
-  <meta property="og:title" content="Electronic SP List">
-  <meta property="og:image" content="https://sp.gmf-aeroasia.co.id/assets/gmf-logo.webp">
-  <!-- Favicon -->
-  <link rel="icon" type="image/webp" href="https://sp.gmf-aeroasia.co.id/assets/gmf-logo.webp">
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
   <style>
     :root {
-      --primary: #0056b3;
-      --success: #25D366;
-      --warning: #ffc107;
-      --dark: #333;
-      --light-bg: #f8f9fa;
-      --shadow: 0 4px 12px rgba(0,0,0,0.15);
+      --primary: #226873;
+      --primary-light: #f0f6f7;
+      --primary-border: #d1e2e5;
+      --text-main: #2c3e50;
+      --text-muted: #546e7a;
+      --white: #ffffff;
+      --soft-red: #b35c5c;
+      --soft-green: #4b8c7d;
+      --shadow: 0 4px 15px rgba(34, 104, 115, 0.08);
     }
 
     body {
       margin: 0;
-      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      background: url('https://images.unsplash.com/photo-1749746766518-7d52a30c87cb?q=80&w=1638&auto=format&fit=crop') no-repeat center center fixed;
-      background-size: cover;
-      color: var(--dark);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--white);
+      color: var(--text-main);
       min-height: 100vh;
+      line-height: 1.5;
     }
 
     .container {
-      margin: 10px auto;
-      padding: 15px;
+      margin: 20px auto;
+      padding: 30px;
       width: 95%;
-      max-width: 1200px;
-      background: rgba(255, 255, 255, 0.93);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border-radius: 15px;
-      min-height: 95vh;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      max-width: 1250px;
+      background: var(--white);
+      border: 1px solid var(--primary-border);
+      border-radius: 12px;
+      min-height: 90vh;
+      box-shadow: var(--shadow);
       box-sizing: border-box;
     }
 
-    /* Header */
+    /* Header Styling synced with Form */
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 10px;
-      border-bottom: 2px solid #eee;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid var(--primary-light);
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 15px;
     }
-    .header img { height: 40px; }
-    .header h1 { font-size: 1.2rem; margin: 0; color: #1a1a1a; }
+    .header img { height: 45px; }
+    .header h1 { 
+      font-size: 1.4rem; 
+      margin: 0; 
+      color: var(--primary); 
+      text-transform: uppercase; 
+      letter-spacing: 1px;
+    }
 
-    /* Controls Layout */
+    /* Controls & Search */
     .controls {
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      margin-bottom: 20px;
+      gap: 15px;
+      margin-bottom: 30px;
     }
     
-    .search-bar { width: 100%; }
     .search-bar input {
       width: 100%;
-      padding: 12px 20px;
-      border: 1px solid #ccc;
+      padding: 12px 25px;
+      border: 1px solid var(--primary-border);
       border-radius: 30px;
-      font-size: 1rem;
+      font-size: 0.95rem;
       outline: none;
       box-sizing: border-box;
+      background-color: #fafbfc;
+      transition: all 0.3s ease;
+    }
+    .search-bar input:focus {
+      border-color: var(--primary);
+      background-color: #fff;
+      box-shadow: 0 0 0 4px rgba(34, 104, 115, 0.05);
     }
 
     .actions-row {
@@ -83,146 +92,172 @@
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 12px;
     }
 
-    .button-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .button-group { display: flex; gap: 10px; flex-wrap: wrap; }
     
     .button {
-      padding: 10px 16px;
-      border-radius: 8px;
+      padding: 10px 20px;
+      border-radius: 6px;
       border: none;
       color: white;
       text-decoration: none;
       font-weight: 600;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       cursor: pointer;
-      display: inline-block;
-      text-align: center;
+      text-transform: uppercase;
+      transition: opacity 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
-    .btn-create { background: #28a745; }
+    
+    .btn-create { background: var(--soft-green); }
     .btn-refresh { background: var(--primary); }
-    .btn-edit {background: #30518a; }
+    .btn-edit { background: var(--text-muted); }
+    .button:hover { opacity: 0.9; }
 
     select#rowsDropdown {
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      background: white;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid var(--primary-border);
+      background: #fafbfc;
+      color: var(--text-main);
       font-size: 0.85rem;
+      outline: none;
     }
 
-    /* Card Grid */
+    /* Card Grid synced with professional form look */
     #cardContainer {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 15px;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
     }
 
     .card {
       background: white;
-      border-radius: 12px;
-      padding: 15px;
-      box-shadow: var(--shadow);
-      border: 1px solid #eee;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+      border: 1px solid var(--primary-border);
       display: flex;
       flex-direction: column;
-      transition: transform 0.2s;
+      transition: transform 0.2s, box-shadow 0.2s;
       box-sizing: border-box;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(34, 104, 115, 0.1);
     }
 
     .card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid #f0f0f0;
-      padding-bottom: 8px;
-      margin-bottom: 12px;
+      border-bottom: 1px solid var(--primary-light);
+      padding-bottom: 10px;
+      margin-bottom: 15px;
     }
-    .sp-no { font-weight: bold; color: var(--primary); font-size: 1rem; }
-    .sp-date { font-size: 0.7rem; color: #888; }
+    .sp-no { font-weight: 700; color: var(--primary); font-size: 1rem; }
+    .sp-date { font-size: 0.75rem; color: var(--text-muted); }
 
-    /* Info Grid: Responsive 2-col to 1-col */
     .card-info-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
+      gap: 12px;
       margin-bottom: 15px;
     }
-    .data-item { display: flex; flex-direction: column; overflow: hidden; }
-    .label { font-size: 0.65rem; text-transform: uppercase; color: #999; font-weight: bold; }
-    .value { font-size: 0.85rem; color: #333; font-weight: 500; word-wrap: break-word; }
+    .data-item { display: flex; flex-direction: column; }
+    .label { 
+      font-size: 0.65rem; 
+      text-transform: uppercase; 
+      color: var(--primary); 
+      font-weight: 700; 
+      margin-bottom: 2px;
+    }
+    .value { font-size: 0.85rem; color: var(--text-main); font-weight: 500; }
 
-    /* Collapsible Description */
-    .desc-section { margin-top: 5px; border-top: 1px dashed #ddd; padding-top: 10px; }
-    details { background: #f9f9f9; border-radius: 6px; border: 1px solid #eee; }
-    summary { padding: 8px; font-size: 0.85rem; font-weight: bold; color: var(--primary); cursor: pointer; }
+    /* Collapsible Table */
+    .desc-section { margin-top: 10px; }
+    details { 
+      background: var(--primary-light); 
+      border-radius: 6px; 
+      border: 1px solid var(--primary-border);
+      overflow: hidden;
+    }
+    summary { padding: 10px; font-size: 0.8rem; font-weight: 700; color: var(--primary); cursor: pointer; outline: none; }
     
-    .table-wrapper { overflow-x: auto; width: 100%; }
-    .desc-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; min-width: 250px; }
-    .desc-table th { background: #f1f1f1; text-align: left; padding: 6px; border-bottom: 2px solid #ddd; }
-    .desc-table td { padding: 6px; border-bottom: 1px solid #eee; }
+    .table-wrapper { overflow-x: auto; padding: 5px; background: #fff; }
+    .desc-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
+    .desc-table th { background: var(--primary); color: white; text-align: left; padding: 8px; font-weight: 500; }
+    .desc-table td { padding: 8px; border-bottom: 1px solid var(--primary-light); color: var(--text-main); }
 
     .card-footer {
       margin-top: auto;
-      padding-top: 12px;
-      border-top: 1px solid #f0f0f0;
+      padding-top: 15px;
+      border-top: 1px solid var(--primary-light);
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
-    .sig-box img { max-height: 35px; max-width: 100px; mix-blend-mode: multiply; }
-    .action-icons { display: flex; gap: 12px; }
-    .action-icons img { width: 28px; height: 28px; }
+    .sig-box img { 
+      max-height: 40px; 
+      max-width: 110px; 
+      mix-blend-mode: multiply; 
+      filter: contrast(1.1);
+    }
+    .action-icons { display: flex; gap: 15px; }
+    .action-icons img { 
+      width: 26px; 
+      height: 26px; 
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .action-icons img:hover { transform: scale(1.1); }
 
-    /* Utils */
+    /* Pagination */
+    .pagination { display: flex; justify-content: center; gap: 10px; padding: 30px 0; align-items: center; }
+    .pagination button { 
+      padding: 8px 16px; 
+      border-radius: 6px; 
+      border: 1px solid var(--primary-border); 
+      background: var(--white); 
+      color: var(--primary);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .pagination button:hover { background: var(--primary-light); }
+    .pagination span { font-weight: 600; color: var(--text-muted); font-size: 0.9rem; }
+
+    /* Overlays */
     #gifOverlay {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(255,255,255,0.8);
+      position: fixed; inset: 0;
+      background: rgba(255,255,255,0.9);
       display: flex; justify-content: center; align-items: center; z-index: 9999;
     }
-    .pagination { display: flex; justify-content: center; gap: 10px; padding: 20px; align-items: center; flex-wrap: wrap;}
-    .pagination button { padding: 10px 18px; border-radius: 5px; border: 1px solid #ccc; background: #fff; cursor: pointer; }
 
-    .sig-box img {
-      max-height: 40px;      /* Limits height so the card doesn't grow too tall */
-      max-width: 120px;     /* Limits width */
-      object-fit: contain;  /* Keeps the aspect ratio */
-      mix-blend-mode: multiply; /* Removes white background if signed on white paper */
-      filter: contrast(1.2);    /* Optional: makes the signature pop more */
+    #formModal { 
+      background: rgba(34, 104, 115, 0.9) !important; 
     }
 
-        /* CSS to handle printing from the modal */
-    @media print {
-        body > *:not(#formModal) { display: none !important; }
-        #formModal { position: absolute; top:0; left:0; width:100%; height:auto; background:white !important; padding:0; }
-        #formModal .no-print { display: none !important; }
-        #formModal div { height: auto !important; margin:0 !important; box-shadow:none !important; }
-        iframe { height: 1500px; } /* Set height to fit A4 */
-    }
-
-    /* Mobile Specific Overrides */
+    /* Mobile Overrides */
     @media (max-width: 768px) {
-      .container { width: 98%; margin: 5px auto; padding: 12px; }
+      .container { width: 100%; margin: 0; border-radius: 0; padding: 15px; border: none; }
       .header { flex-direction: column; text-align: center; }
-      .header h1 { font-size: 1.1rem; }
-      
-      .actions-row { flex-direction: column; align-items: stretch; }
-      .button-group { justify-content: center; }
-      .button { flex: 1; }
-      
+      .actions-row { flex-direction: column; gap: 15px; }
+      .button-group { width: 100%; }
+      .button { flex: 1; padding: 12px; }
       #cardContainer { grid-template-columns: 1fr; }
-      .card-info-grid { grid-template-columns: 1fr; } /* Stack items for readability */
-      
-      .sp-no { font-size: 0.95rem; }
-      .pagination button { flex: 1; text-align: center; }
+      .card-info-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
   <div id="gifOverlay">
-    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzUwendzZ3o4Y29xOGE2ZG4xcWJ2enkxd284dmF0aWJwanlraWR4biZlcD12MV9pbnRlcm5naWZfYnlfaWQmY3Q9cw/eK7Nj68Yur6vRmVyqN/giphy.gif" width="50">
+    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExYzUwendzZ3o4Y29xOGE2ZG4xcWJ2enkxd284dmF0aWJwanlraWR4biZlcD12MV9pbnRlcm5naWZfYnlfaWQmY3Q9cw/eK7Nj68Yur6vRmVyqN/giphy.gif" width="60">
   </div>
 
   <div class="container">
@@ -233,7 +268,7 @@
 
     <div class="controls">
       <div class="search-bar">
-        <input type="text" id="searchBox" placeholder="Search SP Number, Customer, or Parts..." onkeyup="handleFilter()">
+        <input type="text" id="searchBox" placeholder="Search SP Number, Customer, or Reference..." onkeyup="handleFilter()">
       </div>
       <div class="actions-row">
         <div class="button-group">
@@ -242,34 +277,28 @@
           <button class="button btn-refresh" onclick="fetchData()">⟳ Refresh</button>
         </div>
         <select id="rowsDropdown" onchange="changeRowsPerPage()">
-          <option value="12">12 Cards</option>
-          <option value="24">24 Cards</option>
-          <option value="48">48 Cards</option>
+          <option value="12">12 Items / Page</option>
+          <option value="24">24 Items / Page</option>
+          <option value="48">48 Items / Page</option>
         </select>
       </div>
     </div>
 
     <div id="cardContainer"></div>
-    <div id="noDataMessage" style="display:none; text-align:center; padding:40px; color:#666;">No results found.</div>
+    <div id="noDataMessage" style="display:none; text-align:center; padding:60px; color:var(--text-muted); font-weight: 500;">No records found matching your search.</div>
     <div class="pagination" id="pagination"></div>
   </div>
   
-  <!-- Modal Overlay -->
-  <div id="formModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.85); z-index:9999; padding:20px; box-sizing:border-box;">
-    <!-- Modal Toolbar -->
-    <div style="max-width:900px; margin:0 auto 10px auto; display:flex; justify-content:flex-end; gap:10px;" class="no-print">
-      <!-- ADDED PRINT BUTTON HERE -->
-      <button onclick="printIframe()" style="padding:10px 20px; background:#28a745; color:white; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">Print to PDF</button>
-      <button onclick="closeFormModal()" style="padding:10px 20px; background:#dc3545; color:white; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">✕ Close</button>
+  <div id="formModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:9999; padding:20px; box-sizing:border-box;">
+    <div style="max-width:950px; margin:0 auto 10px auto; display:flex; justify-content:flex-end; gap:10px;" class="no-print">
+      <button onclick="printIframe()" style="padding:10px 20px; background:var(--soft-green); color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold; text-transform:uppercase; font-size:0.75rem;">Print to PDF</button>
+      <button onclick="closeFormModal()" style="padding:10px 20px; background:var(--soft-red); color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold; text-transform:uppercase; font-size:0.75rem;">✕ Close</button>
     </div>
     
-    <!-- The Iframe -->
-    <div style="max-width:900px; height:calc(100% - 60px); margin:0 auto; background:white; border-radius:8px; overflow:hidden; box-shadow:0 0 30px rgba(0,0,0,0.5);">
+    <div style="max-width:950px; height:calc(100% - 70px); margin:0 auto; background:white; border-radius:10px; overflow:hidden; box-shadow:0 15px 50px rgba(0,0,0,0.3);">
       <iframe id="formIframe" src="" style="width:100%; height:100%; border:none;"></iframe>
     </div>
   </div>
-</body>
-  
 <script>
     const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTcm6VhsS6UO8X9ueZulzk-ysTUP7xhIpmeT_R1OFPsbh37lPZbNdZ1vgcekX_xpxOwK9EfFpEa_84F/pub?gid=1284751190&single=true&output=csv";
     const DOCS_ICON = "https://www.gstatic.com/images/branding/product/1x/docs_2020q4_48dp.png";
@@ -449,5 +478,5 @@
 
     fetchData();
 </script>
-  
+</body>
 </html>
