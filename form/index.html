@@ -376,9 +376,9 @@
             const regex = new RegExp(key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g');
             
             if (key.includes("Signature")) {
-                const imgTag = value ? `<img src="${value}" style="max-height:60px; mix-blend-mode:multiply;">` : "";
+                const imgTag = value ? `<img src="${value}" crossorigin="anonymous" style="max-height:60px; mix-blend-mode:multiply;">` : "";
                 bodyHtml = bodyHtml.replace(regex, imgTag);
-            } else {
+            }else {
                 bodyHtml = bodyHtml.replace(regex, value || "");
             }
         }
