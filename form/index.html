@@ -6,36 +6,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style type="text/css">
 
-/* Update CSS untuk PDF yang lebih bersih */
-.pdf-mode {
-    background: white !important;
-    width: 210mm !important;
-    margin: 0 auto !important;
-}
 
-.pdf-mode .page {
-    width: 210mm !important;
-    height: 297mm !important; /* Kunci tinggi A4 */
-    margin: 0 !important;
-    padding: 10mm !important; /* Margin dalam: ATAS, KANAN, BAWAH, KIRI SEMUA SAMA */
-    border: none !important;
-    box-shadow: none !important;
-    page-break-after: always !important;
-    display: block !important;
-    overflow: hidden !important;
-    position: relative !important;
-}
-
-/* Hilangkan background abu-abu saat export */
-.pdf-mode #pdf-area {
-    background: white !important;
-}
-
-/* Penanganan Gambar Tanda Tangan */
-.pdf-mode img {
-    mix-blend-mode: normal !important;
-    filter: contrast(1.1);
-}
     
 @import url('https://fonts.googleapis.com/css2?family=Bree+Serif&family=Edu+SA+Beginner:wght@400;700&family=IBM+Plex+Sans:wght@400;700&display=swap');
 
@@ -211,6 +182,37 @@ td {
     max-width: 98%;
     max-height: 98%;
     object-fit: contain;
+}
+
+/* Update CSS untuk PDF yang lebih bersih */
+.pdf-mode {
+    background: white !important;
+    width: 210mm !important;
+    margin: 0 auto !important;
+}
+
+.pdf-mode .page {
+    width: 210mm !important;
+    height: 297mm !important; /* Kunci tinggi A4 */
+    margin: 0 !important;
+    padding: 10mm !important; /* Margin dalam: ATAS, KANAN, BAWAH, KIRI SEMUA SAMA */
+    border: none !important;
+    box-shadow: none !important;
+    page-break-after: always !important;
+    display: block !important;
+    overflow: hidden !important;
+    position: relative !important;
+}
+
+/* Hilangkan background abu-abu saat export */
+.pdf-mode #pdf-area {
+    background: white !important;
+}
+
+/* Penanganan Gambar Tanda Tangan */
+.pdf-mode img {
+    mix-blend-mode: normal !important;
+    filter: contrast(1.1);
 }
 
 /* PRINT MODE */
