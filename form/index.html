@@ -138,6 +138,39 @@
         max-height: 98%;
         object-fit: contain;
     }
+    
+    /* Add this at the very bottom of your <style> tag in form/index.html */
+    /* This fixes the "Missing Borders" in the downloaded PDF */
+    .unified-table, 
+    .unified-table th, 
+    .item-row td, 
+    .footer-row td {
+        border: 0.5pt solid black !important; /* Force solid lines for the downloader */
+    }
+
+     .field-dotted, .sig-line, .date-line {
+         border-bottom: 0.5pt solid black !important;
+     }
+
+     /* Fixes the Logo being too large in the download */
+     .logo-img {
+         width: 240px !important;
+         height: auto !important;
+     }
+    
+    /* Ensure the page stays exactly A4 width */
+    body {
+        width: 794px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+     }
+    
+    .page {
+        width: 794px !important;
+        padding: 5mm !important; /* Your 0.5cm margin */
+        box-sizing: border-box !important;
+        background: white !important;
+    }
 
     @media print {
         button { display: none; }
