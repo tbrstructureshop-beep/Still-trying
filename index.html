@@ -6,8 +6,8 @@
   <title>Electronic SP List | GMF AeroAsia</title>
   <meta name="description" content="Management system for Electronic SP List">
   
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     :root {
       --primary: #226873;
@@ -456,25 +456,41 @@
         renderCards();
     }
   
-    function downloadPDF() {
-      const iframe = document.getElementById('formIframe');
-      if (iframe) {
-        // Get the content of the iframe
+    async function downloadPDF() {
+        const { jsPDF } = window.jspdf;
+        const iframe = document.getElementById('formIframe');
+        if (!iframe) return;
+      
+        // 1. Get the content inside the iframe
         const element = iframe.contentWindow.document.body;
-        // Get SP Number for the filename
-        const spData = JSON.parse(localStorage.getItem('currentSPData'));
-        const fileName = spData ? `SP_${spData["SP No."]}.pdf` : 'Document.pdf';
-        const opt = {
-            margin:       0.5,
-            filename:     fileName,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
-            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-        };
 
-        // Run the conversion
-        html2pdf().set(opt).from(element).save();
-      }
+        // 2. Get SP Number for naming
+        const spData = JSON.parse(localStorage.getItem('currentSPData'));
+        const fileName = spData ? `SP_${spData["SP No."] || 'Export'}.pdf` : 'Document.pdf';
+
+        // 3. Create the PDF object (A4 Portrait)
+        const doc = new jsPDF({
+            orientation: 'p',
+            unit: 'pt', // Points are more accurate for text layout
+            format: 'a4'
+        });
+
+        // 4. Conversion Logic
+        // We set the width to 595 (A4 width in points) to prevent re-layouting
+        doc.html(element, {
+            callback: function (doc) {
+                doc.save(fileName);
+            },
+            x: 0,
+            y: 0,
+            width: 595, // Target A4 width
+            windowWidth: 950, // This forces the "Screen View" width so it doesn't wrap
+            autoPaging: 'text', // Tries to prevent breaking text lines in half
+            html2canvas: {
+                useCORS: true,
+                scale: 0.62 // Adjusting scale to fit 950px design into 595pt A4
+            }
+        });
     }
 
     function printIframe() {
