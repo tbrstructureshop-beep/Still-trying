@@ -484,7 +484,7 @@
             unit: 'pt',
             format: 'a4'
         });
-
+        
         // 5. Conversion with Vector Text settings
         await doc.html(element, {
             callback: function (doc) {
@@ -512,7 +512,6 @@
         btn.innerText = originalBtnText;
         btn.disabled = false;
     }
-}
 
     function printIframe() {
         const iframe = document.getElementById('formIframe');
