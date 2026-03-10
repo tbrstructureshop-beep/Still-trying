@@ -460,38 +460,32 @@
 
 function downloadPDF(){
 
-  const iframe = document.getElementById("formIframe");
+  const iframe = document.getElementById('formIframe');
   if (!iframe || !iframe.contentWindow) return;
 
   const doc = iframe.contentWindow.document;
 
-  const spData = JSON.parse(localStorage.getItem("currentSPData"));
+  const spData = JSON.parse(localStorage.getItem('currentSPData'));
   const fileName = spData && spData["SP No."]
       ? "SP_" + spData["SP No."]
       : "SP_Document";
 
   const element = doc.body;
 
-  const opt = {
-    margin:       0,
-    filename:     fileName + ".pdf",
-    image:        { type: "jpeg", quality: 1 },
-    html2canvas:  {
-        scale: 2,
-        useCORS: true,
-        scrollY: 0
-    },
-    jsPDF: {
-        unit: "mm",
-        format: "a4",
-        orientation: "portrait"
-    },
-    pagebreak: {
-        mode: ['css','legacy']
-    }
-  };
-
-  html2pdf().set(opt).from(element).save();
+  html2pdf().set({
+      margin: 0,
+      filename: fileName + ".pdf",
+      image: { type: 'jpeg', quality: 1 },
+      html2canvas: {
+          scale: 2,
+          useCORS: true
+      },
+      jsPDF: {
+          unit: 'mm',
+          format: 'a4',
+          orientation: 'portrait'
+      }
+  }).from(element).save();
 }
   
     function printIframe() {
