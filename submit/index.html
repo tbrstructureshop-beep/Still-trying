@@ -396,7 +396,6 @@
     event.preventDefault();
   }
 
-  // Form Submission via API
 async function saveForm() {
   const requiredFields = [
     { id: 'to', label: 'To' },
@@ -418,7 +417,6 @@ async function saveForm() {
   });
 
   const rows = document.querySelectorAll('#itemsTable tbody tr');
-  // Check if at least the first row has a description
   if (!rows[0].cells[2].querySelector('input').value.trim()) {
     missingFields.push('Table Items (Description)');
   }
@@ -428,9 +426,13 @@ async function saveForm() {
     return;
   }
 
+  // Check if signatures exist (Optional safety: prevents saving empty boxes)
+  const senderCanvas = document.getElementById('senderCanvas');
+  const receiverCanvas = document.getElementById('receiverCanvas');
+  const imgPreview = document.getElementById('imagePreview');
+
   document.getElementById('loadingGif').style.display = 'flex';
 
-  // Aligned to your specific Google Apps Script backend
   const formData = {
     spNo: document.getElementById('spNo').value,
     to: document.getElementById('to').value,
@@ -442,34 +444,35 @@ async function saveForm() {
     date: document.getElementById('date').value,
     time: document.getElementById('time').value,
     
-    // Matched to backend keys
-    senderSignature: document.getElementById('senderCanvas').toDataURL(),
-    receiverSignature: document.getElementById('receiverCanvas').toDataURL(),
-    uploadedImage: document.getElementById('imagePreview').src || '',
+    // Matched to backend: sends base64 strings
+    senderSignature: senderCanvas.toDataURL(),
+    receiverSignature: receiverCanvas.toDataURL(),
     
-    // Matched to backend table loop logic
+    // SAFETY UPDATE: Only send src if the image is actually visible/loaded
+    uploadedImage: (imgPreview.style.display !== 'none' && imgPreview.src.startsWith('data:image')) ? imgPreview.src : '',
+    
     tableData: Array.from(rows).map((row, i) => ({
-      quantity: row.cells[1].querySelector('input').value,    // Backend looks for .quantity
-      description: row.cells[2].querySelector('input').value, // Backend looks for .description
-      remarks: row.cells[3].querySelector('input').value      // Backend looks for .remarks
+      quantity: row.cells[1].querySelector('input').value,    
+      description: row.cells[2].querySelector('input').value, 
+      remarks: row.cells[3].querySelector('input').value      
     }))
   };
 
   try {
     const response = await fetch(API_URL, {
       method: 'POST',
-      mode: 'no-cors', // Required for Google Apps Script Web Apps
+      mode: 'no-cors', 
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData)
     });
 
-    // We assume success with no-cors if the fetch doesn't error out
+    // Success Handling
     setTimeout(() => {
       document.getElementById('loadingGif').style.display = 'none';
       document.getElementById('submissionNotification').style.display = 'block';
-      alert('Form submitted successfully!');
-      location.reload();
-    }, 2000); // Wait 2 seconds for processing
+      alert('Form Submitted Successfully!');
+      location.reload(); 
+    }, 2500); // 2.5 seconds gives GAS time to upload 3 images to Drive
 
   } catch (error) {
     document.getElementById('loadingGif').style.display = 'none';
