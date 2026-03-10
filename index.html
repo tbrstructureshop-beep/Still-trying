@@ -456,17 +456,25 @@
         renderCards();
     }
 
-    function downloadPDF() {
-      const iframe = document.getElementById('formIframe');
-      if (!iframe || !iframe.contentWindow) return;
-      const spData = JSON.parse(localStorage.getItem('currentSPData'));
-      if (spData && spData["SP No."]) {
-        iframe.contentWindow.document.title = "SP_" + spData["SP No."];
-      }
-      iframe.contentWindow.focus();
-      iframe.contentWindow.print();
-    }
-  
+function downloadPDF() {
+
+  const iframe = document.getElementById('formIframe');
+  if (!iframe || !iframe.contentWindow) return;
+
+  const spData = JSON.parse(localStorage.getItem('currentSPData'));
+
+  const fileName = spData?.["SP No."]
+    ? "SP_" + spData["SP No."]
+    : "SP_Document";
+
+  iframe.contentWindow.document.title = fileName;
+
+  setTimeout(() => {
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
+  }, 200);
+
+}
     function printIframe() {
         const iframe = document.getElementById('formIframe');
         if (iframe) {
