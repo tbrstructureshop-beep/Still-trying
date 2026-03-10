@@ -7,8 +7,7 @@
   <meta name="description" content="Management system for Electronic SP List">
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     :root {
       --primary: #226873;
@@ -463,36 +462,38 @@ async function downloadPDF() {
     if (!iframe || !iframe.contentWindow) return;
 
     const originalBtnText = btn.innerText;
-    btn.innerText = "Generating...";
+    btn.innerText = "Processing...";
     btn.disabled = true;
 
-    // Target the specific container to avoid processing unnecessary whitespace
+    // Target the content inside the iframe
     const element = iframe.contentWindow.document.body;
+    
+    // Fetch SP Number for filename
     const spData = JSON.parse(localStorage.getItem('currentSPData'));
     const fileName = `SP_${spData["SP No."] || 'Export'}.pdf`;
 
     const opt = {
         margin: 0,
         filename: fileName,
-        image: { type: 'jpeg', quality: 0.95 }, // 0.95 is much faster than 1.0 with no visible difference
+        image: { type: 'jpeg', quality: 0.90 }, // Slightly lower for speed
         html2canvas: { 
-            scale: 2,               // Keep at 2 for dotted line clarity
+            scale: 2,           // Required to keep your dotted lines sharp
             useCORS: true, 
-            width: 794, 
-            windowWidth: 794,
+            width: 794,         // Locked to A4 width
+            windowWidth: 794,   // Prevents layout shifting
             logging: false,
-            removeContainer: true,  // Speed up cleanup
             backgroundColor: '#ffffff'
         },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true }, // Added compression
-        pagebreak: { mode: 'css', before: '.page' } // Simplified pagebreak logic is faster
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
+        pagebreak: { mode: 'css' } // Uses your .page classes
     };
 
-    html2pdf().set(opt).from(element).save().then(() => {
+    // Use html2pdf with the worker for better performance
+    html2pdf().set(opt).from(element).toPdf().get('pdf').save().then(() => {
         btn.innerText = originalBtnText;
         btn.disabled = false;
     }).catch(err => {
-        console.error(err);
+        console.error("PDF Error:", err);
         btn.innerText = originalBtnText;
         btn.disabled = false;
     });
