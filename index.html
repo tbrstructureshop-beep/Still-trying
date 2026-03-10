@@ -455,43 +455,64 @@
         currentPage = 1;
         renderCards();
     }
-  
+
     async function downloadPDF() {
-        const { jsPDF } = window.jspdf;
-        const iframe = document.getElementById('formIframe');
-        if (!iframe) return;
+      const { jsPDF } = window.jspdf;
+      const iframe = document.getElementById('formIframe');
+      const btn = document.getElementById('downloadBtn');
+    
+      if (!iframe || !iframe.contentWindow) return;
       
-        // 1. Get the content inside the iframe
+      // 1. Visual Feedback (Change button text while processing)
+      const originalBtnText = btn.innerText;
+      btn.innerText = "Generating...";
+      btn.style.opacity = "0.7";
+      btn.disabled = true;
+      
+      try {
+        // 2. Get the specific container inside the iframe 
+        // If your form has a specific wrapper like <div id="print-area">, use that instead of body
         const element = iframe.contentWindow.document.body;
 
-        // 2. Get SP Number for naming
+        // 3. Get SP Number for naming
         const spData = JSON.parse(localStorage.getItem('currentSPData'));
         const fileName = spData ? `SP_${spData["SP No."] || 'Export'}.pdf` : 'Document.pdf';
 
-        // 3. Create the PDF object (A4 Portrait)
+        // 4. Create PDF (A4 is 595.28pts wide)
         const doc = new jsPDF({
             orientation: 'p',
-            unit: 'pt', // Points are more accurate for text layout
+            unit: 'pt',
             format: 'a4'
         });
 
-        // 4. Conversion Logic
-        // We set the width to 595 (A4 width in points) to prevent re-layouting
-        doc.html(element, {
+        // 5. Conversion with Vector Text settings
+        await doc.html(element, {
             callback: function (doc) {
                 doc.save(fileName);
+                // Restore button
+                btn.innerText = originalBtnText;
+                btn.style.opacity = "1";
+                btn.disabled = false;
             },
             x: 0,
             y: 0,
-            width: 595, // Target A4 width
-            windowWidth: 950, // This forces the "Screen View" width so it doesn't wrap
-            autoPaging: 'text', // Tries to prevent breaking text lines in half
+            width: 595, // Width of A4 in points
+            windowWidth: 950, // Matches your modal width to prevent re-layout
+            autoPaging: 'text',
             html2canvas: {
-                useCORS: true,
-                scale: 0.62 // Adjusting scale to fit 950px design into 595pt A4
+                useCORS: true,      // Essential for GMF Logo and Signatures
+                scale: 0.626,       // Fits 950px into 595pt perfectly
+                letterRendering: true,
+                logging: false
             }
         });
+    } catch (error) {
+        console.error("PDF Generation Error:", error);
+        alert("Failed to generate PDF. Try using 'Print to PDF' instead.");
+        btn.innerText = originalBtnText;
+        btn.disabled = false;
     }
+}
 
     function printIframe() {
         const iframe = document.getElementById('formIframe');
