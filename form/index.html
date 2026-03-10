@@ -6,169 +6,68 @@
 <style type="text/css">
     @import url('https://fonts.googleapis.com/css2?family=Bree+Serif&family=Edu+SA+Beginner:wght@400;700&family=IBM+Plex+Sans:wght@400;700&display=swap');
 
-    /* 1. PHYSICAL PRINT SETTINGS */
-    @page {
-        size: A4;
-        margin: 0; /* Kita pakai padding .page untuk kontrol margin 0.5cm yang presisi */
-    }
-
-    /* 2. BASE RESET */
-    * {
-        box-sizing: border-box;
-        -webkit-print-color-adjust: exact;
-    }
+    @page { size: A4; margin: 0; }
+    * { box-sizing: border-box; -webkit-print-color-adjust: exact; }
 
     body {
         margin: 0 !important;
         padding: 0 !important;
+        width: 794px !important; /* Kunci lebar A4 */
         font-family: "Calibri", "Arial", sans-serif;
         font-size: 9pt;
-        color: #000;
         background-color: #ffffff !important;
-        width: 794px !important; /* Standar A4 96 DPI - Mencegah Zoom */
-        line-height: 1.1;
     }
 
-    /* 3. PAGE STRUCTURE (LOCKING LAYOUT) */
     .page {
         width: 794px !important;
-        height: 1122px !important; /* Kunci Tinggi A4 - Mencegah Halaman 2 merayap naik */
+        height: 1122px !important; /* KUNCI MATI: Biar halaman 2 gak naik ke halaman 1 */
         position: relative;
-        padding: 5mm !important;   /* Margin 0.5cm sekeliling */
+        padding: 5mm !important;   /* Margin 0.5cm yang lu minta */
         background-color: #ffffff !important;
-        overflow: hidden;           /* Memastikan konten tidak meluber */
-        box-sizing: border-box;
-    }
-
-    /* Memastikan pemisahan halaman saat unduh PDF */
-    .page:not(:last-child) {
+        overflow: hidden;
         page-break-after: always !important;
     }
 
-    /* 4. TYPOGRAPHY & COLORS */
+    /* Hilangkan page break di halaman terakhir biar gak ada halaman kosong (Page 3/4/5) */
+    .page:last-of-type {
+        page-break-after: auto !important;
+    }
+
+    /* CSS Company Lu (Dotted Lines) */
     .blue-val { color: #073763; font-family: 'Bree Serif', serif; }
     .script-val { font-family: 'Edu SA Beginner', cursive; font-weight: 500; font-size: 9.5pt; color: #073763; }
     .label-b-u { font-weight: bold; text-decoration: underline; }
     .small-label { font-size: 8pt; line-height: 1; display: block; }
     .b { font-weight: bold; }
-
-    /* 5. TABLES STRUCTURE */
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        table-layout: fixed;
-    }
-
-    td {
-        padding: 1px 3px;
-        vertical-align: top;
-        word-wrap: break-word;
-    }
-
-    .header-wrapper { margin-bottom: 2px; }
-    .logo-img { width: 240px !important; height: auto !important; display: block; }
-    .header-text-right { text-align: right; vertical-align: bottom; padding-bottom: 2px; }
-    .no-sp-row { font-size: 13pt; margin-bottom: 0; }
-    .title-main { font-size: 14pt; font-weight: bold; text-decoration: underline; text-transform: uppercase; margin: 0; }
-    .title-sub { font-size: 10pt; margin: 0; font-weight: normal; }
-
-    .info-table { margin-top: 2px; margin-bottom: 5px; }
     
-    /* ORIGINAL COMPANY DOTTED LINES */
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+    td { padding: 1px 3px; vertical-align: top; word-wrap: break-word; }
+    
+    .logo-img { width: 240px !important; height: auto !important; display: block; }
     .field-dotted { border-bottom: 1px dotted black; }
-
-    .unified-table {
-        border-top: 1px solid black;
-        border-bottom: 1px solid black;
-        border-left: 1px solid transparent; 
-        border-right: 1px solid transparent; 
-    }
-
-    .unified-table th {
-        border: 1px solid black;
-        border-top: none;
-        padding: 3px 1px;
-        font-weight: bold;
-        text-decoration: underline;
-        font-size: 9pt;
-    }
-    .unified-table th:first-child { border-left: none; }
-    .unified-table th:last-child { border-right: none; }
-
-    .item-row td {
-        height: 15px;
-        border-bottom: 1px dotted black; 
-        border-left: 1px solid black;
-        border-right: 1px solid black;
-        text-align: center;
-    }
-    .item-row td:first-child { border-left: none; }
-    .item-row td:last-child { border-right: none; }
-    .item-row td.text-left { text-align: left; padding-left: 5px; }
-
-    .col-no { width: 8%; }
-    .col-qty { width: 12%; }
-    .col-desc { width: 60%; }
-    .col-rem { width: 20%; }
-
-    .footer-row td {
-        height: 75px;
-        vertical-align: middle;
-        border-bottom: none;
-        border-left: 1px solid black;
-        border-right: 1px solid black;
-    }
-    .footer-row td:first-child { border-left: none; }
-    .footer-row td:last-child { border-right: none; }
-
-    .packed-content {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 5px;
-    }
-
-    .sig-line {
-        border-bottom: 1px dotted black;
-        width: 170px;
-        margin: 15px auto 2px auto;
-    }
-
-    .evidence-block { margin-top: 5px; padding-left: 5px; }
+    .sig-line { border-bottom: 1px dotted black; width: 170px; margin: 15px auto 2px auto; }
     .date-line { border-bottom: 1px dotted black; width: 300px; display: inline-block; }
 
-    /* 6. PAGE 2 IMAGE BOX (LOCKING FOR PDF STABILITY) */
+    .unified-table { border-top: 1px solid black; border-bottom: 1px solid black; }
+    .unified-table th { border: 1px solid black; border-top: none; padding: 3px 1px; font-weight: bold; text-decoration: underline; }
+    .item-row td { height: 15px; border-bottom: 1px dotted black; border-left: 1px solid black; border-right: 1px solid black; text-align: center; }
+    .footer-row td { height: 75px; vertical-align: middle; border-left: 1px solid black; border-right: 1px solid black; }
+
     .image-box {
         border: 1px solid black;
         margin-top: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        height: 180mm; /* Sesuai agar muat di dalam 1122px */
+        height: 180mm; /* Pas buat satu halaman A4 */
         width: 100%;
     }
-    .document-image {
-        max-width: 98%;
-        max-height: 98%;
-        object-fit: contain;
-    }
-    
-    /* 7. VIEW MODES (MODAL VS PDF) */
-    @media screen {
-        html {
-            background-color: #f0f0f0; /* Latar abu di luar kertas saat di modal */
-        }
-        body {
-            margin: 20px auto !important; 
-            box-shadow: 0 0 15px rgba(0,0,0,0.2);
-            background-color: #ffffff !important;
-        }
-    }
+    .document-image { max-width: 98%; max-height: 98%; object-fit: contain; }
 
-    @media print {
-        body { width: 100% !important; margin: 0 !important; }
-        .page { box-shadow: none; margin: 0; padding: 5mm !important; }
-        button { display: none; }
+    /* Tampilan Modal Browser */
+    @media screen {
+        html { background-color: #f0f0f0; }
+        body { margin: 20px auto !important; box-shadow: 0 0 15px rgba(0,0,0,0.2); }
     }
 </style>
 </head>
