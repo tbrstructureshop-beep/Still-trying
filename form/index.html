@@ -140,6 +140,31 @@
         @media print {
             button { display: none; }
         }
+
+        /* Add this inside the <style> of form/index.html */
+        @media screen {
+            body {
+                /* This prevents the "cut off" effect when the iframe snapshots */
+                width: 794px; 
+                margin: 0 auto;
+                background-color: #f0f0f0;
+            }
+            .page {
+                background: white;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                margin-bottom: 10px;
+            }
+        }
+        
+        /* Fix for html2canvas rendering */
+        .unified-table, .item-row td, .unified-table th {
+            border: 1pt solid #000 !important; /* Forces solid borders in PDF */
+        }
+        
+        /* Ensure Google Fonts are prioritized */
+        .blue-val, .script-val {
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
