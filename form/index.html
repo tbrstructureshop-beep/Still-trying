@@ -468,6 +468,33 @@ td {
             }
         });
     });
+    // Fungsi ini dipanggil dari INDEX.HTML luar
+async function generatePDF() {
+    const element = document.body;
+    
+    // Tambahkan class khusus saat download agar layout stabil
+    element.classList.add('pdf-mode');
+
+    const opt = {
+        margin: [0, 0, 0, 0], // Tanpa margin tambahan karena CSS sudah punya 5mm
+        filename: `SP_${document.querySelector('.blue-val').innerText}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { 
+            scale: 2, // Kualitas tinggi
+            useCORS: true, // WAJIB untuk gambar Google Drive
+            letterRendering: true,
+            logging: false
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    try {
+        await html2pdf().set(opt).from(element).save();
+    } finally {
+        // Kembalikan ke tampilan normal setelah download
+        element.classList.remove('pdf-mode');
+    }
+}
 </script>
 </body>
 </html>
