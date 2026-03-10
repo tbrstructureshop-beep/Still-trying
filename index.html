@@ -459,6 +459,10 @@
     function downloadPDF() {
       const iframe = document.getElementById('formIframe');
       if (!iframe || !iframe.contentWindow) return;
+      const spData = JSON.parse(localStorage.getItem('currentSPData'));
+      if (spData && spData["SP No."]) {
+        iframe.contentWindow.document.title = "SP_" + spData["SP No."];
+      }
       iframe.contentWindow.focus();
       iframe.contentWindow.print();
     }
