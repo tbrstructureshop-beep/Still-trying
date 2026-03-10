@@ -6,30 +6,35 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style type="text/css">
 
-/* Update CSS PDF Mode */
+/* Update CSS untuk PDF yang lebih bersih */
 .pdf-mode {
     background: white !important;
+    width: 210mm !important;
+    margin: 0 auto !important;
 }
 
 .pdf-mode .page {
+    width: 210mm !important;
+    height: 297mm !important; /* Kunci tinggi A4 */
     margin: 0 !important;
+    padding: 10mm !important; /* Margin dalam: ATAS, KANAN, BAWAH, KIRI SEMUA SAMA */
+    border: none !important;
     box-shadow: none !important;
     page-break-after: always !important;
-    /* Pastikan tinggi A4 terkunci saat konversi */
-    height: 297mm !important; 
-    width: 210mm !important;
+    display: block !important;
+    overflow: hidden !important;
+    position: relative !important;
 }
 
-/* html2canvas tidak support mix-blend-mode. 
-   Hapus atau ganti ke filter contrast agar tanda tangan tetap terlihat bersih */
+/* Hilangkan background abu-abu saat export */
+.pdf-mode #pdf-area {
+    background: white !important;
+}
+
+/* Penanganan Gambar Tanda Tangan */
 .pdf-mode img {
-    mix-blend-mode: normal !important; 
-    filter: contrast(1.2) brightness(1.1) !important;
-}
-
-/* Pastikan semua font ter-render dengan baik */
-.pdf-mode * {
-    text-rendering: optimizeLegibility;
+    mix-blend-mode: normal !important;
+    filter: contrast(1.1);
 }
     
 @import url('https://fonts.googleapis.com/css2?family=Bree+Serif&family=Edu+SA+Beginner:wght@400;700&family=IBM+Plex+Sans:wght@400;700&display=swap');
@@ -481,29 +486,41 @@ td {
     });
     // Fungsi ini dipanggil dari INDEX.HTML luar
 async function generatePDF() {
-    const element = document.body;
+    // Ambil element pembungkus saja
+    const element = document.getElementById('pdf-area');
+    const body = document.body;
     
-    // Tambahkan class khusus saat download agar layout stabil
-    element.classList.add('pdf-mode');
+    // Aktifkan mode PDF
+    body.classList.add('pdf-mode');
+
+    // Ambil Nomor SP untuk nama file
+    const spNo = document.querySelector('.blue-val') ? document.querySelector('.blue-val').innerText : "Doc";
 
     const opt = {
-        margin: [0, 0, 0, 0], // Tanpa margin tambahan karena CSS sudah punya 5mm
-        filename: `SP_${document.querySelector('.blue-val').innerText}.pdf`,
+        margin: 0, // 0 karena kita pakai padding di CSS .page
+        filename: `SP_${spNo}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { 
-            scale: 2, // Kualitas tinggi
-            useCORS: true, // WAJIB untuk gambar Google Drive
+            scale: 2, 
+            useCORS: true,
+            logging: false,
             letterRendering: true,
-            logging: false
+            windowWidth: 794 // Lebar standar A4 dalam pixel agar kalkulasi tabel stabil
         },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        jsPDF: { 
+            unit: 'mm', 
+            format: 'a4', 
+            orientation: 'portrait' 
+        }
     };
 
     try {
         await html2pdf().set(opt).from(element).save();
+    } catch (err) {
+        console.error("PDF Error: ", err);
     } finally {
-        // Kembalikan ke tampilan normal setelah download
-        element.classList.remove('pdf-mode');
+        // Matikan mode PDF agar tampilan di layar kembali normal
+        body.classList.remove('pdf-mode');
     }
 }
 </script>
