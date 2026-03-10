@@ -558,9 +558,14 @@ function setupCanvas(canvasId) {
 }
 
   function clearCanvas(id) {
-    const c = document.getElementById(id);
-    c.getContext('2d').clearRect(0,0,c.width,c.height);
-  }
+  const c = document.getElementById(id);
+  const ctx = c.getContext('2d');
+  // This clears the canvas regardless of scaling
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, c.width, c.height);
+  ctx.restore();
+}
 
   function resetForm() { if(confirm('Clear all data?')) location.reload(); }
 
