@@ -461,12 +461,11 @@ async function downloadPDF() {
     const btn = document.getElementById('downloadBtn');
     if (!iframe || !iframe.contentWindow) return;
 
-    const originalBtnText = btn.innerText;
-    btn.innerText = "Generating...";
+    btn.innerText = "Processing...";
     btn.disabled = true;
 
-    // We target the HTML element to ensure it reads the 794px width from your CSS
-    const element = iframe.contentWindow.document.documentElement;
+    // Use body instead of documentElement to avoid capturing modal backgrounds
+    const element = iframe.contentWindow.document.body;
     
     const spData = JSON.parse(localStorage.getItem('currentSPData'));
     const fileName = `SP_${spData["SP No."] || 'Export'}.pdf`;
@@ -476,25 +475,25 @@ async function downloadPDF() {
         filename: fileName,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { 
-            scale: 2,           // Keeps dotted lines and logo sharp
-            useCORS: true,      // Essential for the GMF logo
-            width: 794,         // Force capture at A4 width
-            windowWidth: 794,   // Force CSS to render as A4 width (Stops the "Zoom" mess)
+            scale: 2,
+            useCORS: true, 
+            width: 794,
+            windowWidth: 794,
+            backgroundColor: '#ffffff', // FORCES WHITE BACKGROUND
             scrollY: 0,
-            scrollX: 0,
-            letterRendering: true
+            scrollX: 0
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: 'css' } // Respects your .page { page-break-after: always; }
+        // This ensures it only breaks where you have the .page div
+        pagebreak: { mode: ['css', 'legacy'] } 
     };
 
-    // Execute the download
     html2pdf().set(opt).from(element).save().then(() => {
-        btn.innerText = originalBtnText;
+        btn.innerText = "Download PDF";
         btn.disabled = false;
     }).catch(err => {
-        console.error("Download Error:", err);
-        btn.innerText = originalBtnText;
+        console.error(err);
+        btn.innerText = "Download PDF";
         btn.disabled = false;
     });
 }
