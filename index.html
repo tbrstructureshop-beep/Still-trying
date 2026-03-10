@@ -457,57 +457,49 @@
         renderCards();
     }
 
-    async function downloadPDF() {
+async function downloadPDF() {
     const { jsPDF } = window.jspdf;
     const iframe = document.getElementById('formIframe');
-    // MAKE SURE THIS ID MATCHES YOUR BUTTON ID IN HTML
-    const btn = document.getElementById('downloadBtn'); 
+    const btn = document.getElementById('downloadBtn');
 
     if (!iframe || !iframe.contentWindow) return;
-    
-    const originalBtnText = btn.innerText;
-    btn.innerText = "Generating...";
-    btn.style.opacity = "0.7";
-    btn.disabled = true;
-    
-    try {
-        const element = iframe.contentWindow.document.body;
-        const spData = JSON.parse(localStorage.getItem('currentSPData'));
-        const fileName = spData ? `SP_${spData["SP No."] || 'Export'}.pdf` : 'Document.pdf';
 
-        const doc = new jsPDF({
-            orientation: 'p',
-            unit: 'pt',
-            format: 'a4'
-        });
-        
-        await doc.html(element, {
-            callback: function (doc) {
-                doc.save(fileName);
-                btn.innerText = originalBtnText;
-                btn.style.opacity = "1";
-                btn.disabled = false;
-            },
-            x: 0,
-            y: 0,
-            width: 595, 
-            windowWidth: 950, 
-            autoPaging: 'text',
-            html2canvas: {
-                useCORS: true,      
-                scale: 0.626,       
-                letterRendering: true,
-                logging: false
-            }
-        });
-    } catch (error) {
-        console.error("PDF Generation Error:", error);
-        alert("Failed to generate PDF. Try using 'Print to PDF' instead.");
-        btn.innerText = originalBtnText;
-        btn.disabled = false;
-        btn.style.opacity = "1";
-    }
-} // <--- THIS WAS THE MISSING BRACE THAT STOPPED DATA FROM LOADING
+    btn.innerText = "Generating PDF...";
+    btn.disabled = true;
+
+    // Use the specific .page class container instead of body to avoid margin issues
+    const element = iframe.contentWindow.document.body;
+
+    const spData = JSON.parse(localStorage.getItem('currentSPData'));
+    const fileName = `SP_${spData["SP No."] || 'Export'}.pdf`;
+
+    // A4 dimensions in pts: 595 x 842
+    const doc = new jsPDF({
+        orientation: 'p',
+        unit: 'pt',
+        format: 'a4'
+    });
+
+    await doc.html(element, {
+        callback: function (doc) {
+            doc.save(fileName);
+            btn.innerText = "Download PDF";
+            btn.disabled = false;
+        },
+        x: 0,
+        y: 0,
+        width: 595.28, 
+        windowWidth: 794, // 794px is exactly A4 width at 96 DPI
+        autoPaging: 'text',
+        html2canvas: {
+            useCORS: true,
+            scale: 0.75, // Fine-tuned scale for 794px to 595pt
+            letterRendering: true,
+            scrollY: 0,
+            scrollX: 0
+        }
+    });
+}
 
     function printIframe() {
         const iframe = document.getElementById('formIframe');
