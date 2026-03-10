@@ -458,46 +458,42 @@
     }
 
 async function downloadPDF() {
-    const { jsPDF } = window.jspdf;
     const iframe = document.getElementById('formIframe');
     const btn = document.getElementById('downloadBtn');
-
     if (!iframe || !iframe.contentWindow) return;
 
+    const originalBtnText = btn.innerText;
     btn.innerText = "Generating PDF...";
     btn.disabled = true;
 
-    // Use the specific .page class container instead of body to avoid margin issues
     const element = iframe.contentWindow.document.body;
-
     const spData = JSON.parse(localStorage.getItem('currentSPData'));
     const fileName = `SP_${spData["SP No."] || 'Export'}.pdf`;
 
-    // A4 dimensions in pts: 595 x 842
-    const doc = new jsPDF({
-        orientation: 'p',
-        unit: 'pt',
-        format: 'a4'
-    });
-
-    await doc.html(element, {
-        callback: function (doc) {
-            doc.save(fileName);
-            btn.innerText = "Download PDF";
-            btn.disabled = false;
-        },
-        x: 0,
-        y: 0,
-        width: 595.28, 
-        windowWidth: 794, // 794px is exactly A4 width at 96 DPI
-        autoPaging: 'text',
-        html2canvas: {
-            useCORS: true,
-            scale: 0.75, // Fine-tuned scale for 794px to 595pt
+    const opt = {
+        margin: 0, // We use 0 because your CSS already has 5mm padding
+        filename: fileName,
+        image: { type: 'jpeg', quality: 1.0 },
+        html2canvas: { 
+            scale: 2,           // High resolution
+            useCORS: true,      // For the logo
+            width: 794,         // Force A4 Width
+            windowWidth: 794,   // Prevent re-layouting
             letterRendering: true,
-            scrollY: 0,
-            scrollX: 0
-        }
+            logging: false
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    };
+
+    // Use the library to generate the file
+    html2pdf().set(opt).from(element).save().then(() => {
+        btn.innerText = originalBtnText;
+        btn.disabled = false;
+    }).catch(err => {
+        console.error(err);
+        btn.innerText = originalBtnText;
+        btn.disabled = false;
     });
 }
 
