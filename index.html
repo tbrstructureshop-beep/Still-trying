@@ -462,16 +462,12 @@ async function downloadPDF() {
     if (!iframe || !iframe.contentWindow) return;
 
     const originalBtnText = btn.innerText;
-    btn.innerText = "Generating...";
+    btn.innerText = "Processing...";
     btn.disabled = true;
 
-    // --- BAGIAN PALING PENTING: PAKSA LEBAR IFRAME ---
-    const originalIframeWidth = iframe.style.width;
-    const originalIframeHeight = iframe.style.height;
-    
-    // Paksa iframe jadi lebar kertas A4 (794px) agar CSS di dalamnya terbaca benar
+    // KUNCI UTAMA: Paksa lebar iframe ke 794px agar CSS A4 terbaca sempurna
+    const originalWidth = iframe.style.width;
     iframe.style.width = '794px';
-    iframe.style.height = '2244px'; // 1122px * 2 halaman
 
     const element = iframe.contentWindow.document.body;
     const spData = JSON.parse(localStorage.getItem('currentSPData'));
@@ -482,10 +478,10 @@ async function downloadPDF() {
         filename: fileName,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { 
-            scale: 2,           // Biar garis putus-putus tajam
-            useCORS: true, 
-            width: 794,         // Lock lebar snapshot
-            windowWidth: 794,   // Lock lebar browser bayangan (Anti-Zoom)
+            scale: 2,           // Resolusi tajam
+            useCORS: true,      // Logo GMF tampil
+            width: 794,         // Paksa lebar snapshot 794px
+            windowWidth: 794,   // Paksa layout CSS ke 794px (Mencegah Zoom)
             scrollY: 0,
             scrollX: 0
         },
@@ -493,17 +489,14 @@ async function downloadPDF() {
         pagebreak: { mode: ['css', 'legacy'] } 
     };
 
-    // Jalankan Download
     html2pdf().set(opt).from(element).save().then(() => {
-        // Balikin lebar iframe ke semula setelah selesai
-        iframe.style.width = originalIframeWidth;
-        iframe.style.height = originalIframeHeight;
+        // Kembalikan lebar iframe seperti semula
+        iframe.style.width = originalWidth;
         btn.innerText = originalBtnText;
         btn.disabled = false;
     }).catch(err => {
         console.error(err);
-        iframe.style.width = originalIframeWidth;
-        iframe.style.height = originalIframeHeight;
+        iframe.style.width = originalWidth;
         btn.innerText = originalBtnText;
         btn.disabled = false;
     });
