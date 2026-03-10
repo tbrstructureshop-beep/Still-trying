@@ -465,35 +465,34 @@ async function downloadPDF() {
     btn.innerText = "Processing...";
     btn.disabled = true;
 
-    // Target the content inside the iframe
+    // Snapshot the entire document inside the iframe
     const element = iframe.contentWindow.document.body;
     
-    // Fetch SP Number for filename
     const spData = JSON.parse(localStorage.getItem('currentSPData'));
     const fileName = `SP_${spData["SP No."] || 'Export'}.pdf`;
 
     const opt = {
         margin: 0,
         filename: fileName,
-        image: { type: 'jpeg', quality: 0.90 }, // Slightly lower for speed
+        image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { 
-            scale: 2,           // Required to keep your dotted lines sharp
+            scale: 2,           // Keeps dotted lines sharp
             useCORS: true, 
-            width: 794,         // Locked to A4 width
-            windowWidth: 794,   // Prevents layout shifting
-            logging: false,
-            backgroundColor: '#ffffff'
+            width: 794,         // Matches your CSS width
+            windowWidth: 794,   // Stops the "zoomed-in" effect
+            scrollY: 0,
+            scrollX: 0
         },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
-        pagebreak: { mode: 'css' } // Uses your .page classes
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        // 'css' mode tells the engine to respect your 'page-break-after: always'
+        pagebreak: { mode: 'css' } 
     };
 
-    // Use html2pdf with the worker for better performance
-    html2pdf().set(opt).from(element).toPdf().get('pdf').save().then(() => {
+    html2pdf().set(opt).from(element).save().then(() => {
         btn.innerText = originalBtnText;
         btn.disabled = false;
     }).catch(err => {
-        console.error("PDF Error:", err);
+        console.error(err);
         btn.innerText = originalBtnText;
         btn.disabled = false;
     });
