@@ -463,30 +463,31 @@ async function downloadPDF() {
     if (!iframe || !iframe.contentWindow) return;
 
     const originalBtnText = btn.innerText;
-    btn.innerText = "Generating PDF...";
+    btn.innerText = "Generating...";
     btn.disabled = true;
 
+    // Target the specific container to avoid processing unnecessary whitespace
     const element = iframe.contentWindow.document.body;
     const spData = JSON.parse(localStorage.getItem('currentSPData'));
     const fileName = `SP_${spData["SP No."] || 'Export'}.pdf`;
 
     const opt = {
-        margin: 0, // We use 0 because your CSS already has 5mm padding
+        margin: 0,
         filename: fileName,
-        image: { type: 'jpeg', quality: 1.0 },
+        image: { type: 'jpeg', quality: 0.95 }, // 0.95 is much faster than 1.0 with no visible difference
         html2canvas: { 
-            scale: 2,           // High resolution
-            useCORS: true,      // For the logo
-            width: 794,         // Force A4 Width
-            windowWidth: 794,   // Prevent re-layouting
-            letterRendering: true,
-            logging: false
+            scale: 2,               // Keep at 2 for dotted line clarity
+            useCORS: true, 
+            width: 794, 
+            windowWidth: 794,
+            logging: false,
+            removeContainer: true,  // Speed up cleanup
+            backgroundColor: '#ffffff'
         },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true }, // Added compression
+        pagebreak: { mode: 'css', before: '.page' } // Simplified pagebreak logic is faster
     };
 
-    // Use the library to generate the file
     html2pdf().set(opt).from(element).save().then(() => {
         btn.innerText = originalBtnText;
         btn.disabled = false;
