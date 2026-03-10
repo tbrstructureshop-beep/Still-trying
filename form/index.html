@@ -13,23 +13,26 @@
     }
 
     body {
-        margin: 0;
-        padding: 0;
+        margin: 0 !important;
+        padding: 0 !important;
         font-family: "Calibri", "Arial", sans-serif;
         font-size: 9pt;
         color: #000;
         background-color: #fff;
         line-height: 1.1;
-        width: 794px; /* Standard A4 Width */
+        width: 794px !important; /* Standard A4 Width */
     }
 
     .page {
         page-break-after: always;
         width: 794px !important;
+        /* FIXED: Exactly A4 height - stops the messy overlap in your screenshot */
+        height: 1122px !important; 
         box-sizing: border-box !important;
         position: relative;
         padding: 5mm !important; /* Your 0.5cm whitespace */
         background-color: #fff;
+        overflow: hidden; /* Keeps content inside the margins */
     }
 
     /* Typography & Colors */
@@ -61,7 +64,7 @@
 
     .info-table { margin-top: 2px; margin-bottom: 5px; }
     
-    /* RESTORED: Dotted field for info section */
+    /* Dotted field for info section */
     .field-dotted { border-bottom: 1px dotted black; }
 
     /* Unified Table Grid */
@@ -83,7 +86,7 @@
     .unified-table th:first-child { border-left: none; }
     .unified-table th:last-child { border-right: none; }
 
-    /* RESTORED: Dotted bottom for rows */
+    /* Dotted bottom for rows */
     .item-row td {
         height: 15px;
         border-bottom: 1px dotted black; 
@@ -117,7 +120,7 @@
         padding: 0 5px;
     }
 
-    /* RESTORED: Dotted lines for signatures */
+    /* Dotted lines for signatures */
     .sig-line {
         border-bottom: 1px dotted black;
         width: 170px;
@@ -127,13 +130,14 @@
     .evidence-block { margin-top: 5px; padding-left: 5px; }
     .date-line { border-bottom: 1px dotted black; width: 300px; display: inline-block; }
 
+    /* Adjusted height to fit within the 1122px fixed page */
     .image-box {
         border: 1px solid black;
-        margin-top: 5px;
+        margin-top: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        height: 155mm; 
+        height: 180mm; 
         width: 100%;
     }
     .document-image {
@@ -142,7 +146,6 @@
         object-fit: contain;
     }
     
-    /* PDF DOWNLOAD FIXES (Layout Only - No solid line overrides) */
     .logo-img {
         width: 240px !important;
         height: auto !important;
@@ -157,7 +160,7 @@
     @media screen {
         body {
             width: 794px; 
-            margin: 0 auto;
+            margin: 0 auto !important;
             background-color: #f0f0f0;
         }
         .page {
