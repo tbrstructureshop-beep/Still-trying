@@ -456,23 +456,58 @@
         renderCards();
     }
 
-function downloadPDF() {
+async function downloadPDF(){
 
-  const iframe = document.getElementById('formIframe');
-  if (!iframe || !iframe.contentWindow) return;
+  const iframe = document.getElementById("formIframe");
+  if(!iframe || !iframe.contentWindow) return;
 
-  const spData = JSON.parse(localStorage.getItem('currentSPData'));
+  const doc = iframe.contentWindow.document;
 
-  const fileName = spData?.["SP No."]
-    ? "SP_" + spData["SP No."]
-    : "SP_Document";
+  const spData = JSON.parse(localStorage.getItem("currentSPData"));
+  const fileName = spData?.["SP No."] ? "SP_" + spData["SP No."] : "SP_Document";
 
-  iframe.contentWindow.document.title = fileName;
+  const element = doc.body;
 
-  setTimeout(() => {
-    iframe.contentWindow.focus();
-    iframe.contentWindow.print();
-  }, 200);
+  /* IMPORTANT FIX */
+  element.style.width = "794px";
+  element.style.maxWidth = "794px";
+  element.style.margin = "0 auto";
+
+  const opt = {
+
+    margin: 0,
+
+    filename: fileName + ".pdf",
+
+    image:{
+      type:"jpeg",
+      quality:1
+    },
+
+    html2canvas:{
+      scale:2,
+      useCORS:true,
+      windowWidth:794,
+      scrollX:0,
+      scrollY:0
+    },
+
+    jsPDF:{
+      unit:"mm",
+      format:"a4",
+      orientation:"portrait"
+    },
+
+    pagebreak:{
+      mode:["css","legacy"]
+    }
+
+  };
+
+  /* wait layout stabilize */
+  await new Promise(r=>setTimeout(r,300));
+
+  html2pdf().set(opt).from(element).save();
 
 }
     function printIframe() {
