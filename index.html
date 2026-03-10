@@ -461,12 +461,15 @@ async function downloadPDF() {
     const btn = document.getElementById('downloadBtn');
     if (!iframe || !iframe.contentWindow) return;
 
+    const originalBtnText = btn.innerText;
     btn.innerText = "Processing...";
     btn.disabled = true;
 
-    // Use body instead of documentElement to avoid capturing modal backgrounds
+    // KUNCI UTAMA: Paksa lebar iframe ke 794px agar CSS A4 terbaca sempurna
+    const originalWidth = iframe.style.width;
+    iframe.style.width = '794px';
+
     const element = iframe.contentWindow.document.body;
-    
     const spData = JSON.parse(localStorage.getItem('currentSPData'));
     const fileName = `SP_${spData["SP No."] || 'Export'}.pdf`;
 
@@ -475,25 +478,26 @@ async function downloadPDF() {
         filename: fileName,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { 
-            scale: 2,
-            useCORS: true, 
-            width: 794,
-            windowWidth: 794,
-            backgroundColor: '#ffffff', // FORCES WHITE BACKGROUND
+            scale: 2,           // Resolusi tajam
+            useCORS: true,      // Logo GMF tampil
+            width: 794,         // Paksa lebar snapshot 794px
+            windowWidth: 794,   // Paksa layout CSS ke 794px (Mencegah Zoom)
             scrollY: 0,
             scrollX: 0
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        // This ensures it only breaks where you have the .page div
         pagebreak: { mode: ['css', 'legacy'] } 
     };
 
     html2pdf().set(opt).from(element).save().then(() => {
-        btn.innerText = "Download PDF";
+        // Kembalikan lebar iframe seperti semula
+        iframe.style.width = originalWidth;
+        btn.innerText = originalBtnText;
         btn.disabled = false;
     }).catch(err => {
         console.error(err);
-        btn.innerText = "Download PDF";
+        iframe.style.width = originalWidth;
+        btn.innerText = originalBtnText;
         btn.disabled = false;
     });
 }
