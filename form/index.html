@@ -20,15 +20,15 @@
         color: #000;
         background-color: #fff;
         line-height: 1.1;
+        width: 794px; /* Standard A4 Width */
     }
 
     .page {
         page-break-after: always;
-        width: 100%;
-        box-sizing: border-box;
+        width: 794px !important;
+        box-sizing: border-box !important;
         position: relative;
-        /* FIXED: Added padding to ensure content doesn't touch edges */
-        padding: 5mm; 
+        padding: 5mm !important; /* Your 0.5cm whitespace */
         background-color: #fff;
     }
 
@@ -60,6 +60,8 @@
     .title-sub { font-size: 10pt; margin: 0; font-weight: normal; }
 
     .info-table { margin-top: 2px; margin-bottom: 5px; }
+    
+    /* RESTORED: Dotted field for info section */
     .field-dotted { border-bottom: 1px dotted black; }
 
     /* Unified Table Grid */
@@ -81,6 +83,7 @@
     .unified-table th:first-child { border-left: none; }
     .unified-table th:last-child { border-right: none; }
 
+    /* RESTORED: Dotted bottom for rows */
     .item-row td {
         height: 15px;
         border-bottom: 1px dotted black; 
@@ -114,6 +117,7 @@
         padding: 0 5px;
     }
 
+    /* RESTORED: Dotted lines for signatures */
     .sig-line {
         border-bottom: 1px dotted black;
         width: 170px;
@@ -123,7 +127,6 @@
     .evidence-block { margin-top: 5px; padding-left: 5px; }
     .date-line { border-bottom: 1px dotted black; width: 300px; display: inline-block; }
 
-    /* FIXED: Using fixed height instead of 65vh for PDF stability */
     .image-box {
         border: 1px solid black;
         margin-top: 5px;
@@ -139,44 +142,18 @@
         object-fit: contain;
     }
     
-    /* Add this at the very bottom of your <style> tag in form/index.html */
-    /* This fixes the "Missing Borders" in the downloaded PDF */
-    .unified-table, 
-    .unified-table th, 
-    .item-row td, 
-    .footer-row td {
-        border: 0.5pt solid black !important; /* Force solid lines for the downloader */
+    /* PDF DOWNLOAD FIXES (Layout Only - No solid line overrides) */
+    .logo-img {
+        width: 240px !important;
+        height: auto !important;
     }
-
-     .field-dotted, .sig-line, .date-line {
-         border-bottom: 0.5pt solid black !important;
-     }
-
-     /* Fixes the Logo being too large in the download */
-     .logo-img {
-         width: 240px !important;
-         height: auto !important;
-     }
     
-    /* Ensure the page stays exactly A4 width */
-    body {
-        width: 794px !important;
-        margin: 0 !important;
-        padding: 0 !important;
-     }
-    
-    .page {
-        width: 794px !important;
-        padding: 5mm !important; /* Your 0.5cm margin */
-        box-sizing: border-box !important;
-        background: white !important;
-    }
-
     @media print {
         button { display: none; }
+        body { width: 100%; }
+        .page { box-shadow: none; width: 100% !important; margin: 0; padding: 5mm !important; }
     }
 
-    /* Screen and Modal View */
     @media screen {
         body {
             width: 794px; 
@@ -186,7 +163,7 @@
         .page {
             background: white;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            margin: 10px auto; /* Centering the page in modal */
+            margin: 10px auto; 
         }
     }
 </style>
