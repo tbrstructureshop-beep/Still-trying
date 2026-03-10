@@ -7,6 +7,7 @@
   <meta name="description" content="Management system for Electronic SP List">
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     :root {
       --primary: #226873;
@@ -291,6 +292,7 @@
   
   <div id="formModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index:9999; padding:20px; box-sizing:border-box;">
     <div style="max-width:950px; margin:0 auto 10px auto; display:flex; justify-content:flex-end; gap:10px;" class="no-print">
+      <button onclick="downloadPDF()" style="padding:10px 20px; background:var(--primary); color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold; text-transform:uppercase; font-size:0.75rem;">Download PDF</button>
       <button onclick="printIframe()" style="padding:10px 20px; background:var(--soft-green); color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold; text-transform:uppercase; font-size:0.75rem;">Print to PDF</button>
       <button onclick="closeFormModal()" style="padding:10px 20px; background:var(--soft-red); color:white; border:none; border-radius:6px; cursor:pointer; font-weight:bold; text-transform:uppercase; font-size:0.75rem;">✕ Close</button>
     </div>
@@ -452,6 +454,27 @@
         rowsPerPage = parseInt(document.getElementById("rowsDropdown").value);
         currentPage = 1;
         renderCards();
+    }
+  
+    function downloadPDF() {
+      const iframe = document.getElementById('formIframe');
+      if (iframe) {
+        // Get the content of the iframe
+        const element = iframe.contentWindow.document.body;
+        // Get SP Number for the filename
+        const spData = JSON.parse(localStorage.getItem('currentSPData'));
+        const fileName = spData ? `SP_${spData["SP No."]}.pdf` : 'Document.pdf';
+        const opt = {
+            margin:       0.5,
+            filename:     fileName,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+
+        // Run the conversion
+        html2pdf().set(opt).from(element).save();
+      }
     }
 
     function printIframe() {
