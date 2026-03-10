@@ -456,57 +456,13 @@
         renderCards();
     }
 
-async function downloadPDF() {
-
-    const iframe = document.getElementById('formIframe');
-    const btn = document.getElementById('downloadBtn');
-
-    if (!iframe || !iframe.contentWindow) return;
-
-    const originalText = btn.innerText;
-    btn.innerText = "Processing...";
-    btn.disabled = true;
-
-    const pages = iframe.contentWindow.document.querySelectorAll('.page');
-
-    const spData = JSON.parse(localStorage.getItem('currentSPData'));
-    const fileName = `SP_${spData["SP No."] || 'Export'}.pdf`;
-
-    const opt = {
-        margin: 0,
-        filename: fileName,
-        image: { type: 'jpeg', quality: 1 },
-        html2canvas: {
-            scale: 2,
-            useCORS: true
-        },
-        jsPDF: {
-            unit: 'mm',
-            format: 'a4',
-            orientation: 'portrait'
-        }
-    };
-
-    const pdf = new html2pdf().set(opt);
-
-    let first = true;
-
-    for (const page of pages) {
-
-        if (!first) {
-            await pdf.get('pdf').then(pdf => pdf.addPage());
-        }
-
-        await pdf.from(page).toCanvas().toPdf();
-
-        first = false;
+    function downloadPDF() {
+      const iframe = document.getElementById('formIframe');
+      if (!iframe || !iframe.contentWindow) return;
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
     }
-
-    await pdf.save();
-
-    btn.innerText = originalText;
-    btn.disabled = false;
-}
+  
     function printIframe() {
         const iframe = document.getElementById('formIframe');
         if (iframe) {
