@@ -458,51 +458,44 @@
     }
 
     async function downloadPDF() {
-      const { jsPDF } = window.jspdf;
-      const iframe = document.getElementById('formIframe');
-      const btn = document.getElementById('downloadBtn');
-    
-      if (!iframe || !iframe.contentWindow) return;
-      
-      // 1. Visual Feedback (Change button text while processing)
-      const originalBtnText = btn.innerText;
-      btn.innerText = "Generating...";
-      btn.style.opacity = "0.7";
-      btn.disabled = true;
-      
-      try {
-        // 2. Get the specific container inside the iframe 
-        // If your form has a specific wrapper like <div id="print-area">, use that instead of body
-        const element = iframe.contentWindow.document.body;
+    const { jsPDF } = window.jspdf;
+    const iframe = document.getElementById('formIframe');
+    // MAKE SURE THIS ID MATCHES YOUR BUTTON ID IN HTML
+    const btn = document.getElementById('downloadBtn'); 
 
-        // 3. Get SP Number for naming
+    if (!iframe || !iframe.contentWindow) return;
+    
+    const originalBtnText = btn.innerText;
+    btn.innerText = "Generating...";
+    btn.style.opacity = "0.7";
+    btn.disabled = true;
+    
+    try {
+        const element = iframe.contentWindow.document.body;
         const spData = JSON.parse(localStorage.getItem('currentSPData'));
         const fileName = spData ? `SP_${spData["SP No."] || 'Export'}.pdf` : 'Document.pdf';
 
-        // 4. Create PDF (A4 is 595.28pts wide)
         const doc = new jsPDF({
             orientation: 'p',
             unit: 'pt',
             format: 'a4'
         });
         
-        // 5. Conversion with Vector Text settings
         await doc.html(element, {
             callback: function (doc) {
                 doc.save(fileName);
-                // Restore button
                 btn.innerText = originalBtnText;
                 btn.style.opacity = "1";
                 btn.disabled = false;
             },
             x: 0,
             y: 0,
-            width: 595, // Width of A4 in points
-            windowWidth: 950, // Matches your modal width to prevent re-layout
+            width: 595, 
+            windowWidth: 950, 
             autoPaging: 'text',
             html2canvas: {
-                useCORS: true,      // Essential for GMF Logo and Signatures
-                scale: 0.626,       // Fits 950px into 595pt perfectly
+                useCORS: true,      
+                scale: 0.626,       
                 letterRendering: true,
                 logging: false
             }
@@ -512,7 +505,9 @@
         alert("Failed to generate PDF. Try using 'Print to PDF' instead.");
         btn.innerText = originalBtnText;
         btn.disabled = false;
+        btn.style.opacity = "1";
     }
+} // <--- THIS WAS THE MISSING BRACE THAT STOPPED DATA FROM LOADING
 
     function printIframe() {
         const iframe = document.getElementById('formIframe');
