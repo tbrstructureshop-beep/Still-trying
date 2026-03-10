@@ -8,8 +8,6 @@
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     :root {
       --primary: #226873;
@@ -460,9 +458,14 @@
 
 async function downloadPDF() {
 
-  const pages = document.querySelectorAll(".page");
+  const iframe = document.getElementById("formIframe");
+  const doc = iframe.contentWindow.document;
 
-  const pdf = new jspdf.jsPDF({
+  const pages = doc.querySelectorAll(".page");
+
+  const { jsPDF } = window.jspdf;
+
+  const pdf = new jsPDF({
     unit: "mm",
     format: "a4",
     orientation: "portrait"
@@ -472,20 +475,21 @@ async function downloadPDF() {
 
     const canvas = await html2canvas(pages[i], {
       scale: 2,
-      useCORS: true
+      useCORS: true,
+      backgroundColor: "#ffffff"
     });
 
     const img = canvas.toDataURL("image/jpeg", 1);
 
-    const pdfWidth = 210;
-    const pdfHeight = 297;
-
     if (i > 0) pdf.addPage();
 
-    pdf.addImage(img, "JPEG", 0, 0, pdfWidth, pdfHeight);
+    pdf.addImage(img, "JPEG", 0, 0, 210, 297);
   }
 
-  pdf.save("shipping-document.pdf");
+  const spData = JSON.parse(localStorage.getItem('currentSPData'));
+  const fileName = spData?.["SP No."] ? "SP_" + spData["SP No."] : "shipping-document";
+
+  pdf.save(fileName + ".pdf");
 }
     function printIframe() {
         const iframe = document.getElementById('formIframe');
