@@ -466,49 +466,34 @@ async function downloadPDF(){
   const spData = JSON.parse(localStorage.getItem("currentSPData"));
   const fileName = spData?.["SP No."] ? "SP_" + spData["SP No."] : "SP_Document";
 
-  const element = doc.body;
+  const pages = doc.querySelectorAll(".page");
 
-  /* IMPORTANT FIX */
-  element.style.width = "794px";
-  element.style.maxWidth = "794px";
-  element.style.margin = "0 auto";
+  const pdf = new jspdf.jsPDF({
+    unit: "mm",
+    format: "a4",
+    orientation: "portrait"
+  });
 
-  const opt = {
+  for(let i=0;i<pages.length;i++){
 
-    margin: 0,
-
-    filename: fileName + ".pdf",
-
-    image:{
-      type:"jpeg",
-      quality:1
-    },
-
-    html2canvas:{
+    const canvas = await html2canvas(pages[i],{
       scale:2,
       useCORS:true,
-      windowWidth:794,
-      scrollX:0,
-      scrollY:0
-    },
+      backgroundColor:"#ffffff"
+    });
 
-    jsPDF:{
-      unit:"mm",
-      format:"a4",
-      orientation:"portrait"
-    },
+    const imgData = canvas.toDataURL("image/jpeg",1);
 
-    pagebreak:{
-      mode:["css","legacy"]
-    }
+    const imgWidth = 210;
+    const imgHeight = canvas.height * imgWidth / canvas.width;
 
-  };
+    if(i>0) pdf.addPage();
 
-  /* wait layout stabilize */
-  await new Promise(r=>setTimeout(r,300));
+    pdf.addImage(imgData,"JPEG",0,0,imgWidth,imgHeight);
 
-  html2pdf().set(opt).from(element).save();
+  }
 
+  pdf.save(fileName + ".pdf");
 }
     function printIframe() {
         const iframe = document.getElementById('formIframe');
