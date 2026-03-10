@@ -6,10 +6,16 @@
 <style type="text/css">
     @import url('https://fonts.googleapis.com/css2?family=Bree+Serif&family=Edu+SA+Beginner:wght@400;700&family=IBM+Plex+Sans:wght@400;700&display=swap');
 
-    /* Print Configuration: 0.5cm all sides */
+    /* 1. PHYSICAL PRINT SETTINGS */
     @page {
         size: A4;
-        margin: 5mm;
+        margin: 0; /* Margin is handled by .page padding for absolute control */
+    }
+
+    /* 2. BASE RESET */
+    * {
+        box-sizing: border-box;
+        -webkit-print-color-adjust: exact;
     }
 
     body {
@@ -18,30 +24,33 @@
         font-family: "Calibri", "Arial", sans-serif;
         font-size: 9pt;
         color: #000;
-        background-color: #fff;
-        line-height: 1.1;
-        width: 794px !important; /* Standard A4 Width */
+        background-color: #ffffff !important; /* Force white background for PDF */
+        width: 794px !important; /* Exactly A4 width at 96 DPI */
     }
 
+    /* 3. PAGE STRUCTURE */
     .page {
-        page-break-after: always;
         width: 794px !important;
-        /* FIXED: Exactly A4 height - stops the messy overlap in your screenshot */
-        height: 1122px !important; 
-        box-sizing: border-box !important;
+        height: 1122px !important; /* Exactly A4 height */
         position: relative;
-        padding: 5mm !important; /* Your 0.5cm whitespace */
-        background-color: #fff;
-        overflow: hidden; /* Keeps content inside the margins */
+        padding: 5mm !important; /* Your 0.5cm whitespace requirement */
+        background-color: #ffffff !important;
+        overflow: hidden; /* Prevents content from leaking and creating extra pages */
     }
 
-    /* Typography & Colors */
+    /* FIX: Prevents a blank Page 3 or Page 5 from being created */
+    .page:not(:last-child) {
+        page-break-after: always !important;
+    }
+
+    /* 4. TYPOGRAPHY & COLORS */
     .blue-val { color: #073763; font-family: 'Bree Serif', serif; }
     .script-val { font-family: 'Edu SA Beginner', cursive; font-weight: 500; font-size: 9.5pt; color: #073763; }
     .label-b-u { font-weight: bold; text-decoration: underline; }
     .small-label { font-size: 8pt; line-height: 1; display: block; }
     .b { font-weight: bold; }
 
+    /* 5. TABLES */
     table {
         width: 100%;
         border-collapse: collapse;
@@ -54,7 +63,6 @@
         word-wrap: break-word;
     }
 
-    /* Header Component Styles */
     .header-wrapper { margin-bottom: 2px; }
     .logo-img { width: 240px; height: auto; display: block; }
     .header-text-right { text-align: right; vertical-align: bottom; padding-bottom: 2px; }
@@ -63,11 +71,8 @@
     .title-sub { font-size: 10pt; margin: 0; font-weight: normal; }
 
     .info-table { margin-top: 2px; margin-bottom: 5px; }
-    
-    /* Dotted field for info section */
     .field-dotted { border-bottom: 1px dotted black; }
 
-    /* Unified Table Grid */
     .unified-table {
         border-top: 1px solid black;
         border-bottom: 1px solid black;
@@ -86,7 +91,6 @@
     .unified-table th:first-child { border-left: none; }
     .unified-table th:last-child { border-right: none; }
 
-    /* Dotted bottom for rows */
     .item-row td {
         height: 15px;
         border-bottom: 1px dotted black; 
@@ -120,7 +124,6 @@
         padding: 0 5px;
     }
 
-    /* Dotted lines for signatures */
     .sig-line {
         border-bottom: 1px dotted black;
         width: 170px;
@@ -130,14 +133,14 @@
     .evidence-block { margin-top: 5px; padding-left: 5px; }
     .date-line { border-bottom: 1px dotted black; width: 300px; display: inline-block; }
 
-    /* Adjusted height to fit within the 1122px fixed page */
+    /* 6. PAGE 2 IMAGE BOX */
     .image-box {
         border: 1px solid black;
         margin-top: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        height: 180mm; 
+        height: 180mm; /* Fits comfortably within 1122px height */
         width: 100%;
     }
     .document-image {
@@ -151,23 +154,21 @@
         height: auto !important;
     }
     
-    @media print {
-        button { display: none; }
-        body { width: 100%; }
-        .page { box-shadow: none; width: 100% !important; margin: 0; padding: 5mm !important; }
+    /* 7. MODAL VIEW VS PRINT VIEW */
+    @media screen {
+        html {
+            background-color: #f0f0f0; /* Grey outside the paper */
+        }
+        body {
+            margin: 20px auto !important; 
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            background-color: #ffffff !important;
+        }
     }
 
-    @media screen {
-        body {
-            width: 794px; 
-            margin: 0 auto !important;
-            background-color: #f0f0f0;
-        }
-        .page {
-            background: white;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            margin: 10px auto; 
-        }
+    @media print {
+        body { width: 100% !important; margin: 0 !important; }
+        .page { box-shadow: none; margin: 0; }
     }
 </style>
 </head>
