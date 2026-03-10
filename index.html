@@ -462,11 +462,11 @@ async function downloadPDF() {
     if (!iframe || !iframe.contentWindow) return;
 
     const originalBtnText = btn.innerText;
-    btn.innerText = "Processing...";
+    btn.innerText = "Generating...";
     btn.disabled = true;
 
-    // Snapshot the entire document inside the iframe
-    const element = iframe.contentWindow.document.body;
+    // We target the HTML element to ensure it reads the 794px width from your CSS
+    const element = iframe.contentWindow.document.documentElement;
     
     const spData = JSON.parse(localStorage.getItem('currentSPData'));
     const fileName = `SP_${spData["SP No."] || 'Export'}.pdf`;
@@ -476,23 +476,24 @@ async function downloadPDF() {
         filename: fileName,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { 
-            scale: 2,           // Keeps dotted lines sharp
-            useCORS: true, 
-            width: 794,         // Matches your CSS width
-            windowWidth: 794,   // Stops the "zoomed-in" effect
+            scale: 2,           // Keeps dotted lines and logo sharp
+            useCORS: true,      // Essential for the GMF logo
+            width: 794,         // Force capture at A4 width
+            windowWidth: 794,   // Force CSS to render as A4 width (Stops the "Zoom" mess)
             scrollY: 0,
-            scrollX: 0
+            scrollX: 0,
+            letterRendering: true
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        // 'css' mode tells the engine to respect your 'page-break-after: always'
-        pagebreak: { mode: 'css' } 
+        pagebreak: { mode: 'css' } // Respects your .page { page-break-after: always; }
     };
 
+    // Execute the download
     html2pdf().set(opt).from(element).save().then(() => {
         btn.innerText = originalBtnText;
         btn.disabled = false;
     }).catch(err => {
-        console.error(err);
+        console.error("Download Error:", err);
         btn.innerText = originalBtnText;
         btn.disabled = false;
     });
