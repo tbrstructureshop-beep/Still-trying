@@ -3,72 +3,81 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Surat Pengiriman</title>
+  <title>Surat Pengiriman | GMF</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-image: url('https://images.unsplash.com/photo-1734983235410-cbbc5f5fcdaf?q=80&w=1740&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
-      background-size: cover;
-      background-attachment: fixed;
-      background-position: center;
-      margin: 0;
-      padding: 20px;
+    :root {
+      --primary: #226873;
+      --primary-light: #f0f6f7;
+      --primary-border: #d1e2e5;
+      --text-main: #2c3e50;
+      --text-muted: #546e7a;
+      --white: #ffffff;
+      --soft-red: #b35c5c;
+      --soft-green: #4b8c7d;
     }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--white);
+      color: var(--text-main);
+      margin: 0;
+      padding: 10px;
+      line-height: 1.5;
+    }
+
     .form-container {
-      background-color: rgba(255, 255, 255, 0.9);
-      border-radius: 10px;
-      max-width: 900px;
-      margin: auto;
-      padding: 20px;
-      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+      background-color: var(--white);
+      max-width: 850px;
+      margin: 10px auto;
+      padding: 30px;
+      border: 1px solid var(--primary-border);
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(34, 104, 115, 0.08);
+      position: relative;
     }
 
     /* Menu container styles */
     .menu-container {
       position: absolute;
-      top: 10px;
-      right: 10px;
-      z-index: 100; /* Ensures it appears above other elements */
+      top: 20px;
+      right: 20px;
+      z-index: 100;
     }
 
     .menu-toggle {
-      background-color: #1565c0;
+      background-color: var(--primary);
       color: white;
       border: none;
-      padding: 10px 15px;
-      font-size: 18px;
-      border-radius: 5px;
+      padding: 8px 12px;
+      font-size: 20px;
+      border-radius: 4px;
       cursor: pointer;
-    }
-
-    .menu-toggle:hover {
-      background-color: #0d47a1;
     }
 
     .menu-dropdown {
       display: none;
       position: absolute;
-      top: 40px;
+      top: 45px;
       right: 0;
       background-color: white;
-      border: 1px solid #ddd;
-      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-      border-radius: 5px;
-      min-width: 150px;
-      z-index: 101;
+      border: 1px solid var(--primary-border);
+      box-shadow: 0px 8px 16px rgba(0,0,0,0.1);
+      border-radius: 4px;
+      min-width: 180px;
     }
 
     .menu-dropdown a {
       display: block;
-      color: #333;
+      color: var(--text-main);
       text-decoration: none;
-      padding: 10px 15px;
+      padding: 12px 16px;
       font-size: 14px;
-      text-align: left;
+      border-bottom: 1px solid #f5f5f5;
     }
 
     .menu-dropdown a:hover {
-      background-color: #f0f0f0;
+      background-color: var(--primary-light);
+      color: var(--primary);
     }
 
     .menu-container.open .menu-dropdown {
@@ -77,191 +86,210 @@
 
     .header {
       text-align: center;
-      position: relative;
-      margin-bottom: 20px;
+      margin-bottom: 40px;
+      border-bottom: 2px solid var(--primary-light);
+      padding-bottom: 20px;
     }
+
     .header img {
-      position: absolute;
-      left: 5px;
-      top: -2px;
-      width: 175px;
+      width: 160px;
+      margin-bottom: 15px;
     }
+
     .header h1 {
       margin: 0;
-      font-size: 24px;
-      color: #1565c0;
+      font-size: 22px;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
+
     .header h2 {
-      margin: 0;
-      font-size: 16px;
-      color: #424242;
+      margin: 5px 0 0;
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--text-muted);
+      letter-spacing: 2px;
     }
+
     label {
-      font-weight: bold;
+      font-weight: 600;
       display: block;
-      margin: 10px 0 5px;
+      margin: 15px 0 6px;
+      font-size: 11px;
+      color: var(--primary);
+      text-transform: uppercase;
     }
+
     input, textarea {
-      width: 97.5%;
-      padding: 8px;
-      margin-bottom: 10px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--primary-border);
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 14px;
+      background-color: #fafbfc;
     }
-    textarea {
-      resize: none;
+
+    input:focus {
+      outline: none;
+      border-color: var(--primary);
+      background-color: #fff;
     }
+
+    input[readonly] {
+      background-color: var(--primary-light);
+      color: var(--text-muted);
+    }
+
+    /* Table Styling */
+    .table-wrapper {
+      overflow-x: auto;
+      margin: 25px 0;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 20px;
+      min-width: 600px;
     }
-    th, td {
+
+    th {
+      background-color: var(--primary);
+      color: white;
+      font-weight: 500;
+      font-size: 12px;
+      padding: 12px;
+      text-transform: uppercase;
       text-align: center;
-      border: 1px solid #ddd;
-      padding: 8px;
     }
-    th:nth-child(3) {
+
+    /* Target the first column (Row Number) */
+    td {
+      border: 1px solid var(--primary-border);
+      padding: 5px;
+      text-align: center; /* Centers the "1, 2, 3" row numbers */
+      font-size: 14px;
+    }
+
+    td input {
+      border: none;
+      background: transparent;
       text-align: center;
     }
+
+    /* Maintain Left Alignment for Description for better readability */
     td:nth-child(3) input {
       text-align: left;
     }
-    th:nth-child(1), td:nth-child(1) {
-      width: 10%;
-    }
-    th:nth-child(2), td:nth-child(2) {
-      width: 15%;
-    }
-    th:nth-child(3), td:nth-child(3) {
-      width: 50%;
-    }
-    th:nth-child(4), td:nth-child(4) {
-      width: 25%;
-    }
-    td input {
-      width: 100%;
-      box-sizing: border-box;
-      text-align: center;
-    }
-    .button-container {
-      text-align: center;
-      margin: 20px 0;
-    }
-    button {
-      background-color: #1565c0;
-      color: white;
-      border: none;
-      padding: 10px 15px;
-      border-radius: 5px;
-      cursor: pointer;
-      margin: 5px;
-    }
-    button:hover {
-      background-color: #0d47a1;
-    }
-    .red-button {
-      background-color: #e57373; /* Soft red color */
-    }
-    .red-button:hover {
-      background-color: #f44336;
-    }
+
+    /* Signatures */
     .canvas-container {
       display: flex;
-      justify-content: center;
-      gap: 30px;
-      margin-top: 20px;
-    }
-    canvas {
-      border: 1px solid #ddd;
-      background-color: transparent; /* Transparent background for canvas */
-      width: 100%;
-      height: 150px; /* Adjusted height */
-      max-width: 400px;
-    }
-    .signature-box {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-      margin-top: 10px;
-      width: 100%;
-      max-width: 350px;
-    }
-    .clear-buttons-container {
-      display: flex;
-      justify-content: center;
+      flex-wrap: wrap;
+      justify-content: space-between;
       gap: 20px;
-      width: 100%;
-      margin-top: 10px;
-    }
-    .upload-container {
-      display: flex;
-      justify-content: center;
-      flex-direction: column;
-      margin-top: 20px;
-      text-align: center;
-    }
-    .upload-container img {
-      max-width: 200px;
-      max-height: 200px;
-      margin-top: 10px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-    }
-    .notification {
-      background-color: #4caf50;
-      color: white;
-      padding: 15px;
-      text-align: center;
-      font-size: 18px;
-      display: none;
-      margin-top: 20px;
-      border-radius: 5px;
-    }
-    #loadingGif {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
-      display: none;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000; /* Ensures it stays above all othe elements */
-    }
-    #loadingGif img {
-      width: 550px;
-      height: auto;
+      margin-top: 30px;
     }
 
-    .green-button {
-      background-color: #4CAF50;
+    .signature-box {
+      flex: 1;
+      min-width: 280px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 15px;
+      background-color: var(--primary-light);
+      border-radius: 6px;
+    }
+
+    canvas {
+      border: 1px solid var(--primary-border);
+      background-color: white;
+      width: 100%;
+      height: 120px;
+      border-radius: 4px;
+      touch-action: none;
+    }
+
+    /* Buttons */
+    .button-container {
+      text-align: center;
+      margin: 25px 0;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    button {
+      background-color: var(--primary);
       color: white;
       border: none;
-      padding: 10px 15px;
-      border-radius: 5px;
-      cursor: pointer;
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: 600;
       border-radius: 4px;
-      }
-    
-    .green-button:hover {
-      background-color: #45a049;
+      cursor: pointer;
+      text-transform: uppercase;
+    }
+
+    .red-button { background-color: var(--soft-red); }
+    .green-button { background-color: var(--soft-green); padding: 12px 30px; font-size: 15px; }
+
+    /* Upload Area */
+    .upload-container {
+      margin-top: 30px;
+      padding: 20px;
+      border: 2px dashed var(--primary-border);
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    #imagePreview {
+      max-width: 250px;
+      margin-top: 15px;
+      border-radius: 4px;
+    }
+
+    #loadingGif {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(255, 255, 255, 0.9);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .notification {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: var(--soft-green);
+      color: white;
+      padding: 12px 25px;
+      border-radius: 30px;
+      display: none;
+    }
+
+    @media (max-width: 600px) {
+      .form-container { padding: 15px; }
+      .signature-box { min-width: 100%; }
+      .button-container { flex-direction: column; }
+      button { width: 100%; }
     }
   </style>
-  
 </head>
 <body>
+
   <div id="loadingGif">
-    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExeWc0djRoenZ1YWhjcjdkMmk3YWN6dGpvN29qZGo1bGViMzI4OXdqcyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/eK7Nj68Yur6vRmVyqN/giphy.gif" alt="Loading...">
+    <img src="https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExeWc0djRoenZ1YWhjcjdkMmk3YWN6dGpvN29qZGo1bGViMzI4OXdqcyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9cw/eK7Nj68Yur6vRmVyqN/giphy.gif" alt="Loading..." width="100">
   </div>
 
   <div class="form-container">
-
-    <!-- Toggle Menu -->
     <div class="menu-container">
-      <button class="menu-toggle">☰</button>
+      <button class="menu-toggle" type="button">☰</button>
       <div class="menu-dropdown">
         <a href="https://shorturl.at/lgPJ7" target="_blank">Edit SP</a>
         <a href="https://shorturl.at/uSCeY" target="_blank">Go to Dashboard</a>
@@ -269,555 +297,329 @@
       </div>
     </div>
 
-    <!-- Header Section -->
     <div class="header">
       <img src="https://www.gmf-aeroasia.co.id/cfind/source/thumb/images/cover_w241_h51_gmf%20aeroasia%20logo%20new%20blue.png" alt="Logo">
       <h1>Surat Pengiriman</h1>
-      <h2>Shipping Document</h2>
+      <h2>SHIPPING DOCUMENT</h2>
     </div>
+
     <form id="shippingForm">
       <label>SP No.</label>
       <input type="text" id="spNo" readonly>
 
-      <label>To</label>
-      <input type="text" id="to" placeholder="(Unit Tujuan)" required>
+      <label>To (Unit Tujuan)</label>
+      <input type="text" id="to" placeholder="Destination Unit" required>
 
-      <label>Sent By</label>
-      <input type="text" id="sentBy" placeholder="(Unit Pengirim)" required>
+      <label>Sent By (Unit Pengirim)</label>
+      <input type="text" id="sentBy" placeholder="Sending Unit" required>
 
-      <label>A/C Reg.</label>
-      <input type="text" id="note" placeholder="(Aircraft Reg. or Other Information)" required>
+      <label>A/C Reg. / Info</label>
+      <input type="text" id="note" placeholder="Aircraft Reg. or Reference" required>
 
-      <table id="itemsTable">
-        <thead>
-          <tr>
-            <th>No.</th>
-            <th>Quantity</th>
-            <th>Description of Goods</th>
-            <th>Remarks</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>1</td>
-            <td><input type="text" onkeydown="checkEnterKey(event)"></td> <!-- Changed from number to text -->
-            <td><input type="text" onkeydown="checkEnterKey(event)"></td>
-            <td><input type="text" onkeydown="checkEnterKey(event)"></td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-wrapper">
+        <table id="itemsTable">
+          <thead>
+            <tr>
+              <th width="50">No.</th>
+              <th width="100">Qty</th>
+              <th>Description of Goods</th>
+              <th width="150">Remarks</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td><input type="text" onkeydown="checkEnterKey(event)"></td>
+              <td><input type="text" onkeydown="checkEnterKey(event)"></td>
+              <td><input type="text" onkeydown="checkEnterKey(event)"></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
       <div class="button-container">
-        <button type="button" class="red-button" onclick="deleteRow()">Delete Item</button>
-        <button type="button" onclick="addRow()">Add Item</button>
+        <button type="button" onclick="addRow()">+ Add Item</button>
+        <button type="button" class="red-button" onclick="deleteRow()">- Delete Item</button>
       </div>
 
       <div class="canvas-container">
         <div class="signature-box">
           <label>Sender Signature</label>
           <canvas id="senderCanvas"></canvas>
-          <input type="text" id="senderName" placeholder="Sender Name" required>
-          <button type="button" class="red-button" onclick="clearCanvas('senderCanvas')">Clear Sender</button>
+          <input type="text" id="senderName" placeholder="Full Name" required>
+          <button type="button" class="red-button" style="padding: 5px 10px; margin-top: 10px; font-size: 11px;" onclick="clearCanvas('senderCanvas')">Clear</button>
         </div>
+
         <div class="signature-box">
           <label>Receiver Signature</label>
           <canvas id="receiverCanvas"></canvas>
-          <input type="text" id="receiverName" placeholder="Receiver Name" required>
-          <button type="button" class="red-button" onclick="clearCanvas('receiverCanvas')">Clear Receiver</button>
+          <input type="text" id="receiverName" placeholder="Full Name" required>
+          <button type="button" class="red-button" style="padding: 5px 10px; margin-top: 10px; font-size: 11px;" onclick="clearCanvas('receiverCanvas')">Clear</button>
         </div>
       </div>
 
-      <label>Receiver Phone</label>
-      <input type="text" id="receiverPhone">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
+        <div>
+          <label>Receiver Phone</label>
+          <input type="text" id="receiverPhone" placeholder="Phone Number">
+        </div>
+        <div>
+          <label>Date & Time</label>
+          <div style="display: flex; gap: 5px;">
+            <input type="text" id="date" readonly>
+            <input type="text" id="time" readonly>
+          </div>
+        </div>
+      </div>
 
-      <label>Date</label>
-      <input type="text" id="date" readonly>
-
-      <label>Time</label>
-      <input type="text" id="time" readonly>
-
-      <!-- Image Upload Section -->
       <div class="upload-container">
-        <label>Upload Image (File or Camera)</label>
+        <label>Upload Image / Attachment</label>
         <input type="file" id="imageUpload" accept="image/*" onchange="previewImage(event, 'imagePreview')">
         <img id="imagePreview" src="" alt="Image Preview" style="display:none;">
       </div>
 
-      <div class="button-container">
-        <button type="button" class="green-button" onclick="saveForm()">Save</button>
-        <button type="button" onclick="submitForm()">Submit</button>
-        <button type="button" class="red-button" onclick="resetForm()">Reset</button>
+      <div class="button-container" style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--primary-light);">
+        <button type="button" class="green-button" onclick="saveForm()">Save Document</button>
+        <button type="button" class="red-button" onclick="resetForm()">Reset Form</button>
       </div>
     </form>
   </div>
 
-  <!-- Submission Notification -->
   <div class="notification" id="submissionNotification">Form submitted successfully!</div>
+ <script>
+  // 1. SET YOUR API URL HERE
+  const API_URL = 'YOUR_WEB_APP_URL_HERE'; 
 
-  <script>
-    // Menu Toggle Logic
-    document.querySelector('.menu-toggle').addEventListener('click', function () {
-      const menuContainer = document.querySelector('.menu-container');
-      menuContainer.classList.toggle('open');
-    });
+  // Menu Toggle Logic
+  document.querySelector('.menu-toggle').addEventListener('click', function () {
+    const menuContainer = document.querySelector('.menu-container');
+    menuContainer.classList.toggle('open');
+  });
 
-    // Close the menu if clicking outside
-    document.addEventListener('click', function (event) {
-      const menuContainer = document.querySelector('.menu-container');
-      if (!menuContainer.contains(event.target)) {
-        menuContainer.classList.remove('open');
-      }
-    });
+  document.addEventListener('click', function (event) {
+    const menuContainer = document.querySelector('.menu-container');
+    if (!menuContainer.contains(event.target)) {
+      menuContainer.classList.remove('open');
+    }
+  });
 
-    // Generate SP No.
+  // Generate SP No. & Date
+  function initializeHeader() {
     document.getElementById('spNo').value = new Date().getTime().toString().slice(-4).padStart(7,'025');
-
-    // Set current date and time
     const now = new Date();
     document.getElementById('date').value = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     document.getElementById('time').value = now.toTimeString().split(' ')[0];
+  }
+  initializeHeader();
 
-    // Add a new row to the table
-    function addRow() {
-      const table = document.getElementById('itemsTable').querySelector('tbody');
-      const currentRowCount = table.rows.length;
+  // Table Logic
+  function addRow() {
+    const table = document.getElementById('itemsTable').querySelector('tbody');
+    const currentRowCount = table.rows.length;
+    if (currentRowCount >= 32) { alert('Maximum of 32 rows reached'); return; }
 
-      //Check if the current number of rows has reached the maximum limit
-      if (currentRowCount >= 32) {
-        alert('Maximum of 32 rows reached');
-        return;
-      }
-
-      //Get the active cell (where the user pressed Enter)
-      const activeElement = document.activeElement;
-      let activeCellIndex = 0; // Default to the first column
-
-      // Safely determine the active cell index if an input is focused
-      if (activeElement && activeElement.tagName === 'INPUT' && activeElement.closest('tr')) {
-         const row = activeElement.closest('tr'); // Get the active row
-         activeCellIndex = Array.from(activeElement.closest('tr').cells).indexOf(activeElement.closest('td'));
-      }
-
-      const rowIndex = currentRowCount + 1;
-      const row = table.insertRow();
-      row.innerHTML = `
-        <td>${rowIndex}</td>
-        <td><input type="text" onkeydown="checkEnterKey(event)"></td> <!-- Changed from number to text -->
-        <td><input type="text" onkeydown="checkEnterKey(event)"></td>
-        <td><input type="text" onkeydown="checkEnterKey(event)"></td>
-      `;
-
-      // Automatically focus the first input in the new row
-      const targetInput = row.cells[activeCellIndex]?.querySelector('input') || row.cells[1]?.querySelector('input');
-      if (targetInput) {
-        targetInput.focus();
-      }
+    const activeElement = document.activeElement;
+    let activeCellIndex = 1; 
+    if (activeElement && activeElement.tagName === 'INPUT' && activeElement.closest('tr')) {
+       activeCellIndex = Array.from(activeElement.closest('tr').cells).indexOf(activeElement.closest('td'));
     }
 
-    // Delete the last row from the table
-    function deleteRow() {
-      const table = document.getElementById('itemsTable').querySelector('tbody');
-      const currentRowCount = table.rows.length;
+    const row = table.insertRow();
+    row.innerHTML = `
+      <td>${currentRowCount + 1}</td>
+      <td><input type="text" onkeydown="checkEnterKey(event)"></td>
+      <td><input type="text" onkeydown="checkEnterKey(event)"></td>
+      <td><input type="text" onkeydown="checkEnterKey(event)"></td>
+    `;
+    const targetInput = row.cells[activeCellIndex]?.querySelector('input') || row.cells[1].querySelector('input');
+    if (targetInput) targetInput.focus();
+  }
 
-      if (currentRowCount > 1) {
-        // Identify the active input and its column
-        const activeElement = document.activeElement;
-        let activeRowIndex = currentRowCount - 1; // Default to the last row
-        let activeCellIndex = 0; // Default to the first column
+  function deleteRow() {
+    const table = document.getElementById('itemsTable').querySelector('tbody');
+    if (table.rows.length > 1) {
+      table.deleteRow(-1);
+    } else {
+      alert('At least one row must remain');
+    }
+  }
 
-        if (activeElement && activeElement.tagName === 'INPUT') {
-          const activeRow = activeElement.closest('tr');
-          const activeCell = activeElement.closest('td');
-          activeRowIndex = Array.from(table.rows).indexOf(activeRow);
-          activeCellIndex = Array.from(activeRow.cells).indexOf(activeCell);
-        }
+  function checkEnterKey(event) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      addRow();
+    }
+  }
 
-        // Delete the last row
-        table.deleteRow(currentRowCount - 1);
+  // Paste Logic
+  document.querySelector('#itemsTable').addEventListener('paste', function(event) {
+    const activeElement = document.activeElement;
+    const table = document.getElementById('itemsTable').querySelector('tbody');
+    const currentRow = activeElement.closest('tr');
+    const activeCell = activeElement.closest('td');
+    const columnIndex = Array.from(currentRow.cells).indexOf(activeCell);
 
-        // Attempt to focus the same cell in the new row (if exists)
-        const newRowCount = table.rows.length;
-        const newRowIndex = Math.min(activeRowIndex, newRowCount - 1); // Adjust for shorter table
-        const newLastRow = table.rows[newRowIndex];
+    if (columnIndex === 2) handlePasteDescription(event, table, currentRow);
+    else if (columnIndex === 1) handlePasteQuantity(event, table, currentRow);
+  });
 
-        if (newLastRow) {
-          const targetInput = newLastRow.cells[activeCellIndex]?.querySelector('input');
-          if (targetInput) {
-            setTimeout(() => targetInput.focus(), 0);
-          }
-        }
+  function handlePasteDescription(event, table, currentRow) {
+    const pastedData = (event.clipboardData || window.clipboardData).getData('text').trim();
+    const rows = pastedData.split('\n').filter(r => r.trim() !== '');
+    rows.forEach((data, i) => {
+      if (i === 0) currentRow.cells[2].querySelector('input').value = data;
+      else {
+        const nr = table.insertRow();
+        nr.innerHTML = `<td>${table.rows.length}</td><td><input type="text"></td><td><input type="text" value="${data.trim()}"></td><td><input type="text"></td>`;
+      }
+    });
+    event.preventDefault();
+  }
+
+  function handlePasteQuantity(event, table, currentRow) {
+    const pastedData = (event.clipboardData || window.clipboardData).getData('text').trim();
+    const rows = pastedData.split('\n').filter(r => r.trim() !== '');
+    rows.forEach((rowStr, i) => {
+      if (table.rows.length >= 32) return;
+      const cols = rowStr.split(/\t+/);
+      if (cols.length < 2) return;
+      const [qty, desc, rem] = cols.map(c => c.trim());
+      if (i === 0) {
+        currentRow.cells[1].querySelector('input').value = qty || '';
+        currentRow.cells[2].querySelector('input').value = desc || '';
+        currentRow.cells[3].querySelector('input').value = rem || '';
       } else {
-        alert('At least one row must remain');
+        const nr = table.insertRow();
+        nr.innerHTML = `<td>${table.rows.length}</td>
+          <td><input type="text" value="${qty || ''}"></td>
+          <td><input type="text" value="${desc || ''}"></td>
+          <td><input type="text" value="${rem || ''}"></td>`;
       }
-    }
+    });
+    event.preventDefault();
+  }
 
-    function checkEnterKey(event) {
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        addRow();
-      }
-    }
+  // Form Submission via API
+  async function saveForm() {
+    const requiredFields = [
+      { id: 'to', label: 'To' },
+      { id: 'sentBy', label: 'Sent By' },
+      { id: 'note', label: 'Note' },
+      { id: 'senderName', label: 'Sender Name' },
+      { id: 'receiverName', label: 'Receiver Name' }
+    ];
 
-    document.addEventListener('keydown', function(event) {
-      if (event.key === 'Delete') {
-        deleteRow();
+    let missingFields = [];
+    requiredFields.forEach(field => {
+      const input = document.getElementById(field.id);
+      if (!input.value.trim()) {
+        missingFields.push(field.label);
+        input.style.border = '1px solid #b35c5c';
+      } else {
+        input.style.border = '';
       }
     });
 
-    document.querySelector('#itemsTable').addEventListener('paste', function(event) {
-      const activeElement = document.activeElement;
-      const table = document.getElementById('itemsTable').querySelector('tbody');
-      const currentRow = activeElement.closest('tr');
-      const activeCell = activeElement.closest('td');
-      const columnIndex = Array.from(currentRow.cells).indexOf(activeCell);
-
-      if (columnIndex === 2) {
-        handlePasteDescription(event, table, currentRow);
-      } else if (columnIndex === 1) {
-        handlePasteQuantity(event, table, currentRow);
-      }
-    });
-
-    function handlePasteDescription(event, table, currentRow) {
-      const clipboardData = event.clipboardData || window.clipboardData;
-      const pastedData = clipboardData.getData('text').trim();
-
-      const rows = pastedData.split('\n').filter(row => row.trim() !== '');
-      rows.forEach((row, rowIndex) => {
-        const combinedData = row.trim();
-
-        if (rowIndex === 0) {
-          currentRow.cells[2].querySelector('input').value = combinedData;
-        } else {
-          const newRow = table.insertRow();
-          newRow.innerHTML = `
-             <td>${table.rows.length}</td>
-             <td><input type="text" onkeydown="checkEnterKey(event)"></td>
-             <td><input type="text" onkeydown="checkEnterKey(event)" value="${combinedData}"></td>
-             <td><input type="text" onkeydown="checkEnterKey(event)"></td>
-          `;
-        }
-      });
-      event.preventDefault();
+    const rows = document.querySelectorAll('#itemsTable tbody tr');
+    if (!rows[0].cells[2].querySelector('input').value.trim()) {
+      missingFields.push('Table Items (Description)');
     }
 
-    function handlePasteQuantity(event, table, currentRow) {
-      const clipboardData = event.clipboardData || window.clipboardData;
-      const pastedData = clipboardData.getData('text').trim();
-      const rows = pastedData.split('\n').filter(row => row.trim() !== '');
-
-      const maxRows = 32;
-      let currentRowCount = table.rows.length;
-      let limitReached = false;
-
-      rows.forEach((row, rowIndex) => {
-        const columns = row.split(/\t+/); // Split by tab (TSV format)
-        if (columns.length < 3) return;
-
-        // If we're at or over the max row count, stop adding and show alert once
-        if (currentRowCount >= maxRows) {
-          if (!limitReached) {
-            alert('Maximum of 32 rows reached');
-            limitReached = true;
-          }
-          return;
-        }
-
-        const [quantity, description, remarks] = columns.map(col => col.trim());
-        if (rowIndex === 0) {
-          currentRow.cells[1].querySelector('input').value = quantity;
-          currentRow.cells[2].querySelector('input').value = description;
-          currentRow.cells[3].querySelector('input').value = remarks;
-        } else {
-          const newRow = table.insertRow();
-          newRow.innerHTML = `
-            <td>${table.rows.length}</td>
-            <td><input type="text" onkeydown="checkEnterKey(event)" value="${quantity}"></td>
-            <td><input type="text" onkeydown="checkEnterKey(event)" value="${description}"></td>
-            <td><input type="text" onkeydown="checkEnterKey(event)" value="${remarks}"></td>
-          `;
-          currentRowCount++; // Increase count only when new row is added
-        }
-      });
-
-      event.preventDefault();
+    if (missingFields.length > 0) {
+      alert('Required: ' + missingFields.join(', '));
+      return;
     }
 
-    // Clear canvas content
-    function clearCanvas(canvasId) {
-      const canvas = document.getElementById(canvasId);
-      const context = canvas.getContext('2d');
-      context.clearRect(0, 0, canvas.width, canvas.height);
-      setupCanvas(canvasId); // Re-enable drawing after clearing
-    }
+    document.getElementById('loadingGif').style.display = 'flex';
 
-    // Reset form content
-    function resetForm() {
-      const form = document.getElementById('shippingForm');
-      form.reset();
-      document.getElementById('spNo').value = new Date().getTime().toString().slice(-4).padStart(7,'025');
-      const now = new Date();
-      document.getElementById('date').value = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-      document.getElementById('time').value = now.toTimeString().split(' ')[0];
-      clearCanvas('senderCanvas');
-      clearCanvas('receiverCanvas');
-    }
+    const formData = {
+      spNo: document.getElementById('spNo').value,
+      to: document.getElementById('to').value,
+      sentBy: document.getElementById('sentBy').value,
+      note: document.getElementById('note').value,
+      items: Array.from(rows).map((row, i) => ({
+        no: i + 1,
+        qty: row.cells[1].querySelector('input').value,
+        desc: row.cells[2].querySelector('input').value,
+        remarks: row.cells[3].querySelector('input').value
+      })),
+      senderName: document.getElementById('senderName').value,
+      receiverName: document.getElementById('receiverName').value,
+      receiverPhone: document.getElementById('receiverPhone').value,
+      date: document.getElementById('date').value,
+      time: document.getElementById('time').value,
+      senderSig: document.getElementById('senderCanvas').toDataURL(),
+      receiverSig: document.getElementById('receiverCanvas').toDataURL(),
+      image: document.getElementById('imagePreview').src || ''
+    };
 
-    // Preview uploaded image
-    function previewImage(event, previewId) {
-      const reader = new FileReader();
-      reader.onload = function() {
-        const preview = document.getElementById(previewId);
-        preview.src = reader.result;
-        preview.style.display = 'block';
-      };
-      reader.readAsDataURL(event.target.files[0]);
-    }
-
-    //Save SP Data Only
-    function saveForm() {
-      // Validate required fields similar to submitForm
-      const requiredFields = [
-        { id: 'to', label: 'To' },
-        { id: 'sentBy', label: 'Sent By' },
-        { id: 'note', label: 'Note' },
-        { id: 'senderName', label: 'Sender Name' },
-        { id: 'receiverName', label: 'Receiver Name' }
-      ];
-
-      let missingFields = [];
-      requiredFields.forEach(field => {
-        const input = document.getElementById(field.id);
-        if (!input.value.trim()) {
-          missingFields.push(field.label);
-          input.style.border = '2px solid red';
-        } else {
-          input.style.border = '';
-        }
-      });
-      const rows = document.querySelectorAll('#itemsTable tbody tr');
-      if (rows.length === 0 || rows[0].cells[1].querySelector('input').value.trim() === '') {
-        missingFields.push('At least one item in the table');
-        document.querySelector('#itemsTable').style.border = '2px solid red';
-      } else {
-        document.querySelector('#itemsTable').style.border = '';
-      }
-
-      if (missingFields.length > 0) {
-        alert('Please fill in the required fields:\n' + missingFields.join('\n'));
-        return;
-      }
-
-      // Show loading GIF
-      const loadingGif = document.getElementById('loadingGif');
-      loadingGif.style.display = 'flex';
-
-      const formData = {
-        spNo: document.getElementById('spNo').value,
-        to: document.getElementById('to').value,
-        sentBy: document.getElementById('sentBy').value,
-        note: document.getElementById('note').value,
-        tableData: [],
-        senderSignature: document.getElementById('senderCanvas').toDataURL(),
-        receiverSignature: document.getElementById('receiverCanvas').toDataURL(),
-        senderName: document.getElementById('senderName').value,
-        receiverName: document.getElementById('receiverName').value,
-        receiverPhone: document.getElementById('receiverPhone').value,
-        date: document.getElementById('date').value,
-        time: document.getElementById('time').value,
-        uploadedImage: document.getElementById('imagePreview').src,
-        googleDocUrl: '' // No doc created in Save
-      };
-
-      rows.forEach((row, index) => {
-        formData.tableData.push({
-          no: index + 1,
-          quantity: row.cells[1].querySelector('input').value,
-          description: row.cells[2].querySelector('input').value,
-          remarks: row.cells[3].querySelector('input').value
-        });
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        mode: 'no-cors', // Note: use 'cors' if your API supports it. 'no-cors' won't allow reading response.
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
       });
 
-      // Save to spreadsheet only (no document generation)
-      google.script.run
-      .withSuccessHandler(function (response) {
-        loadingGif.style.display = 'none';
-        if (response.success) {
-          alert('Form saved to spreadsheet successfully!');
-          location.reload(); // Reload the page to clear the form
-        } else {
-          alert('Failed to save form: ' + response.message);
-        }
-      })
-      .withFailureHandler(function (error) {
-        loadingGif.style.display = 'none';
-        console.error('Save Error:', error);
-        alert('An error occurred while saving the form.');
-      })
-      .submitToSpreadsheet(formData);
+      // If using Apps Script Web App with 'no-cors', we assume success if no error is thrown
+      document.getElementById('loadingGif').style.display = 'none';
+      document.getElementById('submissionNotification').style.display = 'block';
+      
+      setTimeout(() => {
+        alert('Data submitted successfully!');
+        location.reload();
+      }, 1000);
+
+    } catch (error) {
+      document.getElementById('loadingGif').style.display = 'none';
+      alert('Error: ' + error.message);
     }
+  }
 
-// Function to submit the form data DIRECTLY to the spreadsheet
-    function submitForm() {
-      // 1. Validation: Ensure required fields are filled
-      const requiredFields = [
-        { id: 'to', label: 'To' },
-        { id: 'sentBy', label: 'Sent By' },
-        { id: 'note', label: 'Note' },
-        { id: 'senderName', label: 'Sender Name' },
-        { id: 'receiverName', label: 'Receiver Name' }
-      ];
+  // Canvas & Setup
+  function setupCanvas(canvasId) {
+    const canvas = document.getElementById(canvasId);
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = "#226873";
 
-      let missingFields = [];
-      requiredFields.forEach(field => {
-        const input = document.getElementById(field.id);
-        if (!input.value.trim()) {
-          missingFields.push(field.label);
-          input.style.border = '2px solid red';
-        } else {
-          input.style.border = '';
-        }
-      });
+    const getPos = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return [clientX - rect.left, clientY - rect.top];
+    };
 
-      const rows = document.querySelectorAll('#itemsTable tbody tr');
-      if (rows.length === 0 || rows[0].cells[1].querySelector('input').value.trim() === '') {
-        missingFields.push('At least one item in the table');
-        document.querySelector('#itemsTable').style.border = '2px solid red';
-      } else {
-        document.querySelector('#itemsTable').style.border = '';
-      }
+    const start = (e) => { drawing = true; const [x,y] = getPos(e); ctx.beginPath(); ctx.moveTo(x,y); e.preventDefault(); };
+    const move = (e) => { if(!drawing) return; const [x,y] = getPos(e); ctx.lineTo(x,y); ctx.stroke(); e.preventDefault(); };
+    const stop = () => drawing = false;
 
-      if (missingFields.length > 0) {
-        alert('Please fill in the required fields:\n' + missingFields.join('\n'));
-        return;
-      }
+    canvas.addEventListener('mousedown', start);
+    canvas.addEventListener('mousemove', move);
+    window.addEventListener('mouseup', stop);
+    canvas.addEventListener('touchstart', start, {passive: false});
+    canvas.addEventListener('touchmove', move, {passive: false});
+    canvas.addEventListener('touchend', stop);
+  }
 
-      // 2. Show loading animation
-      const loadingGif = document.getElementById('loadingGif');
-      loadingGif.style.display = 'flex';
+  function clearCanvas(id) {
+    const c = document.getElementById(id);
+    c.getContext('2d').clearRect(0,0,c.width,c.height);
+  }
 
-      // 3. Construct the formData object exactly as your backend expects it
-      const formData = {
-        spNo: document.getElementById('spNo').value,
-        to: document.getElementById('to').value,
-        sentBy: document.getElementById('sentBy').value,
-        note: document.getElementById('note').value,
-        tableData: [],
-        senderSignature: document.getElementById('senderCanvas').toDataURL(),
-        receiverSignature: document.getElementById('receiverCanvas').toDataURL(),
-        senderName: document.getElementById('senderName').value,
-        receiverName: document.getElementById('receiverName').value,
-        receiverPhone: document.getElementById('receiverPhone').value,
-        date: document.getElementById('date').value,
-        time: document.getElementById('time').value,
-        uploadedImage: document.getElementById('imagePreview').src,
-        googleDocUrl: 'NO_DOC_GENERATED' // Placeholder since we are skipping Doc creation
-      };
+  function resetForm() { if(confirm('Clear all data?')) location.reload(); }
 
-      // Collect table rows
-      rows.forEach((row, index) => {
-        formData.tableData.push({
-          no: index + 1,
-          quantity: row.cells[1].querySelector('input').value,
-          description: row.cells[2].querySelector('input').value,
-          remarks: row.cells[3].querySelector('input').value
-        });
-      });
+  function previewImage(event, id) {
+    const reader = new FileReader();
+    reader.onload = () => { const img = document.getElementById(id); img.src = reader.result; img.style.display = 'block'; };
+    if(event.target.files[0]) reader.readAsDataURL(event.target.files[0]);
+  }
 
-      // 4. Call the Backend function directly
-      google.script.run
-        .withSuccessHandler(function(response) {
-          loadingGif.style.display = 'none';
-          if (response.success) {
-            alert('Form submitted and saved to spreadsheet successfully!');
-            location.reload(); // Refresh form after success
-          } else {
-            alert('Backend Error: ' + response.message);
-          }
-        })
-        .withFailureHandler(function(error) {
-          loadingGif.style.display = 'none';
-          console.error('Submission Error:', error);
-          alert('A critical error occurred while submitting.');
-        })
-        .submitToSpreadsheet(formData); // This calls your specific GAS function
-    }
-
-    // Function to clear highlight when user fills in required fields
-    function setupValidationListeners() {
-      const requiredFields = ['to', 'sentBy', 'note', 'senderName', 'receiverName'];
-
-      requiredFields.forEach(id => {
-        const input = document.getElementById(id);
-        input.addEventListener('input', () => {
-          if (input.value.trim()) {
-            input.style.border = ''; // Remove highlight if filled
-          }
-        });
-      });
-      // Table row inputs
-      document.querySelectorAll('#itemsTable tbody input').forEach(input => {
-        input.addEventListener('input', () => {
-          if (input.value.trim()) {
-            document.querySelector('#itemsTable').style.border = ''; // Remove highlight if at least one item is filled
-          }
-        });
-      });
-    }
-
-    // Call setupValidationListeners when the page loads
-    window.onload = setupValidationListeners;
-
-    // Initialize canvas
+  window.onload = () => {
     setupCanvas('senderCanvas');
     setupCanvas('receiverCanvas');
-
-    // Function to handle canvas drawing (from previous code)
-    function setupCanvas(canvasId) {
-      const canvas = document.getElementById(canvasId);
-      const context = canvas.getContext('2d');
-      let drawing = false;
-
-      canvas.addEventListener('mousedown', startDrawing);
-      canvas.addEventListener('mousemove', draw);
-      canvas.addEventListener('mouseup', stopDrawing);
-      canvas.addEventListener('touchstart', startDrawing, { passive: false });
-      canvas.addEventListener('touchmove', draw, { passive: false });
-      canvas.addEventListener('touchend', stopDrawing);
-
-      function startDrawing(e) {
-        drawing = true;
-        const [x, y] = getCoordinates(e);
-        context.beginPath();
-        context.moveTo(x, y);
-        e.preventDefault();
-      }
-
-      function draw(e) {
-        if (drawing) {
-          const [x, y] = getCoordinates(e);
-          context.lineTo(x, y);
-          context.stroke();
-          e.preventDefault();
-        }
-      }
-
-      function stopDrawing() {
-        drawing = false;
-      }
-
-      function getCoordinates(e) {
-        if (e.touches) {
-          const touch = e.touches[0];
-          return [touch.pageX - canvas.offsetLeft, touch.pageY - canvas.offsetTop];
-        }
-        return [e.offsetX, e.offsetY];
-      }
-
-      // Set default line thickness and style
-      context.lineWidth = 3;
-      context.lineJoin = 'round';
-      context.lineCap = 'round';
-    }
-  </script>
+  };
+</script>
 </body>
 </html>
