@@ -467,7 +467,7 @@ async function downloadPDF() {
     btn.innerText = "Processing...";
     btn.disabled = true;
 
-    const element = iframe.contentWindow.document.body;
+    const pages = iframe.contentWindow.document.querySelectorAll('.page');
 
     const spData = JSON.parse(localStorage.getItem('currentSPData'));
     const fileName = `SP_${spData["SP No."] || 'Export'}.pdf`;
@@ -475,38 +475,37 @@ async function downloadPDF() {
     const opt = {
         margin: 0,
         filename: fileName,
-
-        image: {
-            type: 'jpeg',
-            quality: 1
-        },
-
+        image: { type: 'jpeg', quality: 1 },
         html2canvas: {
-            scale: 3,
-            useCORS: true,
-            logging: false
+            scale: 2,
+            useCORS: true
         },
-
         jsPDF: {
-            unit: 'pt',          // ⬅ penting
+            unit: 'mm',
             format: 'a4',
             orientation: 'portrait'
         }
     };
 
-    html2pdf()
-        .set(opt)
-        .from(element)
-        .save()
-        .then(() => {
-            btn.innerText = originalText;
-            btn.disabled = false;
-        })
-        .catch(err => {
-            console.error(err);
-            btn.innerText = originalText;
-            btn.disabled = false;
-        });
+    const pdf = new html2pdf().set(opt);
+
+    let first = true;
+
+    for (const page of pages) {
+
+        if (!first) {
+            await pdf.get('pdf').then(pdf => pdf.addPage());
+        }
+
+        await pdf.from(page).toCanvas().toPdf();
+
+        first = false;
+    }
+
+    await pdf.save();
+
+    btn.innerText = originalText;
+    btn.disabled = false;
 }
     function printIframe() {
         const iframe = document.getElementById('formIframe');
