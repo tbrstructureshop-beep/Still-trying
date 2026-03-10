@@ -3,160 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <title>GMF Shipping Document - Professional Template</title>
-    <style type="text/css">
-        @import url('https://fonts.googleapis.com/css2?family=Bree+Serif&family=Edu+SA+Beginner:wght@400;700&family=IBM+Plex+Sans:wght@400;700&display=swap');
+<style type="text/css">
+    @import url('https://fonts.googleapis.com/css2?family=Bree+Serif&family=Edu+SA+Beginner:wght@400;700&family=IBM+Plex+Sans:wght@400;700&display=swap');
 
-        /* Print Configuration: 0.5cm all sides */
-        @page {
-            size: A4;
-            margin: 5mm;
-        }
+    /* Print Configuration: 0.5cm all sides */
+    @page {
+        size: A4;
+        margin: 5mm;
+    }
 
+    body {
+        margin: 0;
+        padding: 0;
+        font-family: "Calibri", "Arial", sans-serif;
+        font-size: 9pt;
+        color: #000;
+        background-color: #fff;
+        line-height: 1.1;
+    }
+
+    .page {
+        page-break-after: always;
+        width: 100%;
+        box-sizing: border-box;
+        position: relative;
+        /* FIXED: Added padding to ensure content doesn't touch edges */
+        padding: 5mm; 
+        background-color: #fff;
+    }
+
+    /* Typography & Colors */
+    .blue-val { color: #073763; font-family: 'Bree Serif', serif; }
+    .script-val { font-family: 'Edu SA Beginner', cursive; font-weight: 500; font-size: 9.5pt; color: #073763; }
+    .label-b-u { font-weight: bold; text-decoration: underline; }
+    .small-label { font-size: 8pt; line-height: 1; display: block; }
+    .b { font-weight: bold; }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+    }
+
+    td {
+        padding: 1px 3px;
+        vertical-align: top;
+        word-wrap: break-word;
+    }
+
+    /* Header Component Styles */
+    .header-wrapper { margin-bottom: 2px; }
+    .logo-img { width: 240px; height: auto; display: block; }
+    .header-text-right { text-align: right; vertical-align: bottom; padding-bottom: 2px; }
+    .no-sp-row { font-size: 13pt; margin-bottom: 0; }
+    .title-main { font-size: 14pt; font-weight: bold; text-decoration: underline; text-transform: uppercase; margin: 0; }
+    .title-sub { font-size: 10pt; margin: 0; font-weight: normal; }
+
+    .info-table { margin-top: 2px; margin-bottom: 5px; }
+    .field-dotted { border-bottom: 1px dotted black; }
+
+    /* Unified Table Grid */
+    .unified-table {
+        border-top: 1px solid black;
+        border-bottom: 1px solid black;
+        border-left: 1px solid transparent; 
+        border-right: 1px solid transparent; 
+    }
+
+    .unified-table th {
+        border: 1px solid black;
+        border-top: none;
+        padding: 3px 1px;
+        font-weight: bold;
+        text-decoration: underline;
+        font-size: 9pt;
+    }
+    .unified-table th:first-child { border-left: none; }
+    .unified-table th:last-child { border-right: none; }
+
+    .item-row td {
+        height: 15px;
+        border-bottom: 1px dotted black; 
+        border-left: 1px solid black;
+        border-right: 1px solid black;
+        text-align: center;
+    }
+    .item-row td:first-child { border-left: none; }
+    .item-row td:last-child { border-right: none; }
+    .item-row td.text-left { text-align: left; padding-left: 5px; }
+
+    .col-no { width: 8%; }
+    .col-qty { width: 12%; }
+    .col-desc { width: 60%; }
+    .col-rem { width: 20%; }
+
+    .footer-row td {
+        height: 75px;
+        vertical-align: middle;
+        border-bottom: none;
+        border-left: 1px solid black;
+        border-right: 1px solid black;
+    }
+    .footer-row td:first-child { border-left: none; }
+    .footer-row td:last-child { border-right: none; }
+
+    .packed-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 5px;
+    }
+
+    .sig-line {
+        border-bottom: 1px dotted black;
+        width: 170px;
+        margin: 15px auto 2px auto;
+    }
+
+    .evidence-block { margin-top: 5px; padding-left: 5px; }
+    .date-line { border-bottom: 1px dotted black; width: 300px; display: inline-block; }
+
+    /* FIXED: Using fixed height instead of 65vh for PDF stability */
+    .image-box {
+        border: 1px solid black;
+        margin-top: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 155mm; 
+        width: 100%;
+    }
+    .document-image {
+        max-width: 98%;
+        max-height: 98%;
+        object-fit: contain;
+    }
+
+    @media print {
+        button { display: none; }
+    }
+
+    /* Screen and Modal View */
+    @media screen {
         body {
-            margin: 0;
-            padding: 0;
-            font-family: "Calibri", "Arial", sans-serif;
-            font-size: 9pt;
-            color: #000;
-            background-color: #fff;
-            line-height: 1.1;
+            width: 794px; 
+            margin: 0 auto;
+            background-color: #f0f0f0;
         }
-
         .page {
-            page-break-after: always;
-            width: 100%;
-            box-sizing: border-box;
-            position: relative;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            margin: 10px auto; /* Centering the page in modal */
         }
-
-        /* Typography & Colors */
-        .blue-val { color: #073763; font-family: 'Bree Serif', serif; }
-        .script-val { font-family: 'Edu SA Beginner', cursive; font-weight: 500; font-size: 9.5pt; color: #073763; }
-        .label-b-u { font-weight: bold; text-decoration: underline; }
-        .small-label { font-size: 8pt; line-height: 1; display: block; }
-        .b { font-weight: bold; }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-        }
-
-        td {
-            padding: 1px 3px;
-            vertical-align: top;
-            word-wrap: break-word;
-        }
-
-        /* Repeated Header Component Styles */
-        .header-wrapper { margin-bottom: 2px; }
-        .logo-img { width: 240px; height: auto; display: block; }
-        .header-text-right { text-align: right; vertical-align: bottom; padding-bottom: 2px; }
-        .no-sp-row { font-size: 13pt; margin-bottom: 0; }
-        .title-main { font-size: 14pt; font-weight: bold; text-decoration: underline; text-transform: uppercase; margin: 0; }
-        .title-sub { font-size: 10pt; margin: 0; font-weight: normal; }
-
-        .info-table { margin-top: 2px; margin-bottom: 5px; }
-        .field-dotted { border-bottom: 1px dotted black; }
-
-        /* Unified Table Grid */
-        .unified-table {
-            border-top: 1px solid black;
-            border-bottom: 1px solid black;
-            border-left: 1px solid transparent; 
-            border-right: 1px solid transparent; 
-        }
-
-        /* Header Row */
-        .unified-table th {
-            border: 1px solid black;
-            border-top: none;
-            padding: 3px 1px;
-            font-weight: bold;
-            text-decoration: underline;
-            font-size: 9pt;
-        }
-        .unified-table th:first-child { border-left: none; }
-        .unified-table th:last-child { border-right: none; }
-
-        /* Item Rows 1 thru 31 (Dotted bottom) */
-        .item-row td {
-            height: 15px;
-            border-bottom: 1px dotted black; 
-            border-left: 1px solid black;
-            border-right: 1px solid black;
-            text-align: center;
-        }
-        .item-row td:first-child { border-left: none; }
-        .item-row td:last-child { border-right: none; }
-        .item-row td.text-left { text-align: left; padding-left: 5px; }
-
-        .col-no { width: 8%; }
-        .col-qty { width: 12%; }
-        .col-desc { width: 60%; }
-        .col-rem { width: 20%; }
-
-        /* Footer Row - Sticked to Body */
-        .footer-row td {
-            height: 75px;
-            vertical-align: middle;
-            border-bottom: none;
-            border-left: 1px solid black;
-            border-right: 1px solid black;
-        }
-        .footer-row td:first-child { border-left: none; }
-        .footer-row td:last-child { border-right: none; }
-
-        .packed-content {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 5px;
-        }
-
-        .sig-line {
-            border-bottom: 1px dotted black;
-            width: 170px;
-            margin: 15px auto 2px auto;
-        }
-
-        .evidence-block { margin-top: 5px; padding-left: 5px; }
-        .date-line { border-bottom: 1px dotted black; width: 300px; display: inline-block; }
-
-        .image-box {
-            border: 1px solid black;
-            margin-top: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 65vh;
-            width: 100%;
-        }
-        .document-image {
-            max-width: 98%;
-            max-height: 98%;
-            object-fit: contain;
-        }
-        @media print {
-            button { display: none; }
-        }
-
-        /* Add this inside the <style> of form/index.html */
-        @media screen {
-            body {
-                /* This prevents the "cut off" effect when the iframe snapshots */
-                width: 794px; 
-                margin: 0 auto;
-                background-color: #f0f0f0;
-            }
-            .page {
-                background: white;
-                box-shadow: 0 0 10px rgba(0,0,0,0.1);
-                margin-bottom: 10px;
-            }
-        }
-        
-    </style>
+    }
+</style>
 </head>
 <body>
 
