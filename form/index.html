@@ -2,12 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GMF Shipping Document</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style type="text/css">
         @import url('https://fonts.googleapis.com/css2?family=Bree+Serif&family=Edu+SA+Beginner:wght@400;700&display=swap');
 
-        /* 1. GLOBAL STABILITY */
+        /* 1. RESET & GLOBAL */
         * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
         body {
@@ -16,48 +17,70 @@
             font-family: "Calibri", "Arial", sans-serif;
             font-size: 9pt;
             color: #000;
-            background-color: #f4f7f8; /* Background layar abu-abu biru soft */
+            background-color: #f4f7f8;
             line-height: 1.1;
         }
 
-        /* 2. RESPONSIVE SCREEN MODE (FOR PHONE/DESKTOP) */
+        /* 2. RESPONSIVE SCREEN MODE (Tampilan di HP/Browser) */
+        #pdf-area {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
         .page {
             background-color: #fff;
             position: relative;
             overflow: hidden;
-            width: 98%; /* Fit di HP */
-            max-width: 794px; /* Standar A4 px */
+            width: 95%; /* Fit di layar HP */
+            max-width: 794px; /* Lebar standar A4 px */
             margin: 15px auto;
-            padding: 10mm !important; /* Margin dalam seimbang */
+            padding: 10mm !important;
             box-shadow: 0 0 15px rgba(0,0,0,0.1);
             page-break-after: always;
-            min-height: 1120px;
+            min-height: 1120px; /* Rasio A4 */
         }
 
-        /* 3. FIXED PDF MODE (FORCE A4 CENTERED) */
-        .pdf-mode { background: white !important; }
-        .pdf-mode #pdf-area { background: white !important; width: 210mm !important; }
-        .pdf-mode .page {
-            width: 210mm !important;
-            height: 297mm !important;
+        /* 3. STRICT PDF MODE (Dipaksa saat download agar tidak amburadul) */
+        body.pdf-mode {
+            background: white !important;
+            width: 794px !important; /* Kunci lebar agar tidak mengikuti layar HP */
+        }
+
+        .pdf-mode #pdf-area {
+            width: 794px !important;
+            padding: 0 !important;
             margin: 0 !important;
-            padding: 10mm !important; /* Pastikan margin sisi sama di PDF */
+        }
+
+        .pdf-mode .page {
+            width: 794px !important; /* Gunakan PX agar sinkron dengan html2canvas */
+            height: 1122px !important;
+            margin: 0 !important;
+            padding: 10mm !important; /* Margin kertas tetap center */
             box-shadow: none !important;
+            border: none !important;
             display: block !important;
         }
 
-        /* Fix Signature/Image Render */
+        /* Fix Render Gambar & Tanda Tangan */
         .pdf-mode img { mix-blend-mode: normal !important; filter: contrast(1.1); }
 
-        /* 4. MOBILE ADJUSTMENTS */
+        /* 4. MOBILE ADJUSTMENTS (Hanya untuk tampilan mata di HP) */
         @media screen and (max-width: 768px) {
-            .page { width: 100% !important; margin: 5px 0 !important; padding: 5mm !important; }
+            .page { 
+                width: 100% !important; 
+                margin: 5px 0 !important; 
+                padding: 5mm !important; /* Lebih kecil di HP agar lega */
+                min-height: auto; 
+            }
             .logo-img { width: 160px !important; }
-            .title-main { font-size: 12pt !important; }
-            .image-box { height: 100mm !important; } /* Lebih pendek di HP agar nyaman di-scroll */
+            .title-main { font-size: 11pt !important; }
+            .image-box { height: 100mm !important; } 
         }
 
-        /* 5. CONTENT STYLING */
+        /* 5. CONTENT STYLING (Tetap Presisi) */
         .blue-val { color: #073763; font-family: 'Bree Serif', serif; }
         .script-val { font-family: 'Edu SA Beginner', cursive; font-weight: 500; font-size: 9.5pt; color: #073763; }
         .label-b-u { font-weight: bold; text-decoration: underline; }
@@ -77,7 +100,7 @@
         .unified-table th { border: 1px solid black; padding: 3px 1px; font-weight: bold; text-decoration: underline; font-size: 8.5pt; }
         
         .item-row td { 
-            height: 16px; /* FIXED HEIGHT agar pas 31 baris dalam 1 halaman */
+            height: 16.5px; /* Kunci tinggi baris agar 31 baris pas di A4 */
             border-bottom: 1px dotted black; border-left: 1px solid black; border-right: 1px solid black; text-align: center; 
         }
         .item-row td.text-left { text-align: left; padding-left: 5px; }
@@ -93,7 +116,7 @@
 <body>
 
 <div id="pdf-area">
-    <!-- PAGE 1: DATA & ITEMS -->
+    <!-- PAGE 1 -->
     <div class="page">
         <div class="header-wrapper">
             <table>
@@ -136,10 +159,11 @@
                 </tr>
             </thead>
             <tbody>
+                <!-- Row 1 (Data) -->
                 <tr class="item-row script-val">
                     <td>{{No 1}}</td><td>{{Quantity 1}}</td><td class="text-left">{{Item 1}}</td><td>{{Remarks 1}}</td>
                 </tr>
-                <!-- 30 Empty Rows for stability -->
+                <!-- 30 Generated Empty Rows -->
                 <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
                 <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
                 <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
@@ -210,7 +234,7 @@
         <div style="margin-top: 5px; font-size: 8pt; color: #999;">GMF/A-111</div>
     </div>
 
-    <!-- PAGE 2: EVIDENCE PICTURE -->
+    <!-- PAGE 2 -->
     <div class="page">
         <div class="header-wrapper">
             <table>
@@ -290,21 +314,40 @@
 
     async function generatePDF() {
         const element = document.getElementById('pdf-area');
-        document.body.classList.add('pdf-mode');
-        const spNo = document.querySelector('.blue-val').innerText;
+        const body = document.body;
+        
+        // 1. Masuk ke mode PDF (Memaksa ukuran A4 Desktop meskipun di HP)
+        body.classList.add('pdf-mode');
+
+        const spNoElement = document.querySelector('.blue-val');
+        const spNo = spNoElement ? spNoElement.innerText : "Doc";
 
         const opt = {
             margin: 0,
             filename: `SP_${spNo}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, windowWidth: 794 },
+            html2canvas: { 
+                scale: 2, 
+                useCORS: true, 
+                logging: false,
+                letterRendering: true,
+                // KUNCI: Paksa lebar window bayangan ke 794px (A4) 
+                // agar tidak mengikuti lebar layar HP yang sempit
+                windowWidth: 794, 
+                width: 794
+            },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
         try {
+            // Beri jeda 100ms agar CSS pdf-mode diterapkan sempurna oleh browser
+            await new Promise(resolve => setTimeout(resolve, 100));
             await html2pdf().set(opt).from(element).save();
+        } catch (err) {
+            console.error(err);
         } finally {
-            document.body.classList.remove('pdf-mode');
+            // Kembalikan tampilan HP normal
+            body.classList.remove('pdf-mode');
         }
     }
 </script>
