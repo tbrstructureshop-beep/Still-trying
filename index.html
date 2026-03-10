@@ -8,6 +8,8 @@
   
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     :root {
       --primary: #226873;
@@ -456,41 +458,36 @@
         renderCards();
     }
 
-async function downloadPDF() {
+function downloadPDF(){
 
-  const iframe = document.getElementById("formIframe");
+  const iframe = document.getElementById('formIframe');
+  if (!iframe || !iframe.contentWindow) return;
+
   const doc = iframe.contentWindow.document;
 
-  const pages = doc.querySelectorAll(".page");
-
-  const { jsPDF } = window.jspdf;
-
-  const pdf = new jsPDF({
-    unit: "mm",
-    format: "a4",
-    orientation: "portrait"
-  });
-
-  for (let i = 0; i < pages.length; i++) {
-
-    const canvas = await html2canvas(pages[i], {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: "#ffffff"
-    });
-
-    const img = canvas.toDataURL("image/jpeg", 1);
-
-    if (i > 0) pdf.addPage();
-
-    pdf.addImage(img, "JPEG", 0, 0, 210, 297);
-  }
-
   const spData = JSON.parse(localStorage.getItem('currentSPData'));
-  const fileName = spData?.["SP No."] ? "SP_" + spData["SP No."] : "shipping-document";
+  const fileName = spData && spData["SP No."]
+      ? "SP_" + spData["SP No."]
+      : "SP_Document";
 
-  pdf.save(fileName + ".pdf");
+  const element = doc.body;
+
+  html2pdf().set({
+      margin: 0,
+      filename: fileName + ".pdf",
+      image: { type: 'jpeg', quality: 1 },
+      html2canvas: {
+          scale: 2,
+          useCORS: true
+      },
+      jsPDF: {
+          unit: 'mm',
+          format: 'a4',
+          orientation: 'portrait'
+      }
+  }).from(element).save();
 }
+  
     function printIframe() {
         const iframe = document.getElementById('formIframe');
         if (iframe) {
