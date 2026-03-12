@@ -23,23 +23,40 @@
 .page {
     background-color: #fff;
     position: relative;
-    width: 210mm;      /* A4 standard */
-    min-height: 296mm; /* Biar penuh satu kertas */
-    margin: 15px auto; /* Centering di Desktop */
+    width: 210mm;
+    min-height: 296mm; 
+    margin: 15px auto; 
     padding: 10mm !important;
     box-shadow: 0 0 15px rgba(0,0,0,0.1);
     page-break-after: always;
     overflow: hidden;
-    box-sizing: border-box; /* WAJIB: Biar padding gak nambah lebar */
+    box-sizing: border-box;
 }
 
-/* FIX KHUSUS DOWNLOAD */
+/* FIX KHUSUS DOWNLOAD (BIAR GAK 4 HALAMAN) */
 body.pdf-mode .page {
     margin: 0 !important;
     width: 210mm !important;
-    min-height: 297mm !important; /* Paksa pas A4 */
+    height: 296.8mm !important; /* JANGAN 297mm! Kurangi dikit biar gak luber ke hal berikutnya */
+    min-height: auto !important;
     box-shadow: none !important;
-    float: none !important;
+    page-break-after: always;
+}
+
+/* Biar halaman terakhir gak bikin halaman kosong tambahan */
+body.pdf-mode .page:last-child {
+    page-break-after: avoid !important;
+}
+
+/* Adjust image-box biar Page 2 gak kepotong/luber */
+.image-box {
+    border: 1px solid black;
+    margin-top: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 165mm; /* Kurangi dari 175mm biar Header + Info Table muat di satu halaman */
+    width: 100%;
 }
         /* 4. TYPOGRAPHY & COLORS (From Ver 2) */
         .blue-val { color: #073763; font-family: 'Bree Serif', serif; }
