@@ -23,24 +23,23 @@
 .page {
     background-color: #fff;
     position: relative;
-    width: 794px;      /* Gunakan PX biar konsisten di semua browser */
-    min-height: 1120px; /* Gunakan min-height, jangan height kaku */
-    margin: 15px auto; 
+    width: 210mm;      /* A4 standard */
+    min-height: 296mm; /* Biar penuh satu kertas */
+    margin: 15px auto; /* Centering di Desktop */
     padding: 10mm !important;
     box-shadow: 0 0 15px rgba(0,0,0,0.1);
-    page-break-after: always; /* Kunci pemisah halaman */
+    page-break-after: always;
     overflow: hidden;
+    box-sizing: border-box; /* WAJIB: Biar padding gak nambah lebar */
 }
 
-/* Override pas download - Hapus margin luar biar gak geser */
-body.pdf-mode {
-    background: white !important;
-}
-
-.pdf-mode .page {
+/* FIX KHUSUS DOWNLOAD */
+body.pdf-mode .page {
     margin: 0 !important;
+    width: 210mm !important;
+    min-height: 297mm !important; /* Paksa pas A4 */
     box-shadow: none !important;
-    width: 794px !important;
+    float: none !important;
 }
         /* 4. TYPOGRAPHY & COLORS (From Ver 2) */
         .blue-val { color: #073763; font-family: 'Bree Serif', serif; }
@@ -343,11 +342,17 @@ body.pdf-mode {
         });
     });
 
-// GANTI OPTION DI DALAM generatePDF()
-// GANTI SCRIPT generatePDF JADI INI
+// GANTI TOTAL SCRIPT generatePDF JADI INI
 async function generatePDF() {
     const element = document.getElementById('pdf-area');
-    document.body.classList.add('pdf-mode');
+    const body = document.body;
+    
+    // Simpan posisi scroll asli biar user gak pusing
+    const scrollY = window.scrollY;
+    
+    // Paksa scroll ke paling atas sebelum capture (WAJIB biar gak kepotong atasnya)
+    window.scrollTo(0, 0);
+    body.classList.add('pdf-mode');
 
     const spNo = document.querySelector('.blue-val')?.innerText || "Doc";
 
@@ -355,14 +360,14 @@ async function generatePDF() {
         margin: 0,
         filename: `SP_${spNo}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        // TAMBAHKAN INI: Biar dia baca 'page-break-after' dari CSS lo
-        pagebreak: { mode: ['css', 'legacy'] }, 
+        pagebreak: { mode: ['css', 'legacy'] },
         html2canvas: { 
             scale: 2, 
             useCORS: true, 
-            logging: false,
-            width: 794,
-            windowWidth: 794,
+            width: 794,       /* Lebar A4 dalam pixel */
+            windowWidth: 794, /* Lebar browser bayangan */
+            x: 0,             /* Mulai capture dari kiri 0 */
+            y: 0,             /* Mulai capture dari atas 0 */
             scrollX: 0,
             scrollY: 0
         },
@@ -370,12 +375,13 @@ async function generatePDF() {
     };
 
     try {
-        await new Promise(r => setTimeout(r, 250)); // Jeda biar render stabil
+        await new Promise(r => setTimeout(r, 300)); // Jeda biar render stabil
         await html2pdf().set(opt).from(element).save();
     } catch (err) {
-        console.error(err);
+        console.error("PDF Error:", err);
     } finally {
-        document.body.classList.remove('pdf-mode');
+        body.classList.remove('pdf-mode');
+        window.scrollTo(0, scrollY); // Balikin posisi scroll user
     }
 }
 </script>
