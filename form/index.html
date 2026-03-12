@@ -14,46 +14,34 @@
 
         * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
-        body {
-            margin: 0 !important;
-            padding: 0 !important;
-            font-family: "Calibri", "IBM Plex Sans", sans-serif;
-            font-size: 9pt;
-            color: #000;
-            background-color: #f4f7f8; /* Screen background from Ver 1 */
-            line-height: 1.1;
-        }
-
         /* GANTI CSS BAGIAN INI */
-        #pdf-area {
-            width: 100%;
-            display: block; /* Pakai block, jangan flex biar gak geser pas capture */
-        }
+#pdf-area {
+    width: 100%;
+    display: block;
+}
 
-        .page {
-            background-color: #fff;
-            position: relative;
-            overflow: hidden;
-            width: 210mm;      /* Kunci lebar A4 */
-            height: 296.5mm;   /* Kunci tinggi (kurangi 0.5mm biar gak overflow jadi 4 hal) */
-            margin: 15px auto; /* Centering otomatis di desktop */
-            padding: 10mm !important;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
-            page-break-after: always;
-        }
+.page {
+    background-color: #fff;
+    position: relative;
+    width: 794px;      /* Gunakan PX biar konsisten di semua browser */
+    min-height: 1120px; /* Gunakan min-height, jangan height kaku */
+    margin: 15px auto; 
+    padding: 10mm !important;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    page-break-after: always; /* Kunci pemisah halaman */
+    overflow: hidden;
+}
 
-/* Override khusus pas download */
-.pdf-mode #pdf-area {
-    width: 210mm !important;
+/* Override pas download - Hapus margin luar biar gak geser */
+body.pdf-mode {
+    background: white !important;
 }
 
 .pdf-mode .page {
     margin: 0 !important;
-    width: 210mm !important;
-    height: 297mm !important;
     box-shadow: none !important;
+    width: 794px !important;
 }
-
         /* 4. TYPOGRAPHY & COLORS (From Ver 2) */
         .blue-val { color: #073763; font-family: 'Bree Serif', serif; }
         .script-val { font-family: 'Edu SA Beginner', cursive; font-weight: 500; font-size: 9.5pt; color: #073763; }
@@ -356,6 +344,7 @@
     });
 
 // GANTI OPTION DI DALAM generatePDF()
+// GANTI SCRIPT generatePDF JADI INI
 async function generatePDF() {
     const element = document.getElementById('pdf-area');
     document.body.classList.add('pdf-mode');
@@ -366,20 +355,22 @@ async function generatePDF() {
         margin: 0,
         filename: `SP_${spNo}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
+        // TAMBAHKAN INI: Biar dia baca 'page-break-after' dari CSS lo
+        pagebreak: { mode: ['css', 'legacy'] }, 
         html2canvas: { 
             scale: 2, 
             useCORS: true, 
             logging: false,
             width: 794,
             windowWidth: 794,
-            scrollX: 0, // FIX: Biar hasil capture gak geser/kepotong
-            scrollY: 0  // FIX: Biar gak ada whitespace di atas
+            scrollX: 0,
+            scrollY: 0
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
 
     try {
-        await new Promise(r => setTimeout(r, 200));
+        await new Promise(r => setTimeout(r, 250)); // Jeda biar render stabil
         await html2pdf().set(opt).from(element).save();
     } catch (err) {
         console.error(err);
