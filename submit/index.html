@@ -283,7 +283,7 @@
 
   <div class="notification" id="submissionNotification">Form submitted successfully!</div>
 
-   <script>
+  <script>
   // 1. SET YOUR API URL HERE
   const API_URL = 'https://script.google.com/macros/s/AKfycbznK0WCLsVkhB--WZVzaKD-lFvN3d6HtXEjMtpRBPyYJGikF2oxxmblhRmyzfnq2VdlPA/exec'; 
 
@@ -309,7 +309,7 @@
   }
 
   // Table Logic
-  function addRow(qty = '', desc = '', rem = '') { // Added parameters
+  function addRow(qty = '', desc = '', rem = '') {
     const table = document.getElementById('itemsTable').querySelector('tbody');
     const currentRowCount = table.rows.length;
     if (currentRowCount >= 32) { alert('Maximum of 32 rows reached'); return; }
@@ -321,17 +321,17 @@
       <td><input type="text" value="${desc}" onkeydown="checkEnterKey(event)"></td>
       <td><input type="text" value="${rem}" onkeydown="checkEnterKey(event)"></td>
     `;
-  }
 
-    const row = table.insertRow();
-    row.innerHTML = `
-      <td>${currentRowCount + 1}</td>
-      <td><input type="text" onkeydown="checkEnterKey(event)"></td>
-      <td><input type="text" onkeydown="checkEnterKey(event)"></td>
-      <td><input type="text" onkeydown="checkEnterKey(event)"></td>
-    `;
-    const targetInput = row.cells[activeCellIndex]?.querySelector('input') || row.cells[1].querySelector('input');
-    if (targetInput) targetInput.focus();
+    // Handle auto-focus only for manual additions (where fields are empty)
+    if (qty === '' && desc === '') {
+      const activeElement = document.activeElement;
+      let activeCellIndex = 1; 
+      if (activeElement && activeElement.tagName === 'INPUT' && activeElement.closest('tr')) {
+         activeCellIndex = Array.from(activeElement.closest('tr').cells).indexOf(activeElement.closest('td'));
+      }
+      const targetInput = row.cells[activeCellIndex]?.querySelector('input') || row.cells[1].querySelector('input');
+      if (targetInput) targetInput.focus();
+    }
   }
 
   function deleteRow() {
