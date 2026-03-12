@@ -50,9 +50,12 @@
         /* 4. TYPOGRAPHY & COLORS (From Ver 2) */
         .blue-val { color: #073763; font-family: 'Bree Serif', serif; }
         .script-val { font-family: 'Edu SA Beginner', cursive; font-weight: 500; font-size: 9.5pt; color: #073763; }
-        .label-b-u { font-weight: bold; text-decoration: underline; }
-        .small-label { font-size: 8pt; line-height: 1; display: block; text-decoration: none !important; }
+        .label-b-u { font-weight: bold; text-decoration: underline; font-size: 8.5pt; }
+        .small-label { font-size: 7.5pt; line-height: 1; display: block; text-decoration: none !important; }
         .b { font-weight: bold; }
+        .info-table .blue-val { 
+            font-size: 9pt !important; 
+        }
 
         /* 5. TABLES & LAYOUT (Ver 2 Professional Layout) */
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
@@ -151,9 +154,7 @@
         <div class="header-wrapper">
             <table>
                 <tr>
-                    <td style="width: 50%;">
-                        <img src="/assets/logo.png" class="logo-img">
-                    </td>
+                    <td style="width: 50%;"><img src="/assets/logo.png" class="logo-img"></td>
                     <td class="header-text-right">
                         <div class="no-sp-row">No. SP <span class="blue-val">{{No. SP}}</span></div>
                         <h1 class="title-main">SURAT PENGIRIMAN</h1>
@@ -174,9 +175,9 @@
                 <td><span class="label-b-u">Dikirim oleh</span><span class="small-label">Sent by</span></td>
                 <td style="text-align: center;">:</td>
                 <td class="field-dotted">
-                    <!-- Ditambah white-space: nowrap & overflow: hidden biar tetap 1 baris -->
                     <div style="display: flex; justify-content: space-between; align-items: baseline; white-space: nowrap; overflow: hidden;">
-                        <span class="blue-val" style="overflow: hidden; text-overflow: ellipsis;">{{Sent By}}</span>
+                        <!-- max-width 70% biar Sent By gak nabrak Note -->
+                        <span class="blue-val" style="overflow: hidden; text-overflow: ellipsis; max-width: 70%;">{{Sent By}}</span>
                         <span class="blue-val" style="margin-right: 50px; flex-shrink: 0; padding-left: 10px;">{{Note}}</span>
                     </div>
                 </td>
@@ -275,9 +276,7 @@
         <div class="header-wrapper">
             <table>
                 <tr>
-                    <td style="width: 50%;">
-                        <img src="/assets/logo.png" class="logo-img">
-                    </td>
+                    <td style="width: 50%;"><img src="/assets/logo.png" class="logo-img"></td>
                     <td class="header-text-right">
                         <div class="no-sp-row">No. SP <span class="blue-val">{{No. SP}}</span></div>
                         <h1 class="title-main">SURAT PENGIRIMAN</h1>
@@ -286,6 +285,7 @@
                 </tr>
             </table>
         </div>
+
         <table class="info-table">
             <tr>
                 <td style="width: 80px;"><span class="label-b-u">Kepada</span><span class="small-label">To</span></td>
@@ -297,15 +297,14 @@
                 <td><span class="label-b-u">Dikirim oleh</span><span class="small-label">Sent by</span></td>
                 <td style="text-align: center;">:</td>
                 <td class="field-dotted">
-                    <!-- Ditambah white-space: nowrap & overflow: hidden biar tetap 1 baris -->
                     <div style="display: flex; justify-content: space-between; align-items: baseline; white-space: nowrap; overflow: hidden;">
-                        <span class="blue-val" style="overflow: hidden; text-overflow: ellipsis;">{{Sent By}}</span>
+                        <!-- max-width 70% biar Sent By gak nabrak Note -->
+                        <span class="blue-val" style="overflow: hidden; text-overflow: ellipsis; max-width: 70%;">{{Sent By}}</span>
                         <span class="blue-val" style="margin-right: 50px; flex-shrink: 0; padding-left: 10px;">{{Note}}</span>
                     </div>
                 </td>
             </tr>
         </table>
-
         <div style="text-align: center; border: 1px solid black; padding: 5px; font-weight: bold; margin: 15px 0 10px 0; text-transform: uppercase;">Uploaded Evidence / Picture</div>
         <div class="image-box">
             <img src="{{IMAGE_URL}}" class="document-image" crossorigin="anonymous">
