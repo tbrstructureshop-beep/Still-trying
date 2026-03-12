@@ -8,56 +8,45 @@
     <!-- PDF ENGINE LIBRARY -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-    <style type="text/css">
+<style type="text/css">
         /* 1. FONTS & RESET (Combined) */
         @import url('https://fonts.googleapis.com/css2?family=Bree+Serif&family=Edu+SA+Beginner:wght@400;700&family=IBM+Plex+Sans:wght@400;700&display=swap');
 
         * { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 
         /* GANTI CSS BAGIAN INI */
-#pdf-area {
-    width: 100%;
-    display: block;
-}
+        #pdf-area {
+            width: 100%;
+            display: block;
+        }
 
-.page {
-    background-color: #fff;
-    position: relative;
-    width: 210mm;
-    min-height: 296mm; 
-    margin: 15px auto; 
-    padding: 10mm !important;
-    box-shadow: 0 0 15px rgba(0,0,0,0.1);
-    page-break-after: always;
-    overflow: hidden;
-    box-sizing: border-box;
-}
+        .page {
+            background-color: #fff;
+            position: relative;
+            width: 210mm;
+            min-height: 296mm; 
+            margin: 15px auto; 
+            padding: 10mm !important;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            page-break-after: always;
+            overflow: hidden;
+            box-sizing: border-box;
+        }
 
-/* FIX KHUSUS DOWNLOAD (BIAR GAK 4 HALAMAN) */
-body.pdf-mode .page {
-    margin: 0 !important;
-    width: 210mm !important;
-    height: 296.8mm !important; /* JANGAN 297mm! Kurangi dikit biar gak luber ke hal berikutnya */
-    min-height: auto !important;
-    box-shadow: none !important;
-    page-break-after: always;
-}
+        /* FIX KHUSUS DOWNLOAD (BIAR GAK 4 HALAMAN) */
+        body.pdf-mode .page {
+            margin: 0 !important;
+            width: 210mm !important;
+            height: 296.8mm !important;
+            min-height: auto !important;
+            box-shadow: none !important;
+            page-break-after: always;
+        }
 
-/* Biar halaman terakhir gak bikin halaman kosong tambahan */
-body.pdf-mode .page:last-child {
-    page-break-after: avoid !important;
-}
+        body.pdf-mode .page:last-child {
+            page-break-after: avoid !important;
+        }
 
-/* Adjust image-box biar Page 2 gak kepotong/luber */
-.image-box {
-    border: 1px solid black;
-    margin-top: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 165mm; /* Kurangi dari 175mm biar Header + Info Table muat di satu halaman */
-    width: 100%;
-}
         /* 4. TYPOGRAPHY & COLORS (From Ver 2) */
         .blue-val { color: #073763; font-family: 'Bree Serif', serif; }
         .script-val { font-family: 'Edu SA Beginner', cursive; font-weight: 500; font-size: 9.5pt; color: #073763; }
@@ -78,10 +67,12 @@ body.pdf-mode .page:last-child {
         .info-table { margin-top: 2px; margin-bottom: 5px; }
         .field-dotted { border-bottom: 1px dotted black; }
 
-        /* 6. UNIFIED TABLE GRID (Ver 2 Bilingual Style) */
+        /* 6. UNIFIED TABLE GRID (No Side Borders) */
         .unified-table {
             border-top: 1px solid black;
             border-bottom: 1px solid black;
+            border-left: none; /* Putih samping kiri */
+            border-right: none; /* Putih samping kanan */
             margin-top: 5px;
         }
 
@@ -93,14 +84,18 @@ body.pdf-mode .page:last-child {
             font-size: 9pt;
             background: #fff;
         }
+        .unified-table th:first-child { border-left: none; }
+        .unified-table th:last-child { border-right: none; }
 
         .item-row td {
-            height: 16px; /* Optimized height for 31 rows */
+            height: 16px;
             border-bottom: 1px dotted black; 
             border-left: 1px solid black;
             border-right: 1px solid black;
             text-align: center;
         }
+        .item-row td:first-child { border-left: none; }
+        .item-row td:last-child { border-right: none; }
         
         .item-row td.text-left { text-align: left; padding-left: 5px; }
         .col-no { width: 8%; } .col-qty { width: 12%; } .col-desc { width: 60%; } .col-rem { width: 20%; }
@@ -112,16 +107,22 @@ body.pdf-mode .page:last-child {
             border-left: 1px solid black;
             border-right: 1px solid black;
         }
+        .footer-row td:first-child { border-left: none; }
+        .footer-row td:last-child { border-right: none; }
 
         .sig-line { border-bottom: 1px dotted black; width: 170px; margin: 12px auto 2px auto; }
         
+        /* Spacing for Date Section */
+        .evidence-block { margin-top: 5px; padding-left: 5px; }
+        .evidence-block table { margin-top: 30px !important; } /* Tambah jarak tanggal ke atas */
+
         .image-box {
             border: 1px solid black;
             margin-top: 5px;
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 175mm; /* Fixed height for PDF stability */
+            height: 165mm; /* Ukuran pas biar gak 4 halaman */
             width: 100%;
         }
 
@@ -132,7 +133,7 @@ body.pdf-mode .page:last-child {
             .page { 
                 width: 100% !important; 
                 margin: 5px 0 !important; 
-                padding: 5mm !important; /* More space on small screens */
+                padding: 5mm !important; 
                 min-height: auto; 
             }
             .logo-img { width: 160px !important; }
@@ -181,57 +182,58 @@ body.pdf-mode .page:last-child {
             </tr>
         </table>
 
-        <table class="unified-table">
+        <!-- BORDER KIRI & KANAN TABLE DIHAPUS (BORDER-LEFT/RIGHT: NONE) -->
+        <table class="unified-table" style="border-left: none; border-right: none;">
             <colgroup>
                 <col class="col-no"><col class="col-qty"><col class="col-desc"><col class="col-rem">
             </colgroup>
             <thead>
                 <tr>
-                    <th>Nomor<br><span class="small-label">No.</span></th>
+                    <th style="border-left: none;">Nomor<br><span class="small-label">No.</span></th>
                     <th>Banyaknya<br><span class="small-label">Quantity</span></th>
                     <th>Macam dari barang-barang<br><span class="small-label">Description of goods</span></th>
-                    <th>Keterangan<br><span class="small-label">Remarks</span></th>
+                    <th style="border-right: none;">Keterangan<br><span class="small-label">Remarks</span></th>
                 </tr>
             </thead>
             <tbody>
-                <!-- Row 1 (Template Data) -->
+                <!-- Row 1 (Data) - BORDER SAMPING DIHAPUS PER TD -->
                 <tr class="item-row script-val">
-                    <td>{{No 1}}</td><td>{{Quantity 1}}</td><td class="text-left">{{Item 1}}</td><td>{{Remarks 1}}</td>
+                    <td style="border-left: none;">{{No 1}}</td><td>{{Quantity 1}}</td><td class="text-left">{{Item 1}}</td><td style="border-right: none;">{{Remarks 1}}</td>
                 </tr>
-                <!-- 30 Generated Empty Rows (Solid Border style) -->
-                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
-                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
-                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
-                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
-                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
-                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
-                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
-                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
-                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
-                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
-                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
-                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
-                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
-                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
-                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
-                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
-                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
-                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
-                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
-                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
-                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
-                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
-                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
-                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
-                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
-                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
-                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
-                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
-                <tr class="item-row"><td></td><td></td><td></td><td></td></tr>
-                <tr class="item-row" style="border-bottom: 1px solid black;"><td></td><td></td><td></td><td></td></tr>
+                <!-- 30 Generated Empty Rows -->
+                <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
+                <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
+                <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
+                <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
+                <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
+                <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
+                <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
+                <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
+                <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
+                <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
+                <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
+                <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
+                <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
+                <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
+                <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
+                <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
+                <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
+                <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
+                <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
+                <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
+                <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
+                <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
+                <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
+                <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
+                <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
+                <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
+                <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
+                <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
+                <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
+                <tr class="item-row" style="border-bottom: 1px solid black;"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
 
                 <tr class="footer-row">
-                    <td></td><td></td>
+                    <td style="border-left: none;"></td><td></td>
                     <td class="text-left">
                         <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 5px;">
                             <div style="text-align: center;"><span class="label-b-u">Dikirim oleh :</span><br><span class="small-label">Packed by</span></div>
@@ -242,7 +244,7 @@ body.pdf-mode .page:last-child {
                             </div>
                         </div>
                     </td>
-                    <td style="text-align: left; padding-left: 5px;">
+                    <td style="text-align: left; padding-left: 5px; border-right: none;">
                         <div class="b">Receiver Contact:</div>
                         <div class="blue-val" style="font-size: 8.5pt;">{{receiverPhone}}</div>
                     </td>
@@ -253,7 +255,8 @@ body.pdf-mode .page:last-child {
         <div class="evidence-block">
             <span class="label-b-u">Tanda tangan penerima :</span><span class="small-label">Sign Received</span>
             <div class="script-val" style="margin-left: 280px; margin-top: 5px; margin-bottom: -12px;">{{Receiver Signature}}</div>
-            <table style="margin-top: 5px;">
+            <!-- JARAK MARGIN-TOP DITAMBAH BIAR TANGGAL NGGA KEDEKETAN -->
+            <table style="margin-top: 25px;">
                 <tr>
                     <td style="width: 45px;"><span class="b">Tgl.</span><br><span class="small-label">Date</span></td>
                     <td class="field-dotted" style="width: 300px;"><span class="script-val" style="padding-left: 10px;">{{Receiver Name}}</span></td>
@@ -269,7 +272,7 @@ body.pdf-mode .page:last-child {
         <div style="margin-top: 5px; font-size: 8pt; color: #999;">GMF/A-111</div>
     </div>
 
-    <!-- PAGE 2 (Repeated Header from VER 2) -->
+    <!-- PAGE 2 -->
     <div class="page">
         <div class="header-wrapper">
             <table>
