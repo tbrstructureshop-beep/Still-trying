@@ -174,15 +174,15 @@
                 <td><span class="label-b-u">Dikirim oleh</span><span class="small-label">Sent by</span></td>
                 <td style="text-align: center;">:</td>
                 <td class="field-dotted">
-                    <div style="display: flex; justify-content: space-between;">
-                        <span class="blue-val">{{Sent By}}</span>
-                        <span class="blue-val" style="margin-right: 50px;">{{Note}}</span>
+                    <!-- Ditambah white-space: nowrap & overflow: hidden biar tetap 1 baris -->
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; white-space: nowrap; overflow: hidden;">
+                        <span class="blue-val" style="overflow: hidden; text-overflow: ellipsis;">{{Sent By}}</span>
+                        <span class="blue-val" style="margin-right: 50px; flex-shrink: 0; padding-left: 10px;">{{Note}}</span>
                     </div>
                 </td>
             </tr>
         </table>
 
-        <!-- BORDER KIRI & KANAN TABLE DIHAPUS (BORDER-LEFT/RIGHT: NONE) -->
         <table class="unified-table" style="border-left: none; border-right: none;">
             <colgroup>
                 <col class="col-no"><col class="col-qty"><col class="col-desc"><col class="col-rem">
@@ -196,11 +196,10 @@
                 </tr>
             </thead>
             <tbody>
-                <!-- Row 1 (Data) - BORDER SAMPING DIHAPUS PER TD -->
                 <tr class="item-row script-val">
                     <td style="border-left: none;">{{No 1}}</td><td>{{Quantity 1}}</td><td class="text-left">{{Item 1}}</td><td style="border-right: none;">{{Remarks 1}}</td>
                 </tr>
-                <!-- 30 Generated Empty Rows -->
+                <!-- Generated Rows -->
                 <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
                 <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
                 <tr class="item-row"><td style="border-left: none;"></td><td></td><td></td><td style="border-right: none;"></td></tr>
@@ -255,7 +254,6 @@
         <div class="evidence-block">
             <span class="label-b-u">Tanda tangan penerima :</span><span class="small-label">Sign Received</span>
             <div class="script-val" style="margin-left: 280px; margin-top: 5px; margin-bottom: -12px;">{{Receiver Signature}}</div>
-            <!-- JARAK MARGIN-TOP DITAMBAH BIAR TANGGAL NGGA KEDEKETAN -->
             <table style="margin-top: 25px;">
                 <tr>
                     <td style="width: 45px;"><span class="b">Tgl.</span><br><span class="small-label">Date</span></td>
@@ -272,12 +270,14 @@
         <div style="margin-top: 5px; font-size: 8pt; color: #999;">GMF/A-111</div>
     </div>
 
-    <!-- PAGE 2 -->
+    <!-- PAGE 2 (Info Table Dihapus) -->
     <div class="page">
         <div class="header-wrapper">
             <table>
                 <tr>
-                    <td style="width: 50%;"><img src="/assets/logo.png" class="logo-img"></td>
+                    <td style="width: 50%;">
+                        <img src="/assets/logo.png" class="logo-img">
+                    </td>
                     <td class="header-text-right">
                         <div class="no-sp-row">No. SP <span class="blue-val">{{No. SP}}</span></div>
                         <h1 class="title-main">SURAT PENGIRIMAN</h1>
@@ -286,12 +286,23 @@
                 </tr>
             </table>
         </div>
-
         <table class="info-table">
             <tr>
                 <td style="width: 80px;"><span class="label-b-u">Kepada</span><span class="small-label">To</span></td>
                 <td style="width: 10px; text-align: center;">:</td>
                 <td class="field-dotted blue-val">{{To}}</td>
+            </tr>
+            <tr style="height: 2px;"></tr>
+            <tr>
+                <td><span class="label-b-u">Dikirim oleh</span><span class="small-label">Sent by</span></td>
+                <td style="text-align: center;">:</td>
+                <td class="field-dotted">
+                    <!-- Ditambah white-space: nowrap & overflow: hidden biar tetap 1 baris -->
+                    <div style="display: flex; justify-content: space-between; align-items: baseline; white-space: nowrap; overflow: hidden;">
+                        <span class="blue-val" style="overflow: hidden; text-overflow: ellipsis;">{{Sent By}}</span>
+                        <span class="blue-val" style="margin-right: 50px; flex-shrink: 0; padding-left: 10px;">{{Note}}</span>
+                    </div>
+                </td>
             </tr>
         </table>
 
@@ -302,7 +313,6 @@
         <div style="margin-top: 10px; font-size: 8pt; color: #999;">GMF/A-111</div>
     </div>
 </div>
-
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         const rawData = localStorage.getItem('currentSPData');
