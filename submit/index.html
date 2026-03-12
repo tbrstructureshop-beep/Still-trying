@@ -283,11 +283,9 @@
 
   <div class="notification" id="submissionNotification">Form submitted successfully!</div>
 
-<script>
+   <script>
   // 1. SET YOUR API URL HERE
   const API_URL = 'https://script.google.com/macros/s/AKfycbznK0WCLsVkhB--WZVzaKD-lFvN3d6HtXEjMtpRBPyYJGikF2oxxmblhRmyzfnq2VdlPA/exec'; 
-
-  let isEditMode = false; // Flag to indicate if the form is in edit mode
 
   // Menu Toggle Logic
   document.querySelector('.menu-toggle').addEventListener('click', function () {
@@ -302,25 +300,19 @@
     }
   });
 
-  // Generate SP No. & Date (Modified to respect edit mode)
+  // Generate SP No. & Date
   function initializeHeader() {
-    if (!isEditMode) { // Only generate if not in edit mode
-      document.getElementById('spNo').value = new Date().getTime().toString().slice(-4).padStart(7,'025');
-      const now = new Date();
-      document.getElementById('date').value = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-      document.getElementById('time').value = now.toTimeString().split(' ')[0];
-    }
+    document.getElementById('spNo').value = new Date().getTime().toString().slice(-4).padStart(7,'025');
+    const now = new Date();
+    document.getElementById('date').value = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    document.getElementById('time').value = now.toTimeString().split(' ')[0];
   }
-  // initializeHeader(); // This will now be called by window.onload
 
   // Table Logic
-  function addRow(qty = '', desc = '', rem = '') {
+  function addRow(qty = '', desc = '', rem = '') { // Added parameters
     const table = document.getElementById('itemsTable').querySelector('tbody');
     const currentRowCount = table.rows.length;
-    if (currentRowCount >= 32) { 
-        if (!isEditMode) alert('Maximum of 32 rows reached'); // Suppress alert during programmatic fill
-        return; 
-    }
+    if (currentRowCount >= 32) { alert('Maximum of 32 rows reached'); return; }
 
     const row = table.insertRow();
     row.innerHTML = `
@@ -329,16 +321,17 @@
       <td><input type="text" value="${desc}" onkeydown="checkEnterKey(event)"></td>
       <td><input type="text" value="${rem}" onkeydown="checkEnterKey(event)"></td>
     `;
-    // Only focus if not in edit mode or if it's the last row being added manually
-    if (!isEditMode && qty === '' && desc === '' && rem === '') {
-        const activeElement = document.activeElement;
-        let activeCellIndex = 1; 
-        if (activeElement && activeElement.tagName === 'INPUT' && activeElement.closest('tr')) {
-           activeCellIndex = Array.from(activeElement.closest('tr').cells).indexOf(activeElement.closest('td'));
-        }
-        const targetInput = row.cells[activeCellIndex]?.querySelector('input') || row.cells[1].querySelector('input');
-        if (targetInput) targetInput.focus();
-    }
+  }
+
+    const row = table.insertRow();
+    row.innerHTML = `
+      <td>${currentRowCount + 1}</td>
+      <td><input type="text" onkeydown="checkEnterKey(event)"></td>
+      <td><input type="text" onkeydown="checkEnterKey(event)"></td>
+      <td><input type="text" onkeydown="checkEnterKey(event)"></td>
+    `;
+    const targetInput = row.cells[activeCellIndex]?.querySelector('input') || row.cells[1].querySelector('input');
+    if (targetInput) targetInput.focus();
   }
 
   function deleteRow() {
@@ -375,7 +368,8 @@
     rows.forEach((data, i) => {
       if (i === 0) currentRow.cells[2].querySelector('input').value = data;
       else {
-        addRow('', data.trim(), ''); // Use addRow to handle new rows
+        const nr = table.insertRow();
+        nr.innerHTML = `<td>${table.rows.length}</td><td><input type="text"></td><td><input type="text" value="${data.trim()}"></td><td><input type="text"></td>`;
       }
     });
     event.preventDefault();
@@ -394,7 +388,11 @@
         currentRow.cells[2].querySelector('input').value = desc || '';
         currentRow.cells[3].querySelector('input').value = rem || '';
       } else {
-        addRow(qty, desc, rem); // Use addRow to handle new rows
+        const nr = table.insertRow();
+        nr.innerHTML = `<td>${table.rows.length}</td>
+          <td><input type="text" value="${qty || ''}"></td>
+          <td><input type="text" value="${desc || ''}"></td>
+          <td><input type="text" value="${rem || ''}"></td>`;
       }
     });
     event.preventDefault();
@@ -414,27 +412,23 @@ async function saveForm() {
     const input = document.getElementById(field.id);
     if (!input.value.trim()) {
       missingFields.push(field.label);
-      input.style.border = '1px solid var(--soft-red)'; // Use CSS variable
+      input.style.border = '1px solid #b35c5c';
     } else {
       input.style.border = '';
     }
   });
 
   const rows = document.querySelectorAll('#itemsTable tbody tr');
-  const firstDescriptionInput = rows[0]?.cells[2]?.querySelector('input');
-  if (!firstDescriptionInput || !firstDescriptionInput.value.trim()) {
+  if (!rows[0].cells[2].querySelector('input').value.trim()) {
     missingFields.push('Table Items (Description)');
-    if (firstDescriptionInput) firstDescriptionInput.style.border = '1px solid var(--soft-red)';
-  } else {
-    if (firstDescriptionInput) firstDescriptionInput.style.border = '';
   }
-
 
   if (missingFields.length > 0) {
     alert('Required: ' + missingFields.join(', '));
     return;
   }
 
+  // Check if signatures exist (Optional safety: prevents saving empty boxes)
   const senderCanvas = document.getElementById('senderCanvas');
   const receiverCanvas = document.getElementById('receiverCanvas');
   const imgPreview = document.getElementById('imagePreview');
@@ -452,9 +446,11 @@ async function saveForm() {
     date: document.getElementById('date').value,
     time: document.getElementById('time').value,
     
+    // Matched to backend: sends base64 strings
     senderSignature: senderCanvas.toDataURL(),
     receiverSignature: receiverCanvas.toDataURL(),
     
+    // SAFETY UPDATE: Only send src if the image is actually visible/loaded
     uploadedImage: (imgPreview.style.display !== 'none' && imgPreview.src.startsWith('data:image')) ? imgPreview.src : '',
     
     tableData: Array.from(rows).map((row, i) => ({
@@ -472,14 +468,13 @@ async function saveForm() {
       body: JSON.stringify(formData)
     });
 
+    // Success Handling
     setTimeout(() => {
       document.getElementById('loadingGif').style.display = 'none';
       document.getElementById('submissionNotification').style.display = 'block';
       alert('Form Submitted Successfully!');
-      // Consider redirecting back to index.html after edit/submission
-      // window.location.href = '/index.html'; // Or whatever your main page is
       location.reload(); 
-    }, 2500);
+    }, 2500); // 2.5 seconds gives GAS time to upload 3 images to Drive
 
   } catch (error) {
     document.getElementById('loadingGif').style.display = 'none';
@@ -493,6 +488,7 @@ function setupCanvas(canvasId) {
   const canvas = document.getElementById(canvasId);
   const ctx = canvas.getContext('2d');
   
+  // 1. Handle High-DPI (Retina) screens for sharp lines
   const ratio = window.devicePixelRatio || 1;
   const width = canvas.offsetWidth;
   const height = canvas.offsetHeight;
@@ -500,9 +496,10 @@ function setupCanvas(canvasId) {
   canvas.height = height * ratio;
   ctx.scale(ratio, ratio);
 
+  // 2. Set Professional Pen Styles
   ctx.lineWidth = 2.5;
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';   // Makes the start/end of strokes round
+  ctx.lineJoin = 'round';  // Makes joints between points smooth
   ctx.strokeStyle = "#226873";
 
   let drawing = false;
@@ -532,6 +529,9 @@ function setupCanvas(canvasId) {
 
     const currentPoint = getPos(e);
     
+    // 3. Quadratic Curve Logic:
+    // Instead of drawing to the current point, we draw a curve 
+    // to the midpoint between the last point and the current point.
     const midPoint = {
       x: lastPoint.x + (currentPoint.x - lastPoint.x) / 2,
       y: lastPoint.y + (currentPoint.y - lastPoint.y) / 2
@@ -552,6 +552,7 @@ function setupCanvas(canvasId) {
     }
   };
 
+  // Event Listeners
   canvas.addEventListener('mousedown', start);
   canvas.addEventListener('mousemove', move);
   window.addEventListener('mouseup', stop);
@@ -564,18 +565,14 @@ function setupCanvas(canvasId) {
   function clearCanvas(id) {
   const c = document.getElementById(id);
   const ctx = c.getContext('2d');
+  // This clears the canvas regardless of scaling
   ctx.save();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, c.width, c.height);
   ctx.restore();
 }
 
-  function resetForm() { 
-    if(confirm('Clear all data?')) {
-        localStorage.removeItem('editSPData'); // Also clear edit data on reset
-        location.reload(); 
-    }
-  }
+  function resetForm() { if(confirm('Clear all data?')) location.reload(); }
 
   function previewImage(event, id) {
     const reader = new FileReader();
@@ -583,24 +580,8 @@ function setupCanvas(canvasId) {
     if(event.target.files[0]) reader.readAsDataURL(event.target.files[0]);
   }
 
-  // NEW: Function to load base64 image onto a canvas
-  function loadImageOntoCanvas(canvasId, imageData) {
-    if (!imageData || imageData === '') return;
-    const canvas = document.getElementById(canvasId);
-    const ctx = canvas.getContext('2d');
-    const img = new Image();
-    img.onload = () => {
-      // Clear existing content and draw the image
-      clearCanvas(canvasId); 
-      ctx.drawImage(img, 0, 0, canvas.offsetWidth, canvas.offsetHeight);
-    };
-    img.src = imageData;
-  }
-
-  // NEW: Function to populate the form with existing data
+  // Function to put data into the form fields
   function populateFormForEdit(data) {
-    isEditMode = true; // Set edit mode flag
-    
     document.getElementById('spNo').value = data["SP No."] || '';
     document.getElementById('to').value = data["To"] || '';
     document.getElementById('sentBy').value = data["Sent By"] || '';
@@ -611,67 +592,41 @@ function setupCanvas(canvasId) {
     document.getElementById('date').value = data["Date"] || '';
     document.getElementById('time').value = data["Time"] || '';
 
-    // Populate Table Data
+    // Fill Table
     const tableBody = document.getElementById('itemsTable').querySelector('tbody');
-    tableBody.innerHTML = ''; // Clear existing default row
-    
-    const descriptionText = data["Description"] || '';
-    if (descriptionText) {
-      const lines = descriptionText.split('\n').filter(l => l.trim() !== "");
-      lines.forEach(line => {
-        const cols = line.split('|').map(c => c.trim());
-        addRow(cols[0], cols[1], cols[2]);
-      });
-    }
-
-    // If no description, add one empty row
-    if (!descriptionText || lines.length === 0) {
-        addRow(); 
-    }
-
-    // Populate Signatures
-    if (data["Sender Signature"]) {
-        loadImageOntoCanvas('senderCanvas', data["Sender Signature"]);
-    }
-    if (data["Receiver Signature"]) {
-        loadImageOntoCanvas('receiverCanvas', data["Receiver Signature"]);
-    }
-
-    // Populate Uploaded Image (Evidence)
-    const imgPreview = document.getElementById('imagePreview');
-    if (data["Evidence"] && data["Evidence"].startsWith('data:image')) {
-        imgPreview.src = data["Evidence"];
-        imgPreview.style.display = 'block';
-    } else {
-        imgPreview.style.display = 'none';
-        imgPreview.src = '';
-    }
-    
-    // You might want to change the submit button text or appearance in edit mode
-    // document.getElementById('saveButton').textContent = 'Update SP';
+    tableBody.innerHTML = ''; // Clear default
+    const lines = (data["Description"] || '').split('\n').filter(l => l.trim() !== "");
+    lines.forEach(line => {
+      const cols = line.split('|').map(c => c.trim());
+      addRow(cols[0], cols[1], cols[2]);
+    });
+  
+    // Load Signatures onto Canvases
+    if (data["Sender Signature"]) loadImageOntoCanvas('senderCanvas', data["Sender Signature"]);
+    if (data["Receiver Signature"]) loadImageOntoCanvas('receiverCanvas', data["Receiver Signature"]);
   }
 
-  // Initial setup when the page loads
+  // Function to draw saved base64 images back onto the signature pad
+  function loadImageOntoCanvas(canvasId, base64) {
+    const canvas = document.getElementById(canvasId);
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    img.onload = () => ctx.drawImage(img, 0, 0, canvas.width / (window.devicePixelRatio || 1), canvas.height / (window.devicePixelRatio || 1));
+    img.src = base64;
+  }
+
   window.onload = () => {
     setupCanvas('senderCanvas');
     setupCanvas('receiverCanvas');
-    
-    // Check for edit data in localStorage
-    const editDataJson = localStorage.getItem('editSPData');
-    if (editDataJson) {
-        try {
-            const data = JSON.parse(editDataJson);
-            populateFormForEdit(data);
-        } catch (e) {
-            console.error("Error parsing edit data from localStorage:", e);
-            initializeHeader(); // Fallback to new form if data is corrupt
-            addRow(); // Add an initial row for a new form
-        } finally {
-            localStorage.removeItem('editSPData'); // Clear it after use
-        }
+
+    // Check if we are editing an existing SP
+    const editData = localStorage.getItem('editSPData');
+    if (editData) {
+      populateFormForEdit(JSON.parse(editData));
+      localStorage.removeItem('editSPData'); // Clear after loading
     } else {
-        initializeHeader(); // Generate new data if not in edit mode
-        addRow(); // Add an initial row for a new form
+      initializeHeader(); // Only run this for NEW SP
+      addRow(); // Add one empty row for NEW SP
     }
   };
 </script>
