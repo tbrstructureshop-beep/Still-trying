@@ -306,6 +306,7 @@
     const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTcm6VhsS6UO8X9ueZulzk-ysTUP7xhIpmeT_R1OFPsbh37lPZbNdZ1vgcekX_xpxOwK9EfFpEa_84F/pub?gid=1284751190&single=true&output=csv";
     const DOCS_ICON = "https://www.gstatic.com/images/branding/product/1x/docs_2020q4_48dp.png";
     const WA_ICON = "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/2044px-WhatsApp.svg.png";
+    const EDIT_ICON = "https://cdn-icons-png.flaticon.com/512/1159/1159633.png";
 
     let rawData = [];
     let filteredData = [];
@@ -325,7 +326,6 @@
         finally { document.getElementById("gifOverlay").style.display = "none"; }
     }
 
-    // Helper to get Google Drive Thumbnail
     function getDriveThumb(url) {
         if (!url || !url.includes('drive.google.com')) return null;
         const match = url.match(/\/d\/(.+?)\/|id=([^&]+)/);
@@ -363,34 +363,27 @@
         }
         document.getElementById("noDataMessage").style.display = "none";
 
-        container.innerHTML = pageData.map(row => {
+        container.innerHTML = pageData.map((row, index) => {
             const keys = Object.keys(row);
             const spNumber = row["SP No."] || row[keys[0]] || "N/A";
             const date = row["Date"] || row["Timestamp"] || "";
             const time = row["Time"] || "";
             
-            // Signature logic
             const senderSigUrl = row["Sender Signature"] || "";
             let sigThumb = getDriveThumb(senderSigUrl);
             if (!sigThumb && senderSigUrl.startsWith('data:image')) sigThumb = senderSigUrl;
 
             const waUrl = row["Whatsapp Notif"] || "";
+            
+            // Prepare string for JS function call (handling quotes safely)
+            const rowString = JSON.stringify(row).replace(/'/g, "\\'");
 
-            // Columns to hide from the card grid
-            const exclude = [
-                "SP No.", "Date", "Time", "Description", "Timestamp",
-                "Google Doc URL", "Whatsapp Notif", "Sender Signature", 
-                "Receiver Signature", "Evidence"
-            ];
+            const exclude = ["SP No.", "Date", "Time", "Description", "Timestamp", "Google Doc URL", "Whatsapp Notif", "Sender Signature", "Receiver Signature", "Evidence"];
 
             const infoGrid = keys.map(key => {
                 const val = row[key];
                 if (exclude.includes(key) || !val || val === "") return "";
-                return `
-                    <div class="data-item">
-                        <span class="label">${key}</span>
-                        <span class="value">${val}</span>
-                    </div>`;
+                return `<div class="data-item"><span class="label">${key}</span><span class="value">${val}</span></div>`;
             }).join('');
 
             return `
@@ -399,23 +392,21 @@
                         <div class="sp-no"># ${spNumber}</div>
                         <div class="sp-date">${date} ${time}</div>
                     </div>
-                    
                     <div class="card-info-grid">${infoGrid}</div>
-
                     <div class="desc-section">
-                        <details>
-                            <summary>Items / Description</summary>
-                            ${formatDescriptionTable(row["Description"])}
-                        </details>
+                        <details><summary>Items / Description</summary>${formatDescriptionTable(row["Description"])}</details>
                     </div>
-
                     <div class="card-footer">
                         <div class="sig-box">
                             ${sigThumb ? `<img src="${sigThumb}" alt="Sig">` : '<span class="label" style="color:#ccc">No Signature</span>'}
                         </div>
                         <div class="action-icons">
-                            <a href="javascript:void(0)" onclick='openFormModal(${JSON.stringify(row)})' title="View Document">
+                            <a href="javascript:void(0)" onclick='openFormModal(${rowString})' title="View Document">
                                 <img src="${DOCS_ICON}">
+                            </a>
+                            <!-- NEW EDIT BUTTON -->
+                            <a href="javascript:void(0)" onclick='handleEditRedirect(${rowString})' title="Edit SP">
+                                <img src="${EDIT_ICON}" style="opacity: 0.7;">
                             </a>
                             ${waUrl ? `<a href="${waUrl}" target="_blank" title="WA Notif"><img src="${WA_ICON}"></a>` : ''}
                         </div>
@@ -424,6 +415,14 @@
         }).join('');
 
         renderPagination();
+    }
+
+    // New Function to handle Edit Redirection
+    function handleEditRedirect(rowData) {
+        // Save the specific card data to localStorage so the submit page can read it
+        localStorage.setItem('editSPData', JSON.stringify(rowData));
+        // Redirect to the submit folder
+        window.location.href = '/submit/index.html';
     }
 
     function handleFilter() {
@@ -457,13 +456,12 @@
         renderCards();
     }
 
-function downloadPDF() {
-    const iframe = document.getElementById('formIframe');
-    if (iframe && iframe.contentWindow) {
-        // Kita panggil fungsi generatePDF yang ada di DALAM iframe
-        iframe.contentWindow.generatePDF();
+    function downloadPDF() {
+        const iframe = document.getElementById('formIframe');
+        if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.generatePDF();
+        }
     }
-}
   
     function printIframe() {
         const iframe = document.getElementById('formIframe');
@@ -476,7 +474,7 @@ function downloadPDF() {
     function openFormModal(rowData) {
         localStorage.setItem('currentSPData', JSON.stringify(rowData));
         const iframe = document.getElementById('formIframe');
-        iframe.src = 'form/index.html?t=' + new Date().getTime(); // Added cache buster
+        iframe.src = 'form/index.html?t=' + new Date().getTime();
         document.getElementById('formModal').style.display = 'block';
         document.body.style.overflow = 'hidden'; 
     }
