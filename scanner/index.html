@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Scanner Pro + History</title>
+    <title>Scanner Pro + Flashlight</title>
     <script src="https://unpkg.com/@zxing/library@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -26,7 +26,7 @@
             overflow: hidden;
         }
 
-        /* Full screen camera background */
+        /* Camera background */
         .scanner-container {
             position: relative;
             flex: 1;
@@ -67,25 +67,34 @@
             50% { top: 95%; opacity: 1; }
         }
 
-        /* Floating History Button */
-        .history-toggle {
+        /* Top Controls */
+        .top-controls {
             position: absolute;
             top: 20px;
+            left: 20px;
             right: 20px;
             z-index: 150;
-            background: white;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.9);
             color: var(--dark);
-            padding: 12px 20px;
+            padding: 12px 18px;
             border-radius: 50px;
             font-weight: 600;
+            font-size: 14px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             border: none;
             display: flex;
             align-items: center;
             gap: 8px;
+            cursor: pointer;
         }
 
-        /* Result Bottom Sheet */
+        /* Bottom Sheets and Drawer */
         .bottom-sheet {
             position: fixed;
             bottom: 0;
@@ -99,12 +108,10 @@
             transform: translateY(105%);
             transition: transform 0.4s cubic-bezier(0.33, 1, 0.68, 1);
             z-index: 200;
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.4);
         }
 
         .bottom-sheet.active { transform: translateY(0); }
 
-        /* History Drawer (Full Screen Scrollable) */
         .history-drawer {
             position: fixed;
             inset: 0;
@@ -138,30 +145,23 @@
             padding: 15px;
             border-radius: 12px;
             margin-bottom: 10px;
-            display: flex;
-            flex-direction: column;
             border: 1px solid #e2e8f0;
         }
 
-        .item-code { font-family: monospace; font-weight: 700; color: var(--dark); word-break: break-all; }
-        .item-time { font-size: 11px; color: #94a3b8; margin-top: 5px; }
-
-        /* General Buttons */
+        /* Buttons */
         .btn {
             padding: 14px;
             border-radius: 12px;
             font-weight: 600;
             border: none;
-            cursor: pointer;
-            text-align: center;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
+            text-decoration: none;
         }
         .btn-primary { background: var(--primary); color: white; }
         .btn-secondary { background: #e2e8f0; color: var(--dark); }
-        .btn-danger { background: #fef2f2; color: #dc2626; }
 
         #setupOverlay {
             position: fixed; inset: 0; background: var(--dark); z-index: 400;
@@ -174,13 +174,18 @@
     <!-- Start Overlay -->
     <div id="setupOverlay">
         <h2 style="color:white">Pro Barcode Scanner</h2>
-        <button class="btn btn-primary" style="padding: 15px 40px; border-radius: 50px;" onclick="initScanner()">Allow Camera</button>
+        <button class="btn btn-primary" style="padding: 15px 40px; border-radius: 50px;" onclick="initScanner()">Open Camera</button>
     </div>
 
-    <!-- History Toggle -->
-    <button class="history-toggle" onclick="toggleHistory(true)">
-        📜 History (<span id="historyCount">0</span>)
-    </button>
+    <!-- Top Controls -->
+    <div class="top-controls">
+        <button class="control-btn" id="torchBtn" onclick="toggleTorch()">
+            🔦 Flash Off
+        </button>
+        <button class="control-btn" onclick="toggleHistory(true)">
+            📜 History (<span id="historyCount">0</span>)
+        </button>
+    </div>
 
     <div class="scanner-container">
         <video id="video" playsinline></video>
@@ -189,11 +194,11 @@
         </div>
     </div>
 
-    <!-- Individual Result Sheet -->
+    <!-- Result Sheet -->
     <div id="resultSheet" class="bottom-sheet">
         <div style="width: 40px; height: 5px; background: #e2e8f0; border-radius: 10px; margin: -10px auto 15px;"></div>
-        <div style="font-size: 12px; color: var(--success); font-weight: 800; margin-bottom: 10px;">MATCH FOUND</div>
-        <div id="resultValue" style="font-family: monospace; font-size: 1.3rem; font-weight: 700; margin-bottom: 20px; word-break: break-all;">...</div>
+        <div style="font-size: 11px; color: var(--success); font-weight: 800; letter-spacing: 1px; margin-bottom: 5px;">RESULT FOUND</div>
+        <div id="resultValue" style="font-family: monospace; font-size: 1.3rem; font-weight: 700; margin-bottom: 20px; word-break: break-all; color: var(--dark);">...</div>
         
         <div style="display: grid; gap: 10px;">
             <a id="openLinkBtn" href="#" target="_blank" class="btn btn-primary" style="display: none;">🌐 Open Link</a>
@@ -201,20 +206,16 @@
         </div>
     </div>
 
-    <!-- History Full Drawer -->
+    <!-- History Drawer -->
     <div id="historyDrawer" class="history-drawer">
         <div class="drawer-header">
             <h2 style="margin:0; font-size: 1.2rem;">Scan History</h2>
-            <button onclick="toggleHistory(false)" style="background:none; border:none; font-size: 24px;">&times;</button>
+            <button onclick="toggleHistory(false)" style="background:none; border:none; font-size: 28px;">&times;</button>
         </div>
-        
-        <div class="history-list" id="historyList">
-            <!-- Items injected here -->
-        </div>
-
+        <div class="history-list" id="historyList"></div>
         <div style="padding: 20px; background: white; border-top: 1px solid #e2e8f0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
             <button onclick="copyAllHistory()" class="btn btn-primary">📋 Copy All</button>
-            <button onclick="clearHistory()" class="btn btn-danger">🗑️ Clear</button>
+            <button onclick="clearHistory()" class="btn btn-secondary" style="color: #dc2626;">🗑️ Clear</button>
         </div>
     </div>
 
@@ -225,12 +226,38 @@
     const openLinkBtn = document.getElementById('openLinkBtn');
     const historyList = document.getElementById('historyList');
     const historyCount = document.getElementById('historyCount');
-    const setupOverlay = document.getElementById('setupOverlay');
+    const torchBtn = document.getElementById('torchBtn');
     
     let isPaused = false;
+    let torchActive = false;
+    let videoTrack = null;
     let scanHistory = JSON.parse(localStorage.getItem('scans') || '[]');
 
-    // --- SOUND ---
+    // --- FLASH LIGHT LOGIC ---
+    async function toggleTorch() {
+        if (!videoTrack) {
+            alert("Camera not active yet");
+            return;
+        }
+
+        const capabilities = videoTrack.getCapabilities();
+        if (!capabilities.torch) {
+            alert("Flashlight not supported on this device/browser (Common on iOS Safari)");
+            return;
+        }
+
+        try {
+            torchActive = !torchActive;
+            await videoTrack.applyConstraints({
+                advanced: [{ torch: torchActive }]
+            });
+            torchBtn.innerHTML = torchActive ? "💡 Flash On" : "🔦 Flash Off";
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    // --- SOUND ENGINE ---
     function playBeep() {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = audioCtx.createOscillator();
@@ -241,14 +268,21 @@
         osc.start(); osc.stop(audioCtx.currentTime + 0.3);
     }
 
-    // --- SCANNER ---
+    // --- SCANNER ENGINE ---
     async function initScanner() {
         try {
             const devices = await codeReader.listVideoInputDevices();
-            setupOverlay.style.display = 'none';
+            document.getElementById('setupOverlay').style.display = 'none';
+            
             let selectedDevice = devices.find(d => d.label.toLowerCase().includes('back'))?.deviceId || devices[0].deviceId;
 
-            codeReader.decodeFromVideoDevice(selectedDevice, 'video', (result, err) => {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { deviceId: selectedDevice }
+            });
+            
+            videoTrack = stream.getVideoTracks()[0];
+
+            codeReader.decodeFromVideoDevice(selectedDevice, 'video', (result) => {
                 if (result && !isPaused) onCodeFound(result.text);
             });
             updateHistoryUI();
@@ -260,14 +294,12 @@
         playBeep();
         if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
 
-        // Save to History (prevent duplicates if same as last)
         if (scanHistory[0]?.text !== text) {
             scanHistory.unshift({ text, time: new Date().toLocaleTimeString() });
             localStorage.setItem('scans', JSON.stringify(scanHistory));
             updateHistoryUI();
         }
 
-        // Show UI
         resultValue.textContent = text;
         openLinkBtn.style.display = (text.startsWith('http')) ? 'flex' : 'none';
         openLinkBtn.href = text;
@@ -279,13 +311,12 @@
         setTimeout(() => isPaused = false, 500);
     }
 
-    // --- HISTORY ACTIONS ---
     function updateHistoryUI() {
         historyCount.textContent = scanHistory.length;
         historyList.innerHTML = scanHistory.map(item => `
             <div class="history-item">
-                <div class="item-code">${item.text}</div>
-                <div class="item-time">${item.time}</div>
+                <div style="font-family: monospace; font-weight: 700; word-break: break-all;">${item.text}</div>
+                <div style="font-size: 11px; color: #94a3b8; margin-top: 5px;">${item.time}</div>
             </div>
         `).join('');
     }
@@ -295,15 +326,12 @@
     }
 
     function copyAllHistory() {
-        if (scanHistory.length === 0) return;
         const textToCopy = scanHistory.map(h => h.text).join('\n');
-        navigator.clipboard.writeText(textToCopy).then(() => {
-            alert("All " + scanHistory.length + " barcodes copied to clipboard!");
-        });
+        navigator.clipboard.writeText(textToCopy).then(() => alert("Copied all scans!"));
     }
 
     function clearHistory() {
-        if (confirm("Delete all scan history?")) {
+        if (confirm("Clear all?")) {
             scanHistory = [];
             localStorage.removeItem('scans');
             updateHistoryUI();
