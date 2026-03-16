@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Auto-Scan Pro</title>
     <script src="https://unpkg.com/@zxing/library@latest"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #2563eb;
             --success: #059669;
             --dark: #0f172a;
+            --sheet-bg: #ffffff;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -46,127 +47,181 @@
         .overlay {
             position: relative;
             z-index: 10;
-            width: 260px;
-            height: 260px;
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 24px;
-            box-shadow: 0 0 0 1000px rgba(0,0,0,0.5);
+            width: 280px;
+            height: 200px;
+            border: 2px solid rgba(255,255,255,0.5);
+            border-radius: 20px;
+            box-shadow: 0 0 0 2000px rgba(0,0,0,0.6);
         }
 
+        /* Scanning Animation Line */
         .scan-line {
             position: absolute;
-            width: 90%;
-            left: 5%;
-            height: 2px;
+            width: 100%;
+            height: 3px;
             background: var(--primary);
             box-shadow: 0 0 15px var(--primary);
-            top: 20%;
-            animation: moveScan 2s ease-in-out infinite;
+            top: 0;
+            animation: moveScan 2.5s ease-in-out infinite;
         }
 
         @keyframes moveScan {
-            0%, 100% { top: 10%; opacity: 0.3; }
-            50% { top: 90%; opacity: 1; }
+            0%, 100% { top: 5%; opacity: 0.5; }
+            50% { top: 95%; opacity: 1; }
         }
 
-        /* Result Panel */
-        .bottom-panel {
-            position: relative;
-            z-index: 20;
-            background: white;
+        /* Result Bottom Sheet (Mobile Optimized) */
+        .bottom-sheet {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--sheet-bg);
             color: var(--dark);
-            padding: 20px;
-            border-top-left-radius: 24px;
-            border-top-right-radius: 24px;
-            min-height: 150px;
-            box-shadow: 0 -10px 20px rgba(0,0,0,0.2);
+            padding: 24px;
+            border-top-left-radius: 28px;
+            border-top-right-radius: 28px;
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.33, 1, 0.68, 1);
+            z-index: 100;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.4);
         }
 
-        .status-badge {
-            display: inline-block;
+        .bottom-sheet.active {
+            transform: translateY(0);
+        }
+
+        .handle {
+            width: 40px;
+            height: 5px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            margin: -10px auto 15px;
+        }
+
+        .status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .badge {
+            background: #dcfce7;
+            color: var(--success);
             padding: 4px 12px;
             border-radius: 100px;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 700;
-            text-transform: uppercase;
-            background: #e2e8f0;
-            margin-bottom: 10px;
         }
 
-        .scanning-active { background: #dcfce7; color: var(--success); }
-
-        .result-text {
+        .result-data {
             font-family: monospace;
-            font-size: 1.4rem;
+            font-size: 1.2rem;
             font-weight: 700;
             word-break: break-all;
             color: var(--dark);
+            margin: 10px 0 20px 0;
+            max-height: 80px;
+            overflow-y: auto;
         }
 
-        /* Permission Overlay */
+        /* Action Buttons */
+        .actions {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 16px;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            text-align: center;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-outline { background: #f1f5f9; color: var(--dark); }
+
+        /* Setup Overlay */
         #setupOverlay {
             position: fixed;
             inset: 0;
             background: var(--dark);
-            z-index: 100;
+            z-index: 200;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            padding: 30px;
             text-align: center;
-            padding: 40px;
         }
 
         .btn-grant {
             background: var(--primary);
             color: white;
+            padding: 18px 40px;
+            border-radius: 50px;
             border: none;
-            padding: 16px 32px;
-            border-radius: 12px;
             font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
+            font-weight: 700;
             margin-top: 20px;
-        }
-
-        .flash-success {
-            animation: successFlash 0.4s;
-        }
-
-        @keyframes successFlash {
-            0% { background: white; }
-            50% { background: #059669; color: white; }
-            100% { background: white; }
         }
     </style>
 </head>
 <body>
 
-    <!-- This shows only if camera isn't allowed yet -->
+    <!-- Start Overlay -->
     <div id="setupOverlay">
-        <h2>Camera Access Required</h2>
-        <p>This app scans barcodes automatically. Please allow camera access to begin.</p>
-        <button class="btn-grant" onclick="initScanner()">Enable Camera</button>
+        <h2 style="margin-bottom:10px;">Barcode Scanner</h2>
+        <p style="color: #94a3b8; font-size: 0.9rem;">Auto-scanning is ready. Please enable camera permissions to start.</p>
+        <button class="btn-grant" onclick="initScanner()">Open Camera</button>
     </div>
 
+    <!-- Camera Viewport -->
     <div class="scanner-container">
-        <video id="video"></video>
+        <video id="video" playsinline></video>
         <div class="overlay">
             <div class="scan-line"></div>
         </div>
     </div>
 
-    <div class="bottom-panel" id="bottomPanel">
-        <div id="status" class="status-badge scanning-active">Scanning Auto...</div>
-        <div class="result-label" style="font-size: 12px; color: #64748b;">Last Detected:</div>
-        <div id="result" class="result-text">Align barcode inside box</div>
+    <!-- Result Slide-up Sheet -->
+    <div id="resultSheet" class="bottom-sheet">
+        <div class="handle"></div>
+        <div class="status-header">
+            <span class="badge">Success! Barcode Detected</span>
+            <span id="closeSheet" style="cursor:pointer; font-size: 20px;">&times;</span>
+        </div>
+        
+        <div id="resultValue" class="result-data">...</div>
+
+        <div class="actions">
+            <a id="openLinkBtn" href="#" target="_blank" class="btn btn-primary" style="display: none;">
+                🌐 Open Link
+            </a>
+            <button onclick="copyToClipboard()" class="btn btn-outline">
+                📋 Copy Text
+            </button>
+            <button onclick="resumeScanning()" class="btn btn-outline" style="color: var(--primary);">
+                🔄 Scan Next
+            </button>
+        </div>
     </div>
 
 <script>
     const codeReader = new ZXing.BrowserMultiFormatReader();
-    const resultElement = document.getElementById('result');
-    const statusElement = document.getElementById('status');
-    const bottomPanel = document.getElementById('bottomPanel');
+    const resultValue = document.getElementById('resultValue');
+    const resultSheet = document.getElementById('resultSheet');
+    const openLinkBtn = document.getElementById('openLinkBtn');
     const setupOverlay = document.getElementById('setupOverlay');
     
     let isPaused = false;
@@ -175,7 +230,8 @@
     // --- SOUND ENGINE ---
     function playBeep() {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
 
@@ -183,7 +239,7 @@
         gain.connect(audioCtx.destination);
 
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(1000, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
         
         gain.gain.setValueAtTime(0, audioCtx.currentTime);
         gain.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.01);
@@ -199,61 +255,66 @@
             const devices = await codeReader.listVideoInputDevices();
             if (devices.length === 0) throw new Error("No camera found");
 
-            // Hide the setup overlay
             setupOverlay.style.display = 'none';
 
-            // Auto-select the back camera
+            // Find back camera
             let selectedDevice = devices[0].deviceId;
             const backCam = devices.find(d => d.label.toLowerCase().includes('back'));
             if(backCam) selectedDevice = backCam.deviceId;
 
-            startDecoding(selectedDevice);
+            codeReader.decodeFromVideoDevice(selectedDevice, 'video', (result, err) => {
+                if (result && !isPaused) {
+                    onCodeFound(result.text);
+                }
+            });
 
         } catch (err) {
-            console.error(err);
-            alert("Could not access camera. Please check permissions in your browser settings.");
+            alert("Camera error: " + err.message);
         }
     }
 
-    function startDecoding(deviceId) {
-        codeReader.decodeFromVideoDevice(deviceId, 'video', (result, err) => {
-            if (result && !isPaused) {
-                processResult(result.text);
-            }
-        });
+    function onCodeFound(text) {
+        isPaused = true; // Stop scanning while sheet is open
+        
+        playBeep();
+        if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
+
+        // Update UI
+        resultValue.textContent = text;
+        
+        // Check if it's a URL
+        if (text.startsWith('http://') || text.startsWith('https://')) {
+            openLinkBtn.href = text;
+            openLinkBtn.style.display = 'flex';
+        } else {
+            openLinkBtn.style.display = 'none';
+        }
+
+        // Show Sheet
+        resultSheet.classList.add('active');
     }
 
-    function processResult(text) {
-        isPaused = true;
-        
-        // 1. Audio & Haptic Feedback
-        playBeep();
-        if(navigator.vibrate) navigator.vibrate(100);
-
-        // 2. UI Updates
-        resultElement.textContent = text;
-        statusElement.textContent = "Captured!";
-        statusElement.classList.remove('scanning-active');
-        bottomPanel.classList.add('flash-success');
-
-        // 3. Resume scanning after 2 seconds
+    function resumeScanning() {
+        resultSheet.classList.remove('active');
+        // Small delay to prevent scanning the same code immediately
         setTimeout(() => {
             isPaused = false;
-            statusElement.textContent = "Scanning Auto...";
-            statusElement.classList.add('scanning-active');
-            bottomPanel.classList.remove('flash-success');
-        }, 2000);
+        }, 500);
     }
 
-    // Auto-init on load
+    function copyToClipboard() {
+        navigator.clipboard.writeText(resultValue.textContent);
+        const oldText = resultValue.textContent;
+        resultValue.textContent = "Copied to clipboard!";
+        setTimeout(() => resultValue.textContent = oldText, 1000);
+    }
+
+    document.getElementById('closeSheet').onclick = resumeScanning;
+
+    // Auto-init for returning users
     window.addEventListener('load', () => {
-        // Try to start immediately
+        // Many browsers allow auto-start if permissions were granted before
         initScanner();
-        
-        // Browsers require a user interaction to start AudioContext
-        document.body.addEventListener('click', () => {
-            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-        }, { once: true });
     });
 </script>
 
