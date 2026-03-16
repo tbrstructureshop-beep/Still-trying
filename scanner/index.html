@@ -2,143 +2,259 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Scanner with Audio</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Auto-Scan Pro</title>
     <script src="https://unpkg.com/@zxing/library@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --primary: #2563eb;
             --success: #059669;
-            --bg: #f8fafc;
+            --dark: #0f172a;
         }
-        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; }
-        .app-container { width: 100%; max-width: 500px; background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; }
-        .header { background: var(--primary); color: white; padding: 20px; text-align: center; }
-        .scanner-viewport { position: relative; background: #000; aspect-ratio: 4/3; }
-        #video { width: 100%; height: 100%; object-fit: cover; }
-        .viewfinder { 
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 70%; height: 60%; border: 2px solid var(--primary); border-radius: 8px;
-            box-shadow: 0 0 0 1000px rgba(0,0,0,0.4);
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body { 
+            margin: 0; 
+            font-family: 'Inter', sans-serif; 
+            background: #000; 
+            color: white;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
+
+        /* Full screen camera background */
+        .scanner-container {
+            position: relative;
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #video {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Viewfinder UI */
+        .overlay {
+            position: relative;
+            z-index: 10;
+            width: 260px;
+            height: 260px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 24px;
+            box-shadow: 0 0 0 1000px rgba(0,0,0,0.5);
+        }
+
         .scan-line {
-            position: absolute; width: 100%; height: 2px; background: #3b82f6;
-            box-shadow: 0 0 10px #3b82f6; animation: scan 2s linear infinite;
+            position: absolute;
+            width: 90%;
+            left: 5%;
+            height: 2px;
+            background: var(--primary);
+            box-shadow: 0 0 15px var(--primary);
+            top: 20%;
+            animation: moveScan 2s ease-in-out infinite;
         }
-        @keyframes scan { 0% { top: 0; } 50% { top: 100%; } 100% { top: 0; } }
-        .content { padding: 20px; }
-        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        select { grid-column: span 2; padding: 10px; border-radius: 8px; border: 1px solid #ddd; }
-        button { padding: 12px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        .btn-start { background: var(--primary); color: white; }
-        .btn-stop { background: #ef4444; color: white; }
-        .result-card { background: #f1f5f9; padding: 15px; border-radius: 12px; transition: 0.3s; }
-        .result-text { font-family: monospace; font-size: 1.2rem; font-weight: 700; color: var(--primary); word-break: break-all; margin-top: 5px;}
-        .flash-success { background: #dcfce7 !important; }
+
+        @keyframes moveScan {
+            0%, 100% { top: 10%; opacity: 0.3; }
+            50% { top: 90%; opacity: 1; }
+        }
+
+        /* Result Panel */
+        .bottom-panel {
+            position: relative;
+            z-index: 20;
+            background: white;
+            color: var(--dark);
+            padding: 20px;
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+            min-height: 150px;
+            box-shadow: 0 -10px 20px rgba(0,0,0,0.2);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: #e2e8f0;
+            margin-bottom: 10px;
+        }
+
+        .scanning-active { background: #dcfce7; color: var(--success); }
+
+        .result-text {
+            font-family: monospace;
+            font-size: 1.4rem;
+            font-weight: 700;
+            word-break: break-all;
+            color: var(--dark);
+        }
+
+        /* Permission Overlay */
+        #setupOverlay {
+            position: fixed;
+            inset: 0;
+            background: var(--dark);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .btn-grant {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .flash-success {
+            animation: successFlash 0.4s;
+        }
+
+        @keyframes successFlash {
+            0% { background: white; }
+            50% { background: #059669; color: white; }
+            100% { background: white; }
+        }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <div class="header"><h1>Pro Scanner</h1></div>
+    <!-- This shows only if camera isn't allowed yet -->
+    <div id="setupOverlay">
+        <h2>Camera Access Required</h2>
+        <p>This app scans barcodes automatically. Please allow camera access to begin.</p>
+        <button class="btn-grant" onclick="initScanner()">Enable Camera</button>
+    </div>
 
-    <div class="scanner-viewport">
+    <div class="scanner-container">
         <video id="video"></video>
-        <div class="viewfinder"><div class="scan-line" id="scanLine" style="display:none;"></div></div>
-    </div>
-
-    <div class="content">
-        <div class="controls">
-            <select id="sourceSelect"></select>
-            <button class="btn-start" id="startBtn">Start Scan</button>
-            <button class="btn-stop" id="stopBtn">Stop</button>
-        </div>
-
-        <div class="result-card" id="resultCard">
-            <div style="font-size: 11px; color: #64748b; font-weight: 700; text-transform: uppercase;">Result</div>
-            <div id="result" class="result-text">Ready...</div>
+        <div class="overlay">
+            <div class="scan-line"></div>
         </div>
     </div>
-</div>
+
+    <div class="bottom-panel" id="bottomPanel">
+        <div id="status" class="status-badge scanning-active">Scanning Auto...</div>
+        <div class="result-label" style="font-size: 12px; color: #64748b;">Last Detected:</div>
+        <div id="result" class="result-text">Align barcode inside box</div>
+    </div>
 
 <script>
     const codeReader = new ZXing.BrowserMultiFormatReader();
-    let selectedDeviceId;
-    let lastResult = null;
-
-    // --- AUDIO BEEP LOGIC ---
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const resultElement = document.getElementById('result');
+    const statusElement = document.getElementById('status');
+    const bottomPanel = document.getElementById('bottomPanel');
+    const setupOverlay = document.getElementById('setupOverlay');
     
+    let isPaused = false;
+    let audioCtx = null;
+
+    // --- SOUND ENGINE ---
     function playBeep() {
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-
-        oscillator.type = 'sine'; // Pure tone
-        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // High pitch A5
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
-        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-        gainNode.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.01);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
 
-        oscillator.start();
-        oscillator.stop(audioCtx.currentTime + 0.2);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1000, audioCtx.currentTime);
+        
+        gain.gain.setValueAtTime(0, audioCtx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
     }
 
-    // --- SCANNER LOGIC ---
-    async function init() {
-        const devices = await codeReader.listVideoInputDevices();
-        const sourceSelect = document.getElementById('sourceSelect');
-        
-        devices.forEach(device => {
-            const opt = document.createElement('option');
-            opt.value = device.deviceId;
-            opt.text = device.label;
-            sourceSelect.appendChild(opt);
-        });
+    // --- SCANNER ENGINE ---
+    async function initScanner() {
+        try {
+            const devices = await codeReader.listVideoInputDevices();
+            if (devices.length === 0) throw new Error("No camera found");
 
-        selectedDeviceId = devices[0].deviceId;
-        sourceSelect.onchange = () => { selectedDeviceId = sourceSelect.value; };
+            // Hide the setup overlay
+            setupOverlay.style.display = 'none';
+
+            // Auto-select the back camera
+            let selectedDevice = devices[0].deviceId;
+            const backCam = devices.find(d => d.label.toLowerCase().includes('back'));
+            if(backCam) selectedDevice = backCam.deviceId;
+
+            startDecoding(selectedDevice);
+
+        } catch (err) {
+            console.error(err);
+            alert("Could not access camera. Please check permissions in your browser settings.");
+        }
     }
 
-    document.getElementById('startBtn').addEventListener('click', () => {
-        // Resume AudioContext (Browsers block audio until user clicks something)
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        
-        document.getElementById('scanLine').style.display = 'block';
-        
-        codeReader.decodeFromVideoDevice(selectedDeviceId, 'video', (result, err) => {
-            if (result && result.text !== lastResult) {
-                lastResult = result.text;
-                
-                // 1. Play the beep
-                playBeep();
-                
-                // 2. Vibrate (mobile only)
-                if(navigator.vibrate) navigator.vibrate(100);
-
-                // 3. UI Update
-                document.getElementById('result').textContent = result.text;
-                const card = document.getElementById('resultCard');
-                card.classList.add('flash-success');
-                setTimeout(() => card.classList.remove('flash-success'), 500);
-
-                // Reset lastResult after 3 seconds so user can scan same code again
-                setTimeout(() => { lastResult = null; }, 3000);
+    function startDecoding(deviceId) {
+        codeReader.decodeFromVideoDevice(deviceId, 'video', (result, err) => {
+            if (result && !isPaused) {
+                processResult(result.text);
             }
         });
-    });
+    }
 
-    document.getElementById('stopBtn').addEventListener('click', () => {
-        codeReader.reset();
-        document.getElementById('scanLine').style.display = 'none';
-        document.getElementById('result').textContent = "Ready...";
-    });
+    function processResult(text) {
+        isPaused = true;
+        
+        // 1. Audio & Haptic Feedback
+        playBeep();
+        if(navigator.vibrate) navigator.vibrate(100);
 
-    init();
+        // 2. UI Updates
+        resultElement.textContent = text;
+        statusElement.textContent = "Captured!";
+        statusElement.classList.remove('scanning-active');
+        bottomPanel.classList.add('flash-success');
+
+        // 3. Resume scanning after 2 seconds
+        setTimeout(() => {
+            isPaused = false;
+            statusElement.textContent = "Scanning Auto...";
+            statusElement.classList.add('scanning-active');
+            bottomPanel.classList.remove('flash-success');
+        }, 2000);
+    }
+
+    // Auto-init on load
+    window.addEventListener('load', () => {
+        // Try to start immediately
+        initScanner();
+        
+        // Browsers require a user interaction to start AudioContext
+        document.body.addEventListener('click', () => {
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        }, { once: true });
+    });
 </script>
 
 </body>
