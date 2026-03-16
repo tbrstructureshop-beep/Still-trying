@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Professional Barcode Scanner</title>
+
+<script src="https://unpkg.com/@zxing/library@latest"></script>
+
+<style>
+
+*{
+box-sizing:border-box;
+font-family: "Inter", Arial, sans-serif;
+}
+
+body{
+margin:0;
+background:#f4f6f9;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+.app-container{
+width:100%;
+max-width:600px;
+background:white;
+border-radius:14px;
+box-shadow:0 10px 30px rgba(0,0,0,0.15);
+overflow:hidden;
+}
+
+.header{
+background:linear-gradient(135deg,#1b6f7a,#13535b);
+color:white;
+padding:16px;
+font-size:18px;
+font-weight:600;
+text-align:center;
+}
+
+.scanner-box{
+padding:20px;
+text-align:center;
+}
+
+video{
+width:100%;
+border-radius:10px;
+border:2px solid #ddd;
+}
+
+.scan-frame{
+border:3px dashed #1b6f7a;
+border-radius:10px;
+padding:6px;
+margin-bottom:15px;
+}
+
+.controls{
+margin-top:15px;
+display:flex;
+gap:10px;
+justify-content:center;
+flex-wrap:wrap;
+}
+
+button{
+background:#1b6f7a;
+border:none;
+color:white;
+padding:10px 18px;
+border-radius:6px;
+cursor:pointer;
+font-weight:600;
+transition:0.2s;
+}
+
+button:hover{
+background:#155c65;
+}
+
+button.stop{
+background:#c0392b;
+}
+
+.result-box{
+margin-top:20px;
+background:#f7f7f7;
+padding:15px;
+border-radius:8px;
+border:1px solid #ddd;
+}
+
+.result-title{
+font-size:14px;
+color:#555;
+margin-bottom:6px;
+}
+
+.result{
+font-size:18px;
+font-weight:bold;
+color:#222;
+word-break:break-all;
+}
+
+.history{
+margin-top:15px;
+text-align:left;
+max-height:150px;
+overflow:auto;
+font-size:13px;
+}
+
+.history div{
+padding:6px 0;
+border-bottom:1px solid #eee;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="app-container">
+
+<div class="header">
+Barcode Scanner
+</div>
+
+<div class="scanner-box">
+
+<div class="scan-frame">
+<video id="video"></video>
+</div>
+
+<div class="controls">
+<button onclick="startScanner()">Start Scan</button>
+<button class="stop" onclick="stopScanner()">Stop</button>
+</div>
+
+<div class="result-box">
+<div class="result-title">Last Scan Result</div>
+<div id="result" class="result">No barcode scanned</div>
+</div>
+
+<div class="history" id="history"></div>
+
+</div>
+</div>
+
+<script>
+
+let codeReader = new ZXing.BrowserMultiFormatReader();
+let selectedDeviceId;
+
+async function startScanner(){
+
+try{
+
+const devices = await codeReader.listVideoInputDevices();
+
+if(devices.length === 0){
+alert("No camera found.");
+return;
+}
+
+let selectedDevice = devices[0];
+
+devices.forEach(device=>{
+if(device.label.toLowerCase().includes("back")){
+selectedDevice = device;
+}
+});
+
+codeReader.decodeFromVideoDevice(selectedDevice.deviceId,'video',(result,err)=>{
+
+if(result){
+
+document.getElementById("result").textContent = result.text;
+addHistory(result.text);
+
+}
+
+});
+
+}catch(err){
+
+alert("Camera permission required.");
+
+}
+
+}
+
+function stopScanner(){
+
+codeReader.reset();
+
+}
+
+function addHistory(code){
+
+let history=document.getElementById("history");
+
+let row=document.createElement("div");
+
+row.textContent=new Date().toLocaleTimeString()+" → "+code;
+
+history.prepend(row);
+
+}
+
+</script>
+
+</body>
+</html>
