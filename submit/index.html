@@ -164,47 +164,70 @@
   #loadingGif { position: fixed; inset: 0; background: rgba(255,255,255,0.8); display: none; justify-content: center; align-items: center; z-index: 1000; }
   .notification { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--soft-green); color: white; padding: 12px 25px; border-radius: 30px; display: none; z-index: 1001; }
 
-  /* Scanner Modal Styles */
+  /* Updated Scanner Modal Styles */
   .scanner-modal {
     display: none;
     position: fixed;
     z-index: 2000;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.8);
+    background: rgba(0,0,0,0.85);
     align-items: center;
     justify-content: center;
   }
+  
   .scanner-modal-content {
-    width: 90%;
+    width: 95%;
     max-width: 500px;
     background: white;
     border-radius: 12px;
     overflow: hidden;
-    position: relative;
+    display: flex;
+    flex-direction: column; /* Stacks header above the scanner */
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
   }
+  
+  .modal-header {
+    padding: 12px 15px;
+    background: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .modal-header span {
+    font-weight: 700;
+    color: var(--primary);
+    font-size: 14px;
+  }
+  
   .close-modal {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: #ff4d4d;
+    position: static; /* Removed absolute positioning */
+    background: var(--soft-red);
     color: white;
     border: none;
-    padding: 5px 12px;
+    padding: 6px 14px;
     border-radius: 4px;
     cursor: pointer;
-    z-index: 2100;
+    font-size: 12px;
+    font-weight: 600;
   }
+  
   .scanner-frame {
     width: 100%;
-    height: 400px;
+    height: 450px; /* Increased height for better view */
     border: none;
+    background: black;
   }
+  
+  /* Fix for the "Sticked" Scanner Button */
   .flex-end-container {
     display: flex;
     justify-content: flex-end;
-    margin-top: 20px;    /* Added space above the button */
-    margin-bottom: 15px; /* Added slightly more space below */
+    margin-top: 25px;    /* Gap from A/C Info field */
+    margin-bottom: 15px; /* Gap before table */
   }
+  
   @media (max-width: 600px) {
     .form-container { padding: 15px; }
     .signature-box { min-width: 100%; }
@@ -257,7 +280,10 @@
       <!-- Modal Container -->
       <div id="scannerModal" class="scanner-modal">
         <div class="scanner-modal-content">
-          <button class="close-modal" onclick="closeScanner()">Close</button>
+          <div class="modal-header">
+            <span>📷 LIVE SCANNER</span>
+            <button class="close-modal" onclick="closeScanner()">✕ CLOSE</button>
+          </div>
           <iframe id="scannerIframe" src="../scanner/modal/index.html" class="scanner-frame"></iframe>
         </div>
       </div>
