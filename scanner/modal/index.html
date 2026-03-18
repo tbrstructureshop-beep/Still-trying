@@ -8,8 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #226873; /* Matched to GMF Theme */
-            --success: #4b8c7d;
+            --primary: #226873;
+            --success: #059669;
             --dark: #0f172a;
             --sheet-bg: #ffffff;
         }
@@ -74,6 +74,7 @@
             z-index: 150;
             display: flex;
             justify-content: space-between;
+            gap: 10px;
         }
 
         .control-btn {
@@ -82,93 +83,140 @@
             padding: 10px 15px;
             border-radius: 50px;
             font-weight: 600;
-            font-size: 12px;
+            font-size: 13px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             border: none;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 8px;
             cursor: pointer;
         }
 
-        /* Feedback Toast */
-        .toast {
+        .bottom-sheet {
             position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: var(--success);
-            color: white;
-            padding: 15px 25px;
-            border-radius: 50px;
-            font-weight: 700;
-            z-index: 500;
-            display: none;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--sheet-bg);
+            color: var(--dark);
+            padding: 20px;
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+            transform: translateY(105%);
+            transition: transform 0.4s cubic-bezier(0.33, 1, 0.68, 1);
+            z-index: 200;
         }
 
-        @keyframes popIn {
-            from { opacity: 0; transform: translate(-50%, -20%); }
-            to { opacity: 1; transform: translate(-50%, -50%); }
+        .bottom-sheet.active { transform: translateY(0); }
+
+        .history-drawer {
+            position: fixed;
+            inset: 0;
+            background: #f8fafc;
+            z-index: 300;
+            display: flex;
+            flex-direction: column;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
         }
+
+        .history-drawer.open { transform: translateY(0); }
+
+        .drawer-header {
+            padding: 15px;
+            background: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .history-list { flex: 1; overflow-y: auto; padding: 15px; }
+
+        .history-item {
+            background: white;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            border: 1px solid #e2e8f0;
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: 600;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: #e2e8f0; color: var(--dark); }
 
         #setupOverlay {
             position: fixed; inset: 0; background: var(--dark); z-index: 400;
             display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 30px;
-        }
-        
-        .btn-primary { 
-            background: var(--primary); 
-            color: white; 
-            padding: 15px 40px; 
-            border-radius: 50px; 
-            border: none; 
-            font-weight: 700;
-            cursor: pointer;
         }
     </style>
 </head>
 <body>
 
     <div id="setupOverlay">
-        <button class="btn-primary" onclick="initScanner()">Start Scanning</button>
+        <button class="btn btn-primary" style="width:auto; padding: 15px 40px; border-radius: 50px;" onclick="initScanner()">Open Camera</button>
     </div>
 
     <div class="top-controls">
-        <button class="control-btn" id="torchBtn" onclick="toggleTorch()">
-            🔦 Flash Off
-        </button>
-        <div id="scanCounter" class="control-btn" style="background: rgba(34, 104, 115, 0.9); color: white;">
-            Items: 0
-        </div>
+        <button class="control-btn" id="torchBtn" onclick="toggleTorch()">🔦 Flash Off</button>
+        <button class="control-btn" onclick="toggleHistory(true)">📜 History (<span id="historyCount">0</span>)</button>
     </div>
 
     <div class="scanner-container">
         <video id="video" playsinline></video>
-        <div class="overlay">
-            <div class="scan-line"></div>
+        <div class="overlay"><div class="scan-line"></div></div>
+    </div>
+
+    <!-- Result Sheet -->
+    <div id="resultSheet" class="bottom-sheet">
+        <div style="width: 40px; height: 5px; background: #e2e8f0; border-radius: 10px; margin: -10px auto 15px;"></div>
+        <div style="font-size: 10px; color: var(--success); font-weight: 800; letter-spacing: 1px; margin-bottom: 5px;">COPIED TO FORM</div>
+        <div id="resultValue" style="font-family: monospace; font-size: 1.1rem; font-weight: 700; margin-bottom: 15px; word-break: break-all; color: var(--dark);">...</div>
+        <button onclick="resumeScanning()" class="btn btn-primary">Scan Next Item</button>
+    </div>
+
+    <!-- History Drawer -->
+    <div id="historyDrawer" class="history-drawer">
+        <div class="drawer-header">
+            <h3 style="margin:0; font-size: 1rem;">Session History</h3>
+            <button onclick="toggleHistory(false)" style="background:none; border:none; font-size: 24px;">&times;</button>
+        </div>
+        <div class="history-list" id="historyList"></div>
+        <div style="padding: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <button onclick="clearHistory()" class="btn btn-secondary" style="color: #dc2626;">Clear</button>
+            <button onclick="toggleHistory(false)" class="btn btn-primary">Done</button>
         </div>
     </div>
 
-    <div id="toast" class="toast">COPIED TO FORM</div>
-
 <script>
     const codeReader = new ZXing.BrowserMultiFormatReader();
+    const resultValue = document.getElementById('resultValue');
+    const resultSheet = document.getElementById('resultSheet');
+    const historyList = document.getElementById('historyList');
+    const historyCount = document.getElementById('historyCount');
     const torchBtn = document.getElementById('torchBtn');
-    const toast = document.getElementById('toast');
-    const scanCounterDisplay = document.getElementById('scanCounter');
     
     let isPaused = false;
     let torchActive = false;
     let videoTrack = null;
-    let scanCount = 0;
-    let lastResult = "";
-    let lastTime = 0;
+    let scanHistory = [];
 
     async function toggleTorch() {
         if (!videoTrack) return;
-        const capabilities = videoTrack.getCapabilities();
-        if (!capabilities.torch) return;
+        const caps = videoTrack.getCapabilities();
+        if (!caps.torch) return;
         try {
             torchActive = !torchActive;
             await videoTrack.applyConstraints({ advanced: [{ torch: torchActive }] });
@@ -192,44 +240,53 @@
             document.getElementById('setupOverlay').style.display = 'none';
             let selectedDevice = devices.find(d => d.label.toLowerCase().includes('back'))?.deviceId || devices[0].deviceId;
 
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: { deviceId: selectedDevice }
-            });
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: selectedDevice } });
             videoTrack = stream.getVideoTracks()[0];
 
             codeReader.decodeFromVideoDevice(selectedDevice, 'video', (result) => {
                 if (result && !isPaused) onCodeFound(result.text);
             });
-        } catch (err) { console.error(err); }
+        } catch (err) { alert("Camera error: " + err); }
     }
 
     function onCodeFound(text) {
-        const now = Date.now();
-        // Prevent duplicate scan of same item within 2.5 seconds
-        if (text === lastResult && now - lastTime < 2500) return;
-
         isPaused = true;
-        lastResult = text;
-        lastTime = now;
-        scanCount++;
-        
         playBeep();
-        if(navigator.vibrate) navigator.vibrate(100);
+        if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
 
-        // SEND TO FORM (submit/index.html)
-        window.parent.postMessage({
-            type: 'barcodeScanned',
-            text: text
-        }, '*');
+        // Communicate with Parent Form
+        window.parent.postMessage({ type: 'barcodeScanned', text: text }, '*');
 
-        // UI Feedback
-        scanCounterDisplay.innerText = "Items: " + scanCount;
-        toast.style.display = 'block';
-        
-        setTimeout(() => {
-            toast.style.display = 'none';
-            isPaused = false;
-        }, 1200); // Small pause so user knows scan succeeded
+        // History Logic
+        scanHistory.unshift({ text, time: new Date().toLocaleTimeString() });
+        updateHistoryUI();
+
+        resultValue.textContent = text;
+        resultSheet.classList.add('active');
+    }
+
+    function resumeScanning() {
+        resultSheet.classList.remove('active');
+        setTimeout(() => isPaused = false, 500);
+    }
+
+    function updateHistoryUI() {
+        historyCount.textContent = scanHistory.length;
+        historyList.innerHTML = scanHistory.map(item => `
+            <div class="history-item">
+                <div style="font-family: monospace; font-weight: 700; word-break: break-all;">${item.text}</div>
+                <div style="font-size: 11px; color: #94a3b8; margin-top: 5px;">${item.time}</div>
+            </div>
+        `).join('');
+    }
+
+    function toggleHistory(show) {
+        document.getElementById('historyDrawer').classList.toggle('open', show);
+    }
+
+    function clearHistory() {
+        scanHistory = [];
+        updateHistoryUI();
     }
 
     window.addEventListener('load', initScanner);
