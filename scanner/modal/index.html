@@ -7,10 +7,10 @@
     <script src="https://unpkg.com/@zxing/library@latest"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* EXACT STYLES FROM SCANNER/INDEX.HTML */
         :root {
             --primary: #2563eb;
             --success: #059669;
+            --warning: #f59e0b;
             --dark: #0f172a;
             --sheet-bg: #ffffff;
         }
@@ -18,132 +18,58 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body { 
-            margin: 0; 
-            font-family: 'Inter', sans-serif; 
-            background: #000; 
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            margin: 0; font-family: 'Inter', sans-serif; background: #000; 
+            height: 100vh; display: flex; flex-direction: column; overflow: hidden;
         }
 
         .scanner-container {
-            position: relative;
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            position: relative; flex: 1; display: flex; justify-content: center; align-items: center;
         }
 
-        #video {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+        #video { position: absolute; width: 100%; height: 100%; object-fit: cover; }
 
         .overlay {
-            position: relative;
-            z-index: 10;
-            width: 280px;
-            height: 200px;
-            border: 2px solid rgba(255,255,255,0.5);
-            border-radius: 20px;
+            position: relative; z-index: 10; width: 280px; height: 200px;
+            border: 2px solid rgba(255,255,255,0.5); border-radius: 20px;
             box-shadow: 0 0 0 2000px rgba(0,0,0,0.6);
         }
 
         .scan-line {
-            position: absolute;
-            width: 100%;
-            height: 3px;
-            background: var(--primary);
-            box-shadow: 0 0 15px var(--primary);
-            top: 0;
+            position: absolute; width: 100%; height: 3px; background: var(--primary);
+            box-shadow: 0 0 15px var(--primary); top: 0;
             animation: moveScan 2.5s ease-in-out infinite;
         }
 
-        @keyframes moveScan {
-            0%, 100% { top: 5%; opacity: 0.5; }
-            50% { top: 95%; opacity: 1; }
-        }
+        @keyframes moveScan { 0%, 100% { top: 5%; opacity: 0.5; } 50% { top: 95%; opacity: 1; } }
 
         .top-controls {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            right: 20px;
-            z-index: 150;
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
+            position: absolute; top: 20px; left: 20px; right: 20px;
+            z-index: 150; display: flex; justify-content: space-between; gap: 10px;
         }
 
         .control-btn {
-            background: rgba(255, 255, 255, 0.9);
-            color: var(--dark);
-            padding: 12px 18px;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 14px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            border: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            cursor: pointer;
+            background: rgba(255, 255, 255, 0.9); color: var(--dark);
+            padding: 12px 18px; border-radius: 50px; font-weight: 600;
+            font-size: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border: none; display: flex; align-items: center; gap: 8px; cursor: pointer;
         }
 
         .bottom-sheet {
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            background: var(--sheet-bg);
-            color: var(--dark);
-            padding: 24px;
-            border-top-left-radius: 28px;
-            border-top-right-radius: 28px;
-            transform: translateY(105%);
-            transition: transform 0.4s cubic-bezier(0.33, 1, 0.68, 1);
-            z-index: 200;
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--sheet-bg); color: var(--dark); padding: 24px;
+            border-top-left-radius: 28px; border-top-right-radius: 28px;
+            transform: translateY(105%); transition: transform 0.4s cubic-bezier(0.33, 1, 0.68, 1);
+            z-index: 200; text-align: center;
         }
 
         .bottom-sheet.active { transform: translateY(0); }
 
-        .history-drawer {
-            position: fixed;
-            inset: 0;
-            background: #f8fafc;
-            z-index: 300;
-            display: flex;
-            flex-direction: column;
-            transform: translateY(100%);
-            transition: transform 0.3s ease;
-        }
-
-        .history-drawer.open { transform: translateY(0); }
-
-        .drawer-header {
-            padding: 20px;
-            background: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #e2e8e0;
-        }
-
-        .history-list { flex: 1; overflow-y: auto; padding: 15px; }
-
-        .history-item {
-            background: white; padding: 15px; border-radius: 12px;
-            margin-bottom: 10px; border: 1px solid #e2e8f0;
-        }
-
         .btn {
             padding: 14px; border-radius: 12px; font-weight: 600; border: none;
             display: flex; align-items: center; justify-content: center;
-            gap: 8px; text-decoration: none; cursor: pointer;
+            cursor: pointer; width: 100%; font-size: 15px;
         }
-        .btn-primary { background: var(--primary); color: white; width: 100%; }
-        .btn-secondary { background: #e2e8f0; color: var(--dark); width: 100%; }
+        .btn-primary { background: var(--primary); color: white; }
 
         #setupOverlay {
             position: fixed; inset: 0; background: var(--dark); z-index: 400;
@@ -154,16 +80,14 @@
 </head>
 <body>
 
-    <!-- Start Overlay -->
     <div id="setupOverlay">
         <h2 style="color:white">Pro Barcode Scanner</h2>
-        <button class="btn btn-primary" style="padding: 15px 40px; border-radius: 50px; width:auto;" onclick="initScanner()">Open Camera</button>
+        <button class="btn btn-primary" style="width:auto; padding: 15px 40px; border-radius: 50px;" onclick="initScanner()">Open Camera</button>
     </div>
 
-    <!-- Top Controls -->
     <div class="top-controls">
         <button class="control-btn" id="torchBtn" onclick="toggleTorch()">🔦 Flash Off</button>
-        <button class="control-btn" onclick="toggleHistory(true)">📜 Session (<span id="historyCount">0</span>)</button>
+        <div id="statusLabel" class="control-btn" style="background: var(--primary); color: white;">READY</div>
     </div>
 
     <div class="scanner-container">
@@ -171,55 +95,34 @@
         <div class="overlay"><div class="scan-line"></div></div>
     </div>
 
-    <!-- Result Sheet -->
     <div id="resultSheet" class="bottom-sheet">
-        <div style="width: 40px; height: 5px; background: #e2e8f0; border-radius: 10px; margin: -10px auto 15px;"></div>
-        <div style="font-size: 11px; color: var(--success); font-weight: 800; letter-spacing: 1px; margin-bottom: 5px;">COPIED TO FORM</div>
+        <div id="resultStatus" style="font-size: 11px; font-weight: 800; letter-spacing: 1px; margin-bottom: 5px;">RESULT</div>
         <div id="resultValue" style="font-family: monospace; font-size: 1.3rem; font-weight: 700; margin-bottom: 20px; word-break: break-all; color: var(--dark);">...</div>
-        <button onclick="resumeScanning()" class="btn btn-primary">Scan Next Item</button>
-    </div>
-
-    <!-- History Drawer -->
-    <div id="historyDrawer" class="history-drawer">
-        <div class="drawer-header">
-            <h2 style="margin:0; font-size: 1.2rem;">Session History</h2>
-            <button onclick="toggleHistory(false)" style="background:none; border:none; font-size: 28px;">&times;</button>
-        </div>
-        <div class="history-list" id="historyList"></div>
-        <div style="padding: 20px; background: white; border-top: 1px solid #e2e8f0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <button onclick="clearHistory()" class="btn btn-secondary" style="color: #dc2626;">Clear</button>
-            <button onclick="toggleHistory(false)" class="btn btn-primary">Done</button>
-        </div>
+        <button onclick="resumeScanning()" class="btn btn-primary">Scan Next</button>
     </div>
 
 <script>
-    /* ADDING FORMAT HINTS TO FIX THE "WEIRD RESULT" ISSUE */
     const hints = new Map();
-    const formats = [
-        ZXing.BarcodeFormat.EAN_13,
-        ZXing.BarcodeFormat.CODE_128,
-        ZXing.BarcodeFormat.EAN_8,
+    hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
+        ZXing.BarcodeFormat.EAN_13, 
+        ZXing.BarcodeFormat.CODE_128, 
         ZXing.BarcodeFormat.UPC_A
-    ];
-    hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, formats);
+    ]);
 
     const codeReader = new ZXing.BrowserMultiFormatReader(hints);
     const resultValue = document.getElementById('resultValue');
+    const resultStatus = document.getElementById('resultStatus');
     const resultSheet = document.getElementById('resultSheet');
-    const historyList = document.getElementById('historyList');
-    const historyCount = document.getElementById('historyCount');
+    const statusLabel = document.getElementById('statusLabel');
     const torchBtn = document.getElementById('torchBtn');
     
     let isPaused = false;
     let torchActive = false;
     let videoTrack = null;
-    let scanHistory = [];
+    let scanHistory = []; // Local session history to check duplicates
 
-    // --- FLASH LIGHT LOGIC ---
     async function toggleTorch() {
         if (!videoTrack) return;
-        const capabilities = videoTrack.getCapabilities();
-        if (!capabilities.torch) return;
         try {
             torchActive = !torchActive;
             await videoTrack.applyConstraints({ advanced: [{ torch: torchActive }] });
@@ -227,29 +130,25 @@
         } catch (e) { console.error(e); }
     }
 
-    // --- SOUND ENGINE ---
-    function playBeep() {
+    function playBeep(type = 'success') {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        
+        // Success: High pitch | Duplicate: Low pitch
+        osc.frequency.setValueAtTime(type === 'success' ? 800 : 300, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
         osc.start(); osc.stop(audioCtx.currentTime + 0.3);
     }
 
-    // --- SCANNER ENGINE ---
     async function initScanner() {
         try {
             const devices = await codeReader.listVideoInputDevices();
             document.getElementById('setupOverlay').style.display = 'none';
             let selectedDevice = devices.find(d => d.label.toLowerCase().includes('back'))?.deviceId || devices[0].deviceId;
-
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: { deviceId: selectedDevice }
-            });
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { deviceId: selectedDevice } });
             videoTrack = stream.getVideoTracks()[0];
-
             codeReader.decodeFromVideoDevice(selectedDevice, 'video', (result) => {
                 if (result && !isPaused) onCodeFound(result.text);
             });
@@ -258,45 +157,43 @@
 
     function onCodeFound(text) {
         isPaused = true;
-        playBeep();
-        if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
 
-        // Communicate result to Parent Form
+        // CHECK FOR DUPLICATE
+        if (scanHistory.includes(text)) {
+            playBeep('duplicate');
+            statusLabel.style.background = 'var(--warning)';
+            statusLabel.innerText = "DUPLICATE";
+            
+            resultStatus.style.color = 'var(--warning)';
+            resultStatus.innerText = "ALREADY SCANNED (SKIPPED)";
+            resultValue.textContent = text;
+            resultSheet.classList.add('active');
+            return; // STOP HERE
+        }
+
+        // UNIQUE SCAN SUCCESS
+        playBeep('success');
+        if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
+        
+        scanHistory.push(text);
         window.parent.postMessage({ type: 'barcodeScanned', text: text }, '*');
 
-        scanHistory.unshift({ text, time: new Date().toLocaleTimeString() });
-        updateHistoryUI();
-
+        statusLabel.style.background = 'var(--success)';
+        statusLabel.innerText = "SUCCESS";
+        resultStatus.style.color = 'var(--success)';
+        resultStatus.innerText = "COPIED TO FORM";
         resultValue.textContent = text;
         resultSheet.classList.add('active');
     }
 
     function resumeScanning() {
         resultSheet.classList.remove('active');
+        statusLabel.style.background = 'var(--primary)';
+        statusLabel.innerText = "READY";
         setTimeout(() => isPaused = false, 500);
-    }
-
-    function updateHistoryUI() {
-        historyCount.textContent = scanHistory.length;
-        historyList.innerHTML = scanHistory.map(item => `
-            <div class="history-item">
-                <div style="font-family: monospace; font-weight: 700; word-break: break-all;">${item.text}</div>
-                <div style="font-size: 11px; color: #94a3b8; margin-top: 5px;">${item.time}</div>
-            </div>
-        `).join('');
-    }
-
-    function toggleHistory(show) {
-        document.getElementById('historyDrawer').classList.toggle('open', show);
-    }
-
-    function clearHistory() {
-        scanHistory = [];
-        updateHistoryUI();
     }
 
     window.addEventListener('load', initScanner);
 </script>
-
 </body>
 </html>
